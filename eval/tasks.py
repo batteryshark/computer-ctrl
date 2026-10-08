@@ -402,7 +402,7 @@ task(id="clip_ticker", category="media",
                       "at a time. Watch it and reply with the 5 words in the order they appear, comma-separated, "
                       "starting from any word.",
      check=_ticker_check,
-     teardown=lambda c: f"pkill -f '[c]hromium --user-data-dir={c.run}/chrome'; pkill -f '[h]ttp.server {c.port}'",
+     teardown=lambda c: f"pkill -f '[u]ser-data-dir={c.run}/chrome'; pkill -f '[h]ttp.server {c.port}'",
      needs_vision=True)
 
 

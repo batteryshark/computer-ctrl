@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """Phase 2 acceptance: screen clips, audio capture/transcription and OCR over MCP, verified in code.
 
-    python3 acceptance/phase2.py [--cmd "cctl --host user@linux-vm mcp"]
+    python3 acceptance/phase2.py [--cmd "cctl --host user@linux-vm mcp"] [--virtual-mic]
 
 Audio is produced on the target with espeak-ng + paplay, so the system-audio path is exercised end to end.
+--virtual-mic (sandbox only) adds a temporary PulseAudio "microphone": a null sink whose monitor is remapped into
+a source and fed by espeak-ng. It checks the mic path end to end, then unloads the modules and restores the
+default source.
 """
 
 import argparse
@@ -17,11 +20,13 @@ import uuid
 from phase1 import Mcp, check, results
 
 WORD = "pineapple"
+MIC_WORD = "lighthouse"
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--cmd", default="cctl mcp")
+    ap.add_argument("--virtual-mic", action="store_true")
     a = ap.parse_args()
     m = Mcp(a.cmd)
     d = f"/tmp/cctl-p2-{uuid.uuid4().hex[:6]}"
@@ -88,12 +93,56 @@ def main():
     kinds = [c["type"] for c in raw.get("content", [])]
     check("audio_inline_content", not err and "audio" in kinds, content=kinds)
 
+    if a.virtual_mic:
+        mic_checks(m, d)
+
     m.call("apps", action="quit", pid=pid)
     m.call("run", command=f"pkill -f '[m]ousepad --disable-server {d}'; rm -rf {d}")
     m.p.stdin.close()
     m.p.wait(timeout=10)
     print(f"{sum(results)}/{len(results)} passed")
     sys.exit(0 if all(results) else 1)
+
+
+def mic_checks(m, d):
+    nomic, _, err, _ = m.call("audio_capture", source="mic", seconds=1)  # the sandbox has no microphone of its own
+    check("mic_missing_is_explained", err and "no microphone" in nomic.get("message", ""), error=nomic)
+    # Loading a sink makes PulseAudio drop its placeholder output (module-always-sink), so the new devices become
+    # the defaults while they exist; the defaults are restored on unload.
+    r, _, _, _ = m.call("run", command=(
+        "pactl get-default-source && "
+        "pactl load-module module-null-sink sink_name=cctl_mic_feed sink_properties=device.description=cctl-mic-feed "
+        "&& pactl load-module module-remap-source master=cctl_mic_feed.monitor source_name=cctl_vmic "
+        "source_properties=device.description=cctl-virtual-mic"))
+    out = r.get("stdout", "").split()
+    if not check("virtual_mic_setup", r.get("exit_code") == 0 and len(out) == 3, out=r):
+        return
+    prev, mods = out[0], out[1:]
+    try:
+        m.call("run", command="pactl set-default-source cctl_vmic")
+        sil, _, err, _ = m.call("audio_capture", source="mic", seconds=1.5)
+        check("mic_zero_hint", not err and sil.get("silent") and sil.get("hint") and "cctl_vmic" in sil.get("inputs", []),
+              device=sil.get("device"), hint=sil.get("hint"), inputs=sil.get("inputs"))
+
+        cap, _, err, _ = m.call("audio_capture", source="mic", action="start")
+        check("mic_start", not err and cap.get("device") == "cctl_vmic", device=cap.get("device"))
+        m.call("run", command=f"espeak-ng -s 140 -w {d}/mic.wav 'Microphone check. The word is {MIC_WORD}.' "
+                              f"&& paplay --device=cctl_mic_feed {d}/mic.wav")
+        time.sleep(0.5)
+        au, _, err, _ = m.call("audio_capture", action="stop", transcribe=True)
+        check("mic_transcribed", not err and MIC_WORD in (au.get("transcript") or "").lower(),
+              transcript=au.get("transcript"), peak=au.get("peak_dbfs"))
+
+        sink, _, _, _ = m.call("run", command="pactl get-default-sink")
+        sy, _, err, _ = m.call("audio_capture", seconds=0.5)  # system = the monitor of whatever output is default now
+        check("system_follows_default_sink", not err and sy.get("device") == sink["stdout"].strip() + ".monitor",
+              device=sy.get("device"), default_sink=sink["stdout"].strip())
+
+        byname, _, err, _ = m.call("audio_capture", source="cctl_vmic", seconds=1)
+        check("mic_by_name", not err and byname.get("device") == "cctl_vmic", device=byname.get("device"))
+    finally:
+        m.call("run", command=f"pactl set-default-source {prev}; pactl unload-module {mods[1]}; "
+                              f"pactl unload-module {mods[0]}")
 
 
 if __name__ == "__main__":

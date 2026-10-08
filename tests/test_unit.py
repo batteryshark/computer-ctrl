@@ -170,6 +170,9 @@ def test_capture_args():
     a = x11grab_args(":0", (10, 20, 641, 481), 8, Path("/tmp/c.mp4"), 3, None)
     assert a[a.index("-video_size") + 1] == "640x480" and a[a.index("-i") + 1] == ":0+10,20"
     assert pulse_args("auto_null.monitor", Path("/tmp/a.wav"), 2)[:4] == ["-f", "pulse", "-i", "auto_null.monitor"]
+    b = x11grab_args(":0", (0, 0, 640, 480), 8, Path("/tmp/c.mkv"), 3, "auto_null.monitor")
+    # with audio: input-side limits on both inputs, wall-clock timestamps kept into Matroska
+    assert b.count("-t") == 2 and b.index("-t") < b.index("-i") and "-copyts" in b and b[-3:-1] == ["-f", "matroska"]
 
 
 # ---- grounding ----------------------------------------------------------------

@@ -144,6 +144,17 @@ Updated: 2026-10-07
       - `processes kill` on a pid that has already exited now returns `no_such_process` (it used to raise WinError 87).
     - Regression: Windows `clip_smoke` 5/5 (gdigrab crop matches the window exactly) and `windows_smoke` 8/8.
     - macOS `clip_smoke` 4/5: the user's ChatGPT window sat in front of the test's TextEdit window, and macOS wouldn't raise TextEdit, so the clip shows ChatGPT. This is the environment, not a regression; the crop is still exact.
+  - (done 2026-10-08) Linux mic and clip audio.
+    - `phase2.py --virtual-mic` (sandbox only) passes 19/19.
+      - It adds a temporary PulseAudio mic: a null sink → module-remap-source, fed by espeak-ng.
+      - Checks: no-mic error; the all-zero hint with `inputs`; the mic transcript ("…the word is lighthouse"); source by name; system follows the default sink.
+      - It unloads the modules afterwards; defaults verified back to `auto_null`.
+    - Loading any sink makes PulseAudio drop its `auto_null` placeholder (module-always-sink), so the test devices become the defaults while they exist.
+    - Linux now lists its inputs too: PulseAudio sources that are not monitors.
+    - Clip audio was 235 ms early: ffmpeg starts each input (x11grab, pulse) at zero, losing pulse's later start.
+      - Fix: with audio, capture to Matroska with `-copyts` (input-side `-t`), then remux with `aresample=first_pts=0`.
+      - `clip_audio_smoke.py --host user@linux-vm` passes 7/7, A/V offset -13 ms.
+    - The VM has about 53 idle `cctl mcp` children of OpenChamber's `opencode serve` (each a past session's MCP server, 50–70 MB). Left alone: OpenChamber is the user's.
   - (done 2026-10-08) CLI over `--host` to Windows.
     - Per-host `hosts` table in config.toml (ssh_args, remote_bin, os), PowerShell quoting, Windows paths copied back with scp.
     - Verified: doctor, screenshot, then zoom in a separate call (state persists), Calculator typed "42" via window-targeted keys.

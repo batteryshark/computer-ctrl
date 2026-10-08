@@ -916,7 +916,7 @@ class Engine:
             if rec.proc is not None:
                 await media.stop_ffmpeg(rec.proc)
                 if rec.meta.get("raw"):
-                    await self._gdigrab_mux(rec)
+                    await self._raw_mux(rec)
             else:
                 await self._cua_clip_stop(rec)
             return await self._finish_clip(rec, frames, max_dim, ocr)
@@ -943,8 +943,12 @@ class Engine:
         if not x11grab:  # macOS / Wayland: Cua's recorder (it holds the screen-capture permission)
             return await self._cua_clip(rid, out, meta, action, seconds, frames, max_dim, ocr)
         source = await media.pulse_source("system", self.env) if audio else None
+        grab = out
+        if source:  # raw Matroska with wall-clock timestamps, remuxed at the end (see media.x11grab_args)
+            grab = self.artifacts / f"clip-{rid}.mkv"
+            meta["raw"] = str(grab)
         if action == "start":
-            proc = await media.start_ffmpeg(media.x11grab_args(self.session_env["DISPLAY"], rect, fps, out,
+            proc = await media.start_ffmpeg(media.x11grab_args(self.session_env["DISPLAY"], rect, fps, grab,
                                                                media.MAX_CLIP_S, source), self.env)
             await asyncio.sleep(0.5)
             if proc.returncode is not None:
@@ -954,12 +958,15 @@ class Engine:
             return ToolResult(data={"clip": rid, "recording": True, "max_seconds": media.MAX_CLIP_S,
                                     "hint": "do the actions to capture, then record_clip(action='stop')"})
         seconds = max(0.5, min(float(seconds), 60.0))
+        rec = media.Recording(rid, "clip", out, None, 0, meta)
         try:
-            await media.run_ffmpeg(media.x11grab_args(self.session_env["DISPLAY"], rect, fps, out, seconds, source),
+            await media.run_ffmpeg(media.x11grab_args(self.session_env["DISPLAY"], rect, fps, grab, seconds, source),
                                    self.env, timeout=seconds + 30)
+            if source:
+                await self._raw_mux(rec)
         except RuntimeError as e:
             raise ToolError("capture_failed", str(e)) from None
-        return await self._finish_clip(media.Recording(rid, "clip", out, None, 0, meta), frames, max_dim, ocr)
+        return await self._finish_clip(rec, frames, max_dim, ocr)
 
     async def _gdigrab_clip(self, rid: str, out, meta: dict, action: str, seconds: float, frames: int,
                             max_dim: int | None, ocr: bool) -> ToolResult:
@@ -990,11 +997,12 @@ class Engine:
             await asyncio.wait_for(proc.wait(), limit + 30)  # -t ends it
         except asyncio.TimeoutError:
             await media.stop_ffmpeg(proc)
-        await self._gdigrab_mux(rec)
+        await self._raw_mux(rec)
         return await self._finish_clip(rec, frames, max_dim, ocr)
 
-    async def _gdigrab_mux(self, rec: media.Recording) -> None:
-        """Raw Matroska (wall-clock timestamps) -> MP4, with the soundtrack shifted to the first frame's time."""
+    async def _raw_mux(self, rec: media.Recording) -> None:
+        """Raw Matroska (wall-clock timestamps) -> MP4. The soundtrack is either a separate recording (Windows),
+        shifted to the first frame's time, or already in the file (Linux), padded so it starts with the video."""
         recorder = rec.meta.get("recorder")
         audio = await asyncio.to_thread(recorder.stop) if recorder else None
         raw = Path(rec.meta["raw"])
@@ -1003,6 +1011,8 @@ class Engine:
             lead = await media.probe_start(raw, self.env) - recorder.started_wall
             args += (["-ss", f"{lead:.3f}"] if lead >= 0 else ["-itsoffset", f"{-lead:.3f}"]) + ["-i", str(audio)]
             args += ["-map", "0:v", "-map", "1:a", "-af", "apad", "-shortest", "-c:a", "aac", "-b:a", "96k"]
+        elif rec.meta["audio"]:
+            args += ["-af", "aresample=first_pts=0,apad", "-shortest", "-c:a", "aac", "-b:a", "96k"]
         await media.run_ffmpeg([*args, "-c:v", "copy", "-movflags", "+faststart", str(rec.path)], self.env,
                                timeout=120)
         raw.unlink(missing_ok=True)
@@ -1187,7 +1197,7 @@ class Engine:
             why = " (a MacBook's built-in mic is off while the lid is closed)" if sys.platform == "darwin" else ""
             data["hint"] = (f"the input delivered all-zero samples: it is muted, switched off or virtual{why}. "
                             "Pick another input with source='<device name>'.")
-            inputs = await asyncio.to_thread(media.input_names)
+            inputs = await asyncio.to_thread(media.input_names, self.env)
             if inputs:
                 data["inputs"] = inputs
         if transcribe:

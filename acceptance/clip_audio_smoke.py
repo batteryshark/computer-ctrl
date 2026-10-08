@@ -11,6 +11,7 @@ Only touches the window it opens.
 
     python3 acceptance/clip_audio_smoke.py                                    # this Mac
     python3 acceptance/clip_audio_smoke.py --host user@windows-pc --home 'C:\\Users\\<user>'
+    python3 acceptance/clip_audio_smoke.py --host user@linux-vm               # Linux (Chromium)
 """
 
 import argparse
@@ -100,12 +101,20 @@ def pair_offsets(flashes, tones, tol=0.06):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--host", help="remote Windows host (user@host) driven through cctl --host")
-    ap.add_argument("--home", help="Windows: the user's home on the host (where computer-ctrl/ is deployed)")
+    ap.add_argument("--home", help="the user's home on the host (where computer-ctrl/ is deployed); "
+                                   "default /home/<user> on Linux")
     a = ap.parse_args()
+    linux = cctl(a.host, "doctor").get("platform", "").startswith("Linux")
     before = {w["id"] for w in cctl(a.host, "windows", action="list").get("windows", [])}
     tmp = tempfile.mkdtemp(prefix="cctl-avsync-")
     browser, pid = None, None
-    if a.host:
+    if linux:
+        home = a.home or f"/home/{(a.host or '').split('@')[0] or Path.home().name}"
+        la = cctl(a.host, "apps", action="launch", name="chromium",
+                  args=[f"--user-data-dir=/tmp/cctl-avsync-{Path(tmp).name}", "--password-store=basic", *FLAGS,
+                        f"--app=file://{home}/computer-ctrl/acceptance/web/av_sync.html"])
+        pid = la.get("pid")
+    elif a.host:
         page = f"{a.home}\\computer-ctrl\\acceptance\\web\\av_sync.html"
         prof = f"{a.home}\\AppData\\Local\\Temp\\cctl-avsync"
         la = cctl(a.host, "apps", action="launch", name="msedge.exe",
@@ -148,7 +157,7 @@ def finish(a, win, browser, pid):
         check("close_window", "error" not in q, result=q)
     if browser:
         browser.terminate()
-    elif pid:  # the throwaway Edge profile may linger in the background
+    elif pid:  # the throwaway browser profile may linger in the background
         time.sleep(1)
         cctl(a.host, "processes", action="kill", pid=pid)
     print(f"{sum(results)}/{len(results)} passed")

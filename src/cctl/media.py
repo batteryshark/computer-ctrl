@@ -80,17 +80,20 @@ async def stop_ffmpeg(proc: asyncio.subprocess.Process, timeout: float = 15) -> 
 # ---------------------------------------------------------------- screen clips
 def x11grab_args(display: str, rect: tuple[int, int, int, int], fps: int, out: Path, seconds: float | None,
                  audio_source: str | None = None, max_width: int = 1280) -> list[str]:
+    """X11 screen grab, optionally with a PulseAudio source. With audio, `out` is raw Matroska that keeps both
+    inputs' wall-clock timestamps (-copyts): ffmpeg otherwise starts each input at zero, which drops the time the
+    audio input started after the video (about 0.25 s). The raw file is then remuxed with the audio padded."""
     x, y, w, h = rect
-    args = ["-f", "x11grab", "-framerate", str(fps), "-video_size", f"{even(w)}x{even(h)}",
-            "-i", f"{display}+{x},{y}"]
-    if audio_source:
-        args += ["-f", "pulse", "-i", audio_source]
-    if seconds:
-        args += ["-t", f"{seconds:.2f}"]
+    limit = ["-t", f"{seconds:.2f}"] if seconds else []
+    args = ["-f", "x11grab", "-framerate", str(fps), "-video_size", f"{even(w)}x{even(h)}"]
+    if audio_source:  # input-side limits: with -copyts an output -t is measured from 0 and would end at once
+        args += [*limit, "-i", f"{display}+{x},{y}", "-f", "pulse", *limit, "-i", audio_source]
+    else:
+        args += ["-i", f"{display}+{x},{y}", *limit]
     args += ["-vf", f"scale='min({max_width},iw)':-2", "-c:v", "libx264", "-preset", "ultrafast", "-crf", "28",
              "-pix_fmt", "yuv420p"]
     if audio_source:
-        args += ["-c:a", "aac", "-b:a", "96k"]
+        return args + ["-c:a", "pcm_s16le", "-copyts", "-f", "matroska", str(out)]
     return args + ["-movflags", "+faststart", str(out)]
 
 
@@ -195,7 +198,9 @@ async def pulse_source(kind: str, env: dict) -> str:
     if kind == "system":
         return name + ".monitor"
     if name.endswith(".monitor"):
-        raise RuntimeError("no microphone: the default source is a monitor of an output")
+        inputs = input_names(env)
+        raise RuntimeError("no microphone: the default source is a monitor of an output; "
+                           + (f"inputs: {', '.join(inputs)} (pass source=<name>)" if inputs else "no inputs found"))
     return name
 
 
@@ -220,10 +225,15 @@ def write_wav_16k_mono(samples, rate: int, out: Path) -> None:
         w.writeframes(pcm.tobytes())
 
 
-def input_names() -> list[str]:
-    """Names of the recording inputs, for picking source=<device name> (Windows and macOS)."""
+def input_names(env: dict | None = None) -> list[str]:
+    """Names of the recording inputs (not output monitors), for picking source=<device name>."""
     import subprocess
     try:
+        if sys.platform.startswith("linux"):
+            out = subprocess.run(["pactl", "list", "short", "sources"], env=env, capture_output=True, text=True,
+                                 timeout=10).stdout
+            names = [line.split("\t")[1] for line in out.splitlines() if line.count("\t") >= 1]
+            return [n for n in names if not n.endswith(".monitor")]
         if sys.platform == "win32":
             import soundcard as sc
             return [m.name for m in sc.all_microphones()]

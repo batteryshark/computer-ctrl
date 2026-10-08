@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>cctl ticker</title>
+<style>
+  html, body { height: 100%; margin: 0; background: #111; color: #ffd400; font: bold 120px system-ui, sans-serif; }
+  body { display: flex; align-items: center; justify-content: center; }
+</style>
+</head>
+<body>
+<div id="w" aria-hidden="true"></div>
+<script src="words.js" onerror="void 0"></script>
+<script>
+  // Words come from words.js (window.WORDS, base64) or the URL hash (#ALPHA,BRAVO,...) and are drawn on a canvas so they are not in the DOM text;
+  // each shows for 700 ms, then a 300 ms blank, and the cycle repeats.
+  const words = (window.WORDS ? atob(window.WORDS) : decodeURIComponent(location.hash.slice(1))).split(",").filter(Boolean);
+  const el = document.getElementById("w");
+  const c = document.createElement("canvas");
+  c.width = 900; c.height = 200; el.appendChild(c);
+  const g = c.getContext("2d");
+  g.font = "bold 120px sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillStyle = "#ffd400";
+  let i = 0;
+  function tick() {
+    g.clearRect(0, 0, c.width, c.height);
+    g.fillText(words[i % words.length], c.width / 2, c.height / 2);
+    i++;
+    setTimeout(() => { g.clearRect(0, 0, c.width, c.height); setTimeout(tick, 300); }, 700);
+  }
+  history.replaceState(null, "", location.pathname);  // keep the words out of the URL bar and page state
+  tick();
+</script>
+</body>
+</html>

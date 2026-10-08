@@ -5,13 +5,13 @@ Updated: 2026-10-07
 ## Current state
 
 - Objective: Build a harness-agnostic computer-use toolkit (MCP + CLI + Agent Skill) that lets Claude Code, Codex CLI, opencode, pi (and Gemini/Antigravity) control Windows, macOS and Linux desktops: screenshots + zoom, mouse/keyboard, windows, processes, browser, a11y, OCR, audio and short video clips for capable models.
-- Status: **Phase 1 core done on Linux X11.** `cctl` (Python, uv) serves the 17-tool contract over MCP and a CLI. Acceptance passes 14/14. The same GUI task passed from 3 harnesses (Codex/gpt-6.1-sol MCP, opencode/GLM-5.3 MCP, Claude Code via CLI `--host`). Phase 1b (browser) done: 5 browser tools; acceptance 10/10; browser task PASS in Codex and opencode.
+- Status: **Phase 1 core done on Linux X11.** `cctl` (Python, uv) serves the 17-tool contract over MCP and a CLI. Acceptance passes 14/14. The same GUI task passed from 3 harnesses (Codex/gpt-6.1-sol MCP, opencode/GLM-5.3 MCP, Claude Code via CLI `--host`). Phase 1b (browser) done. **Phase 2 (media) done**: record_clip, audio_capture and ocr; acceptance 12/12; clip and audio tasks PASS in Codex and opencode.
 - Main constraint: Harnesses disagree on what tool media reaches the model (see report, "Harness quirks" table). The output layer must target the lowest common denominator.
 - Environment roles: `user@linux-vm` is a disposable sandbox the agent fully controls (not an inference host). The user's own windows there (e.g. Mousepad `~/private.env`, OpenChamber, a terminal in ~/Projects) are off-limits for tests. Model inference (Holo4, grounders, omni) runs on the user's Mac or desktop (Windows, RTX 4090, 96 GB RAM), reached over Tailscale.
 - Where this tracker and the report disagree, this tracker wins (see Decisions: "2026-10-07 corrections").
 - Harness credentials (VM): Codex works via ChatGPT login (gpt-6.1-sol). opencode works with Z.AI (GLM-5.3); other providers are not configured. Claude Code's OAuth is expired. pi 0.85 has no models and predates MCP. Harness CLIs live in `~/.nvm/versions/node/v24.20.0/bin`, which is not on the non-interactive PATH.
 - Pending user action: `gh auth login` on the Mac so the two upstream reports in `upstream/` can be filed (approved by user); re-login Claude Code on the VM.
-- Next action: Phase 2 media: record_clip (ffmpeg x11grab, returning MP4 + contact sheet), audio_capture (PulseAudio monitor/mic, returning WAV + optional transcript), OCR (Cua perception extension, AGPL OK). Then rerun the media probe for the new shapes.
+- Next action: Phase 3: grounding + reliability. Holo4 `locate`/`delegate` via an OpenAI-compatible sidecar on the 4090 desktop (llama.cpp CUDA), verify-after-act, and a 20–30-task eval with a Holo baseline. In parallel: Phase 4 cross-platform engine adapters (Windows first: the desktop is Windows).
 
 ## Active workstreams
 
@@ -40,7 +40,21 @@ Updated: 2026-10-07
 - Carried forward (small): event-log rotation; `run` output streaming; an Electron a11y launch helper (`--force-renderer-accessibility`); attaching to the user's own browser (`existing_profile` needs a Cua launch grant).
 - Next action: none; Phase 2 is next.
 
-### Phases 2–4 — Media (clips/audio/OCR), grounding + eval, cross-platform + transport
+### Phase 2 — Media (done 2026-10-08)
+
+- Evidence:
+  - `src/cctl/media.py` (ffmpeg x11grab clips → annotated contact sheet + MP4; PulseAudio capture → levels, sound ranges, waveform, faster-whisper transcript with uncertain words, inline WAV; RapidOCR PP-OCRv6 with line and word boxes).
+  - `acceptance/phase2.py`: 12/12.
+  - `TASK=clip|audio acceptance/harness_task.sh`: PASS in Codex (gpt-6.1-sol) and opencode (GLM-5V-Turbo clip, GLM-5.3 audio).
+- Lessons:
+  - Contact-sheet captions must sit below the tiles, never over content.
+  - Change detection needs a 640-px thumbnail to register typing.
+  - faster-whisper 1.2.1 breaks with current PyAV; feed it PCM directly.
+  - Whisper base/small mishear invented words in espeak, so the test uses real nouns and transcripts flag uncertain words.
+  - Cua ends idle sessions; revive them with `start_session`.
+  - Harness runs over SSH need stdin from /dev/null (`codex exec` waits on a piped stdin).
+
+### Phases 3–4 — Grounding + eval, cross-platform + transport
 
 - Status: paused
 - Owner: unassigned
@@ -100,6 +114,9 @@ Updated: 2026-10-07
 - Zoom: fresh native capture, cropped and enlarged up to 4× (default long edge 1024), with its own frame id usable for clicks.
 - Statefulness: one long-lived Cua connection per MCP session; the CLI shares state through `cctl serve` (auto-started, 30 min idle exit).
 - Name: `cctl` (renameable).
+- OCR backend: RapidOCR (Apache-2.0, ~30 MB, works on any frame including zoom and browser viewport, cross-platform) over Cua's perception extension (~405 MB per platform, catalog env at daemon launch, Cua captures only). Perception remains an option for icon detection later.
+- Speech-to-text: local faster-whisper `small` on CPU (optional `stt` extra), or any OpenAI-compatible `/audio/transcriptions` endpoint (e.g. the 4090 desktop) via `stt_url`.
+- Media results: the contact sheet or waveform is the inline image; raw MP4/WAV paths are always returned; WAV is attached inline only on request (Codex didn't pass audio to gpt-6.1-sol in the probe).
 - Browser (1b): isolated Chromium via Cua `browser_prepare` (throwaway or named profile). Sandbox profile uses foreground trusted input; personal profile stays background and falls back to `dom_event` for ref clicks. `browser_act` never reads CDP state afterwards, because any snapshot or re-bind invalidates the caller's refs; the page title comes from the X11 window title. Cua browser refusals (`effect: refused` + `error{}`) are errors.
 
 ### Phase 0 wrapper requirements (2026-10-07, from smoke evidence)
@@ -175,3 +192,4 @@ Updated: 2026-10-07
 - 2026-10-07: Media probe measured in Codex 0.161/gpt-6.1-sol: image native; image+structuredContent native (codex#10334 not reproduced); audio no; video only via an agent ffmpeg workaround; file path yes; structured-only yes.
 - 2026-10-07: Phase 1 core: cctl built; 3-harness GUI task PASS.
 - 2026-10-07: Phase 1b browser tools; browser task PASS in Codex and opencode.
+- 2026-10-08: Phase 2 media tools; clip + audio tasks PASS in Codex and opencode; regression 14/14, 10/10, 12/12.

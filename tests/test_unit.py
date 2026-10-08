@@ -132,3 +132,36 @@ def test_match_element_by_index_and_label_when_bounds_move():
              {"element_token": "s3:5", "role": "push button", "label": "OK", "frame": {"x": 20, "y": 9, "w": 5, "h": 5}}]
     assert match_element(info, "4", newer)["element_token"] == "s3:4"
     assert match_element({**info, "label": "Gone"}, "4", newer) is None
+
+
+# ---- media ---------------------------------------------------------------------
+def test_contact_sheet_grid_and_change(tmp_path):
+    from cctl.media import contact_sheet
+    frames = [(i * 0.5, Image.new("RGB", (640, 360), (255, 255, 255) if i < 2 else (0, 0, 0))) for i in range(4)]
+    sheet, timeline = contact_sheet(frames, max_dim=800)
+    assert max(sheet.size) <= 800
+    assert [t["tile"] for t in timeline] == [1, 2, 3, 4]
+    assert timeline[1]["changed"] == 0 and timeline[2]["changed"] > 0.9
+
+
+def test_analyze_wav_finds_sound(tmp_path):
+    import math, struct, wave
+    from cctl.media import analyze_wav
+    path = tmp_path / "t.wav"
+    rate = 16000
+    with wave.open(str(path), "w") as w:
+        w.setnchannels(1); w.setsampwidth(2); w.setframerate(rate)
+        silence = b"\0\0" * rate
+        tone = b"".join(struct.pack("<h", int(12000 * math.sin(2 * math.pi * 440 * i / rate))) for i in range(rate))
+        w.writeframes(silence + tone + silence)
+    a = analyze_wav(path)
+    assert a["duration_s"] == 3.0 and not a["silent"]
+    assert len(a["sound"]) == 1 and 0.9 <= a["sound"][0][0] <= 1.1 and 1.9 <= a["sound"][0][1] <= 2.2
+
+
+def test_capture_args():
+    from pathlib import Path
+    from cctl.media import pulse_args, x11grab_args
+    a = x11grab_args(":0", (10, 20, 641, 481), 8, Path("/tmp/c.mp4"), 3, None)
+    assert a[a.index("-video_size") + 1] == "640x480" and a[a.index("-i") + 1] == ":0+10,20"
+    assert pulse_args("auto_null.monitor", Path("/tmp/a.wav"), 2)[:4] == ["-f", "pulse", "-i", "auto_null.monitor"]

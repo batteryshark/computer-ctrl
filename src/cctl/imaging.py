@@ -40,9 +40,9 @@ def is_blank(img: Image.Image) -> bool:
     return stat.mean[0] < 3 and stat.stddev[0] < 2
 
 
-def changed_fraction(a: Image.Image, b: Image.Image, threshold: int = 16) -> float:
-    """Fraction of pixels whose grayscale value differs by more than threshold (on a 256-px thumbnail)."""
-    size = (256, max(1, round(256 * a.height / a.width)))
+def changed_fraction(a: Image.Image, b: Image.Image, threshold: int = 16, width: int = 256) -> float:
+    """Fraction of pixels whose grayscale value differs by more than threshold, on a thumbnail `width` wide."""
+    size = (width, max(1, round(width * a.height / a.width)))
     ga = a.convert("L").resize(size)
     gb = b.convert("L").resize(size)
     da, db = ga.tobytes(), gb.tobytes()

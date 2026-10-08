@@ -738,6 +738,140 @@
         },
         "additionalProperties": false
       }
+    },
+    {
+      "name": "record_clip",
+      "description": "Record the screen (whole desktop, a window, or a region) and get back a contact sheet: frames sampled evenly over the clip, numbered and labeled with time and how much changed. Use it to watch animations, progress, video playback or anything that happens over time. action=record (default) records `seconds` and returns; action=start begins recording while you act and action=stop ends it. The MP4 is saved (path) for models that accept video.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "record",
+              "start",
+              "stop"
+            ]
+          },
+          "seconds": {
+            "description": "record: length, 0.5-60 (default 5).",
+            "type": "number"
+          },
+          "window": {
+            "description": "Record this window's area (it is raised first).",
+            "type": "integer"
+          },
+          "region": {
+            "description": "[x0, y0, x1, y1] in screen pixels.",
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 4,
+            "maxItems": 4
+          },
+          "fps": {
+            "description": "Frames per second, 1-30 (default 8).",
+            "type": "integer"
+          },
+          "frames": {
+            "description": "Frames on the contact sheet, 1-36 (default 9).",
+            "type": "integer"
+          },
+          "audio": {
+            "description": "Also record system audio into the MP4.",
+            "type": "boolean"
+          },
+          "clip": {
+            "description": "stop: clip id from start (default: the latest).",
+            "type": "string"
+          },
+          "max_dim": {
+            "type": "integer",
+            "minimum": 256
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "audio_capture",
+      "description": "Record what the computer is playing (source=system) or the microphone (source=mic). Returns levels and the time ranges with sound, so you can tell whether anything was heard; transcribe=true adds a speech transcript; inline=true attaches the WAV for models that accept audio. action=start/stop records around other actions.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "record",
+              "start",
+              "stop"
+            ]
+          },
+          "seconds": {
+            "description": "record: length, 0.5-120 (default 5).",
+            "type": "number"
+          },
+          "source": {
+            "description": "system (default), mic, or a device name.",
+            "type": "string"
+          },
+          "transcribe": {
+            "type": "boolean"
+          },
+          "inline": {
+            "type": "boolean"
+          },
+          "waveform": {
+            "description": "Return a waveform image.",
+            "type": "boolean"
+          },
+          "capture": {
+            "description": "stop: capture id from start (default: the latest).",
+            "type": "string"
+          },
+          "stt_model": {
+            "description": "Speech-to-text model for transcribe (local Whisper sizes: tiny, base, small (default), medium, large-v3; larger is slower and more accurate).",
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "ocr",
+      "description": "Read the text in an image (default: the most recent screenshot or zoom), optionally only in a region of it, or in a window. Returns text lines with boxes in that image's frame, so they can be clicked. Use it when observe has no accessibility elements (canvas, games, remote desktops, images, terminals).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "frame": {
+            "type": "string"
+          },
+          "region": {
+            "description": "[x0, y0, x1, y1] in the frame's coordinates.",
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 4,
+            "maxItems": 4
+          },
+          "window": {
+            "description": "Capture this window and read it.",
+            "type": "integer"
+          },
+          "min_confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "words": {
+            "description": "Also return a box for each word (to click one word of a line, e.g. one menu in a menu bar).",
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      }
     }
   ]
 }

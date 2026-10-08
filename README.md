@@ -6,9 +6,13 @@
 - a zoom that actually magnifies
 - Unicode-safe typing that verifies by reading the field back
 - detection of locked or blank displays
-- compact output (10.7 KB of tool schema, against Cua's 199 KB)
+- compact output (25 tools in ~20 KB of schema, against Cua's 199 KB)
 - process listing
 - a remote mode over SSH
+- browser control by element refs (Phase 1b)
+- screen clips summarized as annotated contact sheets
+- system/mic audio capture with levels and a local Whisper transcript
+- OCR with clickable line and word boxes (Phase 2)
 
 Status and decisions: [`.project/tracker.md`](.project/tracker.md). Research and plan: [`reports/`](reports/). Install per harness: [`packaging/README.md`](packaging/README.md).
 

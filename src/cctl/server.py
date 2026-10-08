@@ -25,6 +25,9 @@ def render(result: ToolResult) -> types.CallToolResult:
     if result.image is not None:
         content.append(types.ImageContent(type="image", data=base64.b64encode(result.image).decode(),
                                           mimeType=result.mime))
+    if result.audio is not None:
+        content.append(types.AudioContent(type="audio", data=base64.b64encode(result.audio).decode(),
+                                          mimeType=result.audio_mime))
     return types.CallToolResult(content=content, isError=result.is_error)
 
 

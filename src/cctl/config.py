@@ -21,6 +21,9 @@ class Config:
     input_backend: str = "auto"    # auto | xdotool | cua
     cua_bin: str = ""
     cua_socket: str = ""
+    stt_url: str = ""              # OpenAI-compatible base URL (…/v1); empty = local faster-whisper if installed
+    stt_model: str = "small"
+    stt_api_key_env: str = ""      # name of the env var holding the endpoint's API key
     state_dir: Path = field(default_factory=lambda: Path.home() / ".local" / "state" / "cctl")
     cache_dir: Path = field(default_factory=lambda: Path.home() / ".cache" / "cctl")
 
@@ -44,6 +47,7 @@ def load() -> Config:
     env = {
         "profile": "CCTL_PROFILE", "max_dim": "CCTL_MAX_DIM", "zoom_dim": "CCTL_ZOOM_DIM",
         "input_backend": "CCTL_INPUT_BACKEND", "cua_bin": "CCTL_CUA_BIN", "cua_socket": "CCTL_CUA_SOCKET",
+        "stt_url": "CCTL_STT_URL", "stt_model": "CCTL_STT_MODEL", "stt_api_key_env": "CCTL_STT_API_KEY_ENV",
     }
     for key, var in env.items():
         if var in os.environ:

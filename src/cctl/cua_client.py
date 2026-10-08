@@ -124,6 +124,10 @@ class CuaClient:
             if not self.alive:
                 await self.start()
         r = await self._request("tools/call", {"name": tool, "arguments": args}, timeout)
+        if r.get("isError") and "session has ended" in json.dumps(r.get("content", [])):
+            # Cua ends idle lifecycle sessions and ordinary actions never revive them; start_session does.
+            await self._request("tools/call", {"name": "start_session", "arguments": {"session": self.session}}, 30)
+            r = await self._request("tools/call", {"name": tool, "arguments": args}, timeout)
         out = CuaResult(structured=r.get("structuredContent"), is_error=bool(r.get("isError")))
         for c in r.get("content", []):
             if c.get("type") == "text":

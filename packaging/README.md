@@ -38,4 +38,12 @@ Use `cctl mcp` when the harness runs on the same machine. From another machine, 
 | opencode / GLM-5.3 | PASS: 8 calls, 0 errors |
 | `acceptance/phase1b.py` | 10/10 |
 
-Re-run with `acceptance/phase1.py [--cmd …]` and `acceptance/harness_task.sh <harness> [args]`.
+| Harness / model | Media tasks (Phase 2) |
+|---|---|
+| Codex / gpt-6.1-sol | clip: read a 5-word cycle flashed on a canvas, PASS in 2 calls · audio: report a spoken secret word, PASS in 1 call |
+| opencode / GLM-5V-Turbo (clip), GLM-5.3 (audio) | clip PASS in 2 calls · audio PASS in 1 call |
+| `acceptance/phase2.py` | 12/12 |
+
+On the controlled machine, install with `uv tool install --editable '.[stt]'` to get local Whisper transcription (CPU, `small` by default). Without it, or with `stt_url` set, transcription goes to an OpenAI-compatible `/v1/audio/transcriptions` endpoint.
+
+Re-run with `acceptance/phase1.py | phase1b.py | phase2.py [--cmd …]` and `TASK=editor|browser|audio|clip acceptance/harness_task.sh <harness> [args]`.

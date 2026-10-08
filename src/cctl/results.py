@@ -10,6 +10,8 @@ class ToolResult:
     data: dict = field(default_factory=dict)
     image: bytes | None = None
     mime: str = "image/png"
+    audio: bytes | None = None
+    audio_mime: str = "audio/wav"
     is_error: bool = False
 
 

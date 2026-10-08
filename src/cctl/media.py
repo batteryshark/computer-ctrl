@@ -21,6 +21,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 from . import imaging
+from .cua_client import NO_WINDOW
 
 MAX_CLIP_S = 300
 MAX_AUDIO_S = 600
@@ -44,7 +45,7 @@ def even(n: float) -> int:
 async def run_ffmpeg(args: list[str], env: dict, timeout: float) -> None:
     proc = await asyncio.create_subprocess_exec("ffmpeg", "-hide_banner", "-loglevel", "error", "-y", *args, env=env,
                                                 stdin=asyncio.subprocess.DEVNULL, stdout=asyncio.subprocess.PIPE,
-                                                stderr=asyncio.subprocess.PIPE)
+                                                stderr=asyncio.subprocess.PIPE, **NO_WINDOW)
     try:
         _, err = await asyncio.wait_for(proc.communicate(), timeout)
     except asyncio.TimeoutError:
@@ -57,7 +58,7 @@ async def run_ffmpeg(args: list[str], env: dict, timeout: float) -> None:
 async def start_ffmpeg(args: list[str], env: dict) -> asyncio.subprocess.Process:
     return await asyncio.create_subprocess_exec("ffmpeg", "-hide_banner", "-loglevel", "error", "-y", *args, env=env,
                                                 stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.DEVNULL,
-                                                stderr=asyncio.subprocess.PIPE)
+                                                stderr=asyncio.subprocess.PIPE, **NO_WINDOW)
 
 
 async def stop_ffmpeg(proc: asyncio.subprocess.Process, timeout: float = 15) -> None:
@@ -93,10 +94,31 @@ def x11grab_args(display: str, rect: tuple[int, int, int, int], fps: int, out: P
     return args + ["-movflags", "+faststart", str(out)]
 
 
+def gdigrab_args(rect: tuple[int, int, int, int], fps: int, out: Path, seconds: float | None,
+                 max_width: int = 1280) -> list[str]:
+    """Windows GDI grab of a rect in physical pixels, into Matroska with the grabber's wall-clock timestamps kept
+    (-copyts), so a separately recorded soundtrack can be lined up by time."""
+    x, y, w, h = rect
+    args = ["-f", "gdigrab", "-framerate", str(fps), "-offset_x", str(x), "-offset_y", str(y),
+            "-video_size", f"{even(w)}x{even(h)}"]
+    if seconds:  # an input-side limit: with -copyts an output -t is measured from 0 and would end at once
+        args += ["-t", f"{seconds:.2f}"]
+    return args + ["-i", "desktop", "-vf", f"scale='min({max_width},iw)':-2", "-c:v", "libx264", "-preset",
+                   "ultrafast", "-crf", "28", "-pix_fmt", "yuv420p", "-copyts", "-f", "matroska", str(out)]
+
+
+async def probe_start(path: Path, env: dict) -> float:
+    proc = await asyncio.create_subprocess_exec("ffprobe", "-v", "error", "-show_entries", "format=start_time",
+                                                "-of", "csv=p=0", str(path), env=env, stdout=asyncio.subprocess.PIPE,
+                                                stderr=asyncio.subprocess.DEVNULL, **NO_WINDOW)
+    out, _ = await proc.communicate()
+    return float(out.decode().strip())
+
+
 async def probe_duration(path: Path, env: dict) -> float:
     proc = await asyncio.create_subprocess_exec("ffprobe", "-v", "error", "-show_entries", "format=duration",
                                                 "-of", "csv=p=0", str(path), env=env, stdout=asyncio.subprocess.PIPE,
-                                                stderr=asyncio.subprocess.DEVNULL)
+                                                stderr=asyncio.subprocess.DEVNULL, **NO_WINDOW)
     out, _ = await proc.communicate()
     try:
         return float(out.decode().strip())
@@ -165,7 +187,7 @@ async def pulse_source(kind: str, env: dict) -> str:
         raise RuntimeError("pactl not found (PulseAudio/PipeWire-pulse needed for audio capture)")
     arg = "get-default-sink" if kind == "system" else "get-default-source"
     proc = await asyncio.create_subprocess_exec("pactl", arg, env=env, stdout=asyncio.subprocess.PIPE,
-                                                stderr=asyncio.subprocess.DEVNULL)
+                                                stderr=asyncio.subprocess.DEVNULL, **NO_WINDOW)
     out, _ = await proc.communicate()
     name = out.decode().strip()
     if not name:
@@ -250,6 +272,7 @@ class SoundcardRecorder:
                 pass
             try:
                 with self.device.recorder(samplerate=self.RATE, blocksize=self.RATE // 10) as rec:
+                    self.started_wall = time.time()  # wall clock of the first sample, for lining up with video
                     ready.set()
                     t0 = time.monotonic()
                     while not self._stop.is_set() and time.monotonic() - t0 < self.max_seconds:
@@ -345,6 +368,13 @@ class MacAudioHelper:
     def _cleanup(self) -> None:
         for f in (self.stop_file, self._marker(".started"), self._marker(".done"), self._marker(".error")):
             f.unlink(missing_ok=True)
+
+
+def native_recorder(source: str, out: Path, max_seconds: float):
+    """The platform's start()/stop() audio recorder: WASAPI via soundcard on Windows, cctl-audio.app on macOS."""
+    if sys.platform == "win32":
+        return SoundcardRecorder(source, out, max_seconds)
+    return MacAudioHelper(source, out, max_seconds)
 
 
 def pulse_args(source: str, out: Path, seconds: float | None) -> list[str]:

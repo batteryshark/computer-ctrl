@@ -128,6 +128,22 @@ Updated: 2026-10-07
     - Windows Calculator: the display goes 0→7→78→789 across the tiles.
     - macOS TextEdit: text_changes CLIP → CLIP TEST → CLIP TEST WORKS.
     - Both crops match the window bounds exactly. Cua's agent-cursor badge shows up in recordings.
+  - (done 2026-10-08) clips with audio (`record_clip audio=true`) on macOS and Windows.
+    - Test: `acceptance/clip_audio_smoke.py` opens its own Chromium window on `web/av_sync.html`, a throwaway profile with autoplay on.
+      - The page flashes and beeps together at irregular intervals.
+      - The test checks the AAC track, the result's `audio` summary, and the A/V offset measured from the MP4.
+      - Results: macOS 7/7, audio +30–55 ms (browser output latency); Windows 7/7, about +96 ms.
+    - macOS: Cua's recorder for video, plus the cctl-audio helper. The audio is trimmed by the time `start_recording` took to return (about 0.1 s on macOS, so the error is small).
+    - Windows:
+      - Cua's `start_recording` takes 1.6–2.1 s, and the video starts somewhere inside that call. Its `session.json` start time is about 10 s off, so it is unusable for alignment; aligning on it was off by 0.4 s.
+      - Clips now use ffmpeg `gdigrab` in the desktop-session daemon instead, writing Matroska with `-copyts` (wall-clock frame times; `-t` must be an input option).
+      - The WASAPI soundtrack is shifted to the first frame (`SoundcardRecorder.started_wall`). gdigrab also records at the requested fps; Cua managed about 12 fps on 5120×1440.
+    - Every clip with audio now returns `audio: {silent, peak_dbfs, rms_dbfs, sound}`.
+    - Windows fixes:
+      - cua-driver and ffmpeg/ffprobe spawned by `cctl serve` were opening console windows on the user's desktop; they now start with `CREATE_NO_WINDOW`.
+      - `processes kill` on a pid that has already exited now returns `no_such_process` (it used to raise WinError 87).
+    - Regression: Windows `clip_smoke` 5/5 (gdigrab crop matches the window exactly) and `windows_smoke` 8/8.
+    - macOS `clip_smoke` 4/5: the user's ChatGPT window sat in front of the test's TextEdit window, and macOS wouldn't raise TextEdit, so the clip shows ChatGPT. This is the environment, not a regression; the crop is still exact.
   - (done 2026-10-08) CLI over `--host` to Windows.
     - Per-host `hosts` table in config.toml (ssh_args, remote_bin, os), PowerShell quoting, Windows paths copied back with scp.
     - Verified: doctor, screenshot, then zoom in a separate call (state persists), Calculator typed "42" via window-targeted keys.

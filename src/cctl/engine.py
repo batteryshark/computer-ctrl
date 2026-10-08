@@ -787,6 +787,8 @@ class Engine:
         if action == "kill":
             if pid is None:
                 raise ToolError("bad_arguments", "kill needs pid")
+            if not psutil.pid_exists(pid):  # Windows reports a gone pid as WinError 87, not ProcessLookupError
+                raise ToolError("no_such_process", f"no process {pid}")
             try:
                 os.kill(pid, getattr(signals, "SIG" + signal))
             except ProcessLookupError:
@@ -913,6 +915,8 @@ class Engine:
             rec = self._pop_recording(clip, "clip")
             if rec.proc is not None:
                 await media.stop_ffmpeg(rec.proc)
+                if rec.meta.get("raw"):
+                    await self._gdigrab_mux(rec)
             else:
                 await self._cua_clip_stop(rec)
             return await self._finish_clip(rec, frames, max_dim, ocr)
@@ -933,11 +937,12 @@ class Engine:
         fps = max(1, min(int(fps), 30))
         rid = self._rec_id()
         out = self.artifacts / f"clip-{rid}.mp4"
-        meta = {"rect": list(rect), "fps": fps, "audio": False, "window": window}
-        if not x11grab:  # macOS / Windows / Wayland: Cua's recorder (it holds the screen-capture permission)
+        meta = {"rect": list(rect), "fps": fps, "audio": bool(audio), "window": window}
+        if sys.platform == "win32":
+            return await self._gdigrab_clip(rid, out, meta, action, seconds, frames, max_dim, ocr)
+        if not x11grab:  # macOS / Wayland: Cua's recorder (it holds the screen-capture permission)
             return await self._cua_clip(rid, out, meta, action, seconds, frames, max_dim, ocr)
         source = await media.pulse_source("system", self.env) if audio else None
-        meta["audio"] = bool(audio)
         if action == "start":
             proc = await media.start_ffmpeg(media.x11grab_args(self.session_env["DISPLAY"], rect, fps, out,
                                                                media.MAX_CLIP_S, source), self.env)
@@ -956,12 +961,71 @@ class Engine:
             raise ToolError("capture_failed", str(e)) from None
         return await self._finish_clip(media.Recording(rid, "clip", out, None, 0, meta), frames, max_dim, ocr)
 
+    async def _gdigrab_clip(self, rid: str, out, meta: dict, action: str, seconds: float, frames: int,
+                            max_dim: int | None, ocr: bool) -> ToolResult:
+        """Windows: ffmpeg's GDI grabber, run by cctl in the desktop session. It records at the requested fps, and its
+        frames carry wall-clock times, so system audio (WASAPI, recorded alongside) is lined up exactly."""
+        k = float((await self.cua.call("get_screen_size", {})).data.get("scale_factor") or 1.0)
+        x, y, w, h = meta["rect"]
+        rect = (round(x * k), round(y * k), media.even(w * k), media.even(h * k))
+        raw = self.artifacts / f"clip-{rid}.mkv"
+        recorder = None
+        if meta["audio"]:
+            recorder = await self._start_native_audio("system", self.artifacts / f"clip-{rid}-audio.wav",
+                                                      media.MAX_CLIP_S + 30)
+        limit = media.MAX_CLIP_S if action == "start" else max(0.5, min(float(seconds), 60.0))
+        proc = await media.start_ffmpeg(media.gdigrab_args(rect, meta["fps"], raw, limit), self.env)
+        await asyncio.sleep(0.5)
+        if proc.returncode is not None:
+            if recorder:
+                await asyncio.to_thread(recorder.stop)
+            err = (await proc.stderr.read()).decode(errors="replace")[-300:]
+            raise ToolError("capture_failed", f"recording did not start: {err}")
+        rec = media.Recording(rid, "clip", out, proc, time.monotonic(), {**meta, "raw": str(raw), "recorder": recorder})
+        if action == "start":
+            self.recordings[rid] = rec
+            return ToolResult(data={"clip": rid, "recording": True, "max_seconds": media.MAX_CLIP_S,
+                                    "hint": "do the actions to capture, then record_clip(action='stop')"})
+        try:
+            await asyncio.wait_for(proc.wait(), limit + 30)  # -t ends it
+        except asyncio.TimeoutError:
+            await media.stop_ffmpeg(proc)
+        await self._gdigrab_mux(rec)
+        return await self._finish_clip(rec, frames, max_dim, ocr)
+
+    async def _gdigrab_mux(self, rec: media.Recording) -> None:
+        """Raw Matroska (wall-clock timestamps) -> MP4, with the soundtrack shifted to the first frame's time."""
+        recorder = rec.meta.get("recorder")
+        audio = await asyncio.to_thread(recorder.stop) if recorder else None
+        raw = Path(rec.meta["raw"])
+        args = ["-i", str(raw)]
+        if audio:
+            lead = await media.probe_start(raw, self.env) - recorder.started_wall
+            args += (["-ss", f"{lead:.3f}"] if lead >= 0 else ["-itsoffset", f"{-lead:.3f}"]) + ["-i", str(audio)]
+            args += ["-map", "0:v", "-map", "1:a", "-af", "apad", "-shortest", "-c:a", "aac", "-b:a", "96k"]
+        await media.run_ffmpeg([*args, "-c:v", "copy", "-movflags", "+faststart", str(rec.path)], self.env,
+                               timeout=120)
+        raw.unlink(missing_ok=True)
+
     async def _cua_clip(self, rid: str, out, meta: dict, action: str, seconds: float, frames: int,
                         max_dim: int | None, ocr: bool) -> ToolResult:
         rec_dir = self.artifacts / f"clip-{rid}-cua"
-        await self.cua.call("start_recording", {"output_dir": str(rec_dir), "record_video": True,
-                                                "include_accessibility_tree": False})
-        rec = media.Recording(rid, "clip", out, None, time.monotonic(), {**meta, "cua_dir": str(rec_dir)})
+        recorder = None
+        if meta["audio"]:  # system audio on its own recorder, muxed in at stop; started first so it covers the video
+            recorder = await self._start_native_audio("system", self.artifacts / f"clip-{rid}-audio.wav",
+                                                      media.MAX_CLIP_S + 30)
+        audio_t0 = time.monotonic()
+        try:
+            await self.cua.call("start_recording", {"output_dir": str(rec_dir), "record_video": True,
+                                                    "include_accessibility_tree": False})
+        except BaseException:
+            if recorder:
+                await asyncio.to_thread(recorder.stop)
+            raise
+        video_t0 = time.monotonic()
+        rec = media.Recording(rid, "clip", out, None, time.monotonic(),
+                              {**meta, "cua_dir": str(rec_dir), "recorder": recorder,
+                               "audio_lead": video_t0 - audio_t0, })
         if action == "start":
             self.recordings[rid] = rec
             return ToolResult(data={"clip": rid, "recording": True, "max_seconds": media.MAX_CLIP_S,
@@ -972,7 +1036,11 @@ class Engine:
 
     async def _cua_clip_stop(self, rec: media.Recording) -> None:
         """Stop Cua's full-display recording, then crop it to the requested window/region with ffmpeg."""
-        d = (await self.cua.call("stop_recording", {})).data
+        try:
+            d = (await self.cua.call("stop_recording", {})).data
+        finally:
+            recorder = rec.meta.get("recorder")
+            audio = await asyncio.to_thread(recorder.stop) if recorder else None
         src = d.get("last_video_path") or str(Path(rec.meta["cua_dir"]) / "recording.mp4")
         if not Path(src).exists():
             raise ToolError("capture_failed", "the recorder produced no video", detail=d)
@@ -980,9 +1048,18 @@ class Engine:
         size = (await self.cua.call("get_screen_size", {})).data
         k = float(size.get("scale_factor") or 1.0)  # recording is in device pixels
         crop = f"crop={media.even(w * k)}:{media.even(h * k)}:{round(x * k)}:{round(y * k)}"
-        await media.run_ffmpeg(["-i", src, "-vf", f"{crop},fps={rec.meta['fps']},scale='min(1280,iw)':-2",
-                                "-c:v", "libx264", "-preset", "ultrafast", "-crf", "28", "-pix_fmt", "yuv420p",
-                                "-an", str(rec.path)], self.env, timeout=120)
+        args = ["-i", src]
+        if audio:  # skip the audio recorded before the video started; pad silence so it spans the whole video
+            args += ["-ss", f"{rec.meta['audio_lead']:.3f}", "-i", str(audio)]
+        args += ["-vf", f"{crop},fps={rec.meta['fps']},scale='min(1280,iw)':-2", "-c:v", "libx264",
+                 "-preset", "ultrafast", "-crf", "28", "-pix_fmt", "yuv420p"]
+        if audio:  # -shortest alone lets the AAC track run a few frames past the video
+            vdur = await media.probe_duration(Path(src), self.env)
+            args += ["-map", "0:v", "-map", "1:a", "-af", "apad", "-shortest", "-t", f"{vdur:.3f}", "-c:a", "aac",
+                     "-b:a", "96k"]
+        else:
+            args += ["-an"]
+        await media.run_ffmpeg([*args, "-movflags", "+faststart", str(rec.path)], self.env, timeout=120)
 
     async def _finish_clip(self, rec: media.Recording, n_frames: int, max_dim: int | None,
                            ocr: bool = False) -> ToolResult:
@@ -1013,12 +1090,23 @@ class Engine:
                     changes.append({"t": entry["t"], "text": txt})
                     last = txt
         busiest = sorted(timeline[1:], key=lambda t: -t["changed"])[:3]
+        audio = None
+        if rec.meta["audio"]:  # where the soundtrack has sound, so the clip's audio can be checked without a player
+            wav = rec.path.with_suffix(".wav")
+            try:
+                await media.run_ffmpeg(["-i", str(rec.path), "-vn", "-ac", "1", "-ar", "16000", "-c:a", "pcm_s16le",
+                                        str(wav)], self.env, timeout=60)
+                lv = await asyncio.to_thread(media.analyze_wav, wav)
+                audio = {k: lv[k] for k in ("silent", "peak_dbfs", "rms_dbfs", "sound")}
+            except RuntimeError as e:
+                audio = {"error": str(e)}
         return ToolResult(data={
             "clip": rec.id, "path": str(rec.path), "duration_s": round(duration, 2), "fps": rec.meta["fps"],
             "screen_rect": rec.meta["rect"], "has_audio": rec.meta["audio"], "sheet_path": str(sheet_path),
             "timeline": timeline,
             "most_change": [t["tile"] for t in busiest if t["changed"] > 0.0005],
             **({"text_changes": changes} if changes is not None else {}),
+            **({"audio": audio} if audio is not None else {}),
             "note": f"The image is a contact sheet: {len(sampled)} frames sampled evenly, numbered in time order, "
                     "each captioned with its time and the share of pixels changed since the previous tile. "
                     "The MP4 is at path."},
@@ -1066,16 +1154,7 @@ class Engine:
     async def _audio_native(self, rid: str, out, source: str, action: str, seconds: float, transcribe: bool,
                             inline: bool, waveform: bool, stt_model: str | None) -> ToolResult:
         """Windows (WASAPI via soundcard) and macOS (ScreenCaptureKit helper app) capture."""
-        try:
-            if sys.platform == "win32":
-                recorder = media.SoundcardRecorder(source, out, media.MAX_AUDIO_S)
-            else:
-                recorder = media.MacAudioHelper(source, out, media.MAX_AUDIO_S)
-            await asyncio.to_thread(recorder.start)
-        except ImportError:
-            raise ToolError("unsupported", "audio capture needs the `audio` extra (pip install 'cctl[audio]')") from None
-        except RuntimeError as e:
-            raise ToolError("no_audio_source", str(e)) from None
+        recorder = await self._start_native_audio(source, out, media.MAX_AUDIO_S)
         rec = media.Recording(rid, "audio", out, None, time.monotonic(),
                               {"source": source, "device": recorder.name, "recorder": recorder})
         if action == "start":
@@ -1088,6 +1167,17 @@ class Engine:
         except RuntimeError as e:
             raise ToolError("capture_failed", str(e)) from None
         return await self._finish_audio(rec, transcribe, inline, waveform, stt_model)
+
+    async def _start_native_audio(self, source: str, out, max_seconds: float):
+        try:
+            recorder = media.native_recorder(source, out, max_seconds)
+            await asyncio.to_thread(recorder.start)
+        except ImportError:
+            raise ToolError("unsupported",
+                            "audio capture needs the `audio` extra (pip install 'cctl[audio]')") from None
+        except RuntimeError as e:
+            raise ToolError("no_audio_source", str(e)) from None
+        return recorder
 
     async def _finish_audio(self, rec: media.Recording, transcribe: bool, inline: bool, waveform: bool,
                             stt_model: str | None = None) -> ToolResult:

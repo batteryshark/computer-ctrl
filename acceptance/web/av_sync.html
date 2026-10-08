@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>cctl av sync</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #222; color: #888; font: 32px sans-serif; }
+  body.flash { background: #fff; color: #000; }
+  #n { position: fixed; top: 12px; left: 16px; }
+</style>
+</head>
+<body>
+<div id="n">0</div>
+<script>
+// The page flashes white and a short tone plays, triggered together, at irregular intervals (so a recording that
+// is off by a whole interval can't pass), to check a screen recording's audio sync. Needs autoplay allowed
+// (Chromium: --autoplay-policy=no-user-gesture-required).
+const ctx = new AudioContext();
+let n = 0;
+function tick() {
+  n += 1;
+  const t = ctx.currentTime;
+  const osc = ctx.createOscillator(), gain = ctx.createGain();
+  osc.frequency.value = 880;
+  gain.gain.value = 0.2;
+  osc.connect(gain).connect(ctx.destination);
+  osc.start(t);
+  osc.stop(t + 0.12);
+  document.body.classList.add("flash");
+  document.getElementById("n").textContent = n;
+  setTimeout(() => document.body.classList.remove("flash"), 250);
+}
+const gaps = [700, 1300, 900, 1600, 800, 1100];
+function loop() { tick(); setTimeout(loop, gaps[n % gaps.length]); }
+setTimeout(() => { ctx.resume(); loop(); }, 500);
+</script>
+</body>
+</html>

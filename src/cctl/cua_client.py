@@ -8,9 +8,14 @@ from __future__ import annotations
 
 import asyncio
 import json
+import subprocess
+import sys
 import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
+
+# Windows: start console programs without a console window (cctl serve runs in the user's desktop session)
+NO_WINDOW: dict = {"creationflags": subprocess.CREATE_NO_WINDOW} if sys.platform == "win32" else {}
 
 PROTOCOL = "2025-06-18"
 STREAM_LIMIT = 256 * 1024 * 1024  # native screenshots arrive as one base64 line
@@ -79,7 +84,7 @@ class CuaClient:
         err = open(self.stderr_log, "ab")
         self._proc = await asyncio.create_subprocess_exec(
             *self.cmd, env=self.env, stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE,
-            stderr=err, limit=STREAM_LIMIT)
+            stderr=err, limit=STREAM_LIMIT, **NO_WINDOW)
         self._reader = asyncio.create_task(self._read_loop())
         init = await self._request("initialize", {"protocolVersion": PROTOCOL, "capabilities": {},
                                                   "clientInfo": {"name": "cctl", "version": "0.1.0"}})

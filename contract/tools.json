@@ -871,7 +871,7 @@
             "type": "integer"
           },
           "audio": {
-            "description": "Also record system audio into the MP4.",
+            "description": "Also record system audio into the MP4; the result's audio field says where there is sound.",
             "type": "boolean"
           },
           "clip": {

@@ -175,6 +175,152 @@ async def pulse_source(kind: str, env: dict) -> str:
     return name
 
 
+def write_wav_16k_mono(samples, rate: int, out: Path) -> None:
+    """float32 frames x channels at `rate` -> 16 kHz mono s16 WAV (boxcar low-pass + decimation; fine for speech)."""
+    import numpy as np
+    x = np.asarray(samples, dtype=np.float32)
+    if x.ndim == 2:
+        x = x.mean(axis=1)
+    step = rate / 16000
+    if step >= 1.5:
+        n = int(len(x) // step)
+        idx = (np.arange(n) * step).astype(int)
+        k = max(1, int(round(step)))
+        csum = np.concatenate([[0.0], np.cumsum(x)])
+        x = (csum[np.minimum(idx + k, len(x))] - csum[idx]) / k
+    pcm = (np.clip(x, -1, 1) * 32767).astype("<i2")
+    with wave.open(str(out), "w") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(16000)
+        w.writeframes(pcm.tobytes())
+
+
+class SoundcardRecorder:
+    """Windows: WASAPI loopback of the default output (system) or the default microphone, via `soundcard`.
+    Records on a thread in 100 ms chunks so start/stop works; stop() writes a 16 kHz mono WAV."""
+
+    RATE = 48000
+
+    def __init__(self, source: str, out: Path, max_seconds: float):
+        import soundcard as sc
+        if source == "system":
+            spk = sc.default_speaker()
+            self.device = sc.get_microphone(id=str(spk.name), include_loopback=True)
+        elif source == "mic":
+            self.device = sc.default_microphone()
+        else:
+            self.device = next((m for m in sc.all_microphones(include_loopback=True) if source.lower() in m.name.lower()),
+                               None)
+            if self.device is None:
+                raise RuntimeError(f"no audio device matching {source!r}")
+        self.name = self.device.name
+        self.out, self.max_seconds = out, max_seconds
+        self._chunks, self._stop = [], None
+        self._thread = None
+        self.error: str | None = None
+
+    def start(self) -> None:
+        import threading
+        self._stop = threading.Event()
+
+        def run():
+            try:
+                import pythoncom  # noqa: F401  (COM is initialised per thread by soundcard if available)
+            except ImportError:
+                pass
+            try:
+                with self.device.recorder(samplerate=self.RATE, blocksize=self.RATE // 10) as rec:
+                    t0 = time.monotonic()
+                    while not self._stop.is_set() and time.monotonic() - t0 < self.max_seconds:
+                        self._chunks.append(rec.record(numframes=self.RATE // 10))
+            except Exception as e:  # noqa: BLE001
+                self.error = f"{type(e).__name__}: {e}"
+
+        self._thread = threading.Thread(target=run, daemon=True)
+        self._thread.start()
+
+    def stop(self) -> Path:
+        import numpy as np
+        self._stop.set()
+        self._thread.join(timeout=10)
+        if self.error and not self._chunks:
+            raise RuntimeError(self.error)
+        data = np.concatenate(self._chunks) if self._chunks else np.zeros((0, 1), dtype=np.float32)
+        write_wav_16k_mono(data, self.RATE, self.out)
+        return self.out
+
+
+class MacAudioHelper:
+    """macOS: system audio (ScreenCaptureKit) or the microphone, via the cctl-audio.app helper launched through
+    LaunchServices, so the capture permission belongs to that app rather than the agent's terminal/harness."""
+
+    def __init__(self, source: str, out: Path, max_seconds: float):
+        import os
+        self.app = Path(os.environ.get("CCTL_AUDIO_APP", Path.home() / "Applications" / "cctl-audio.app"))
+        if not (self.app / "Contents" / "MacOS" / "cctl-audio").exists():
+            raise RuntimeError(f"macOS audio helper missing at {self.app}; build it with "
+                               "packaging/macos/build-audio-helper.sh")
+        if source not in ("system", "mic"):
+            raise RuntimeError("on macOS, source must be 'system' or 'mic'")
+        self.mic = source == "mic"
+        self.name = "microphone (ScreenCaptureKit)" if self.mic else "system audio (ScreenCaptureKit)"
+        self.out, self.max_seconds = out, max_seconds
+        self.raw = out.with_suffix(".native.wav")
+        self.stop_file = out.with_suffix(".stop")
+        self.proc = None
+
+    def _marker(self, suffix: str) -> Path:
+        return Path(str(self.raw) + suffix)
+
+    def start(self) -> None:
+        import subprocess
+        for f in (self.raw, self.stop_file, self._marker(".started"), self._marker(".error"), self._marker(".done")):
+            f.unlink(missing_ok=True)
+        args = ["open", "-W", "-n", "-g", "-a", str(self.app), "--args", "--out", str(self.raw),
+                "--max-seconds", str(self.max_seconds), "--stop-file", str(self.stop_file)]
+        if self.mic:
+            args.append("--mic")
+        self.proc = subprocess.Popen(args, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                                     stderr=subprocess.DEVNULL)
+        deadline = time.monotonic() + 10
+        while time.monotonic() < deadline:
+            if self._marker(".started").exists():
+                return
+            if self._marker(".error").exists():
+                raise RuntimeError("audio helper: " + self._marker(".error").read_text())
+            if self.proc.poll() is not None:
+                break
+            time.sleep(0.05)
+        self._cleanup()
+        raise RuntimeError("audio capture did not start. If macOS just asked, allow cctl-audio under System "
+                           "Settings > Privacy & Security > Screen & System Audio Recording"
+                           + (" and Microphone" if self.mic else "") + ", then retry.")
+
+    def stop(self) -> Path:
+        import subprocess
+        self.stop_file.touch()
+        try:
+            self.proc.wait(timeout=15)
+        except subprocess.TimeoutExpired:
+            self.proc.kill()
+        if self.raw.exists() and self.raw.stat().st_size > 0:
+            subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(self.raw), "-ac", "1",
+                            "-ar", "16000", "-c:a", "pcm_s16le", str(self.out)], check=True, capture_output=True)
+        else:  # ScreenCaptureKit delivered no audio buffers: nothing played
+            with wave.open(str(self.out), "w") as w:
+                w.setnchannels(1)
+                w.setsampwidth(2)
+                w.setframerate(16000)
+                w.writeframes(b"\0\0" * 16000)
+        self._cleanup()
+        return self.out
+
+    def _cleanup(self) -> None:
+        for f in (self.stop_file, self._marker(".started"), self._marker(".done"), self._marker(".error")):
+            f.unlink(missing_ok=True)
+
+
 def pulse_args(source: str, out: Path, seconds: float | None) -> list[str]:
     args = ["-f", "pulse", "-i", source]
     if seconds:

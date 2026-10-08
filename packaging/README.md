@@ -11,6 +11,11 @@ cctl doctor                                     # must report "status": "ok"
 
 The Cua daemon starts on demand inside the logged-in desktop session; SSH sessions find it automatically. Screen lockers and DPMS blanking must be off, or captures come back black and `doctor` says so.
 
+## Platform notes
+
+- **macOS**: needs Cua's `CuaDriver.app` in /Applications (run `cua-driver permissions grant` once) and, for audio, `packaging/macos/build-audio-helper.sh`. That builds `~/Applications/cctl-audio.app`, a ScreenCaptureKit capture helper; allow it once under Screen & System Audio Recording (and Microphone for `source=mic`). Use the `personal` profile on someone's own Mac.
+- **Windows**: needs Cua's `cua-driver.exe` (`~\.cua-driver\<ver>\…`) and `uv tool install --editable ".[audio,stt]"`. `cctl serve` runs in the logged-in desktop session (started on demand via a one-shot scheduled task); `cctl mcp` over SSH relays to it. Audio is WASAPI loopback/mic via `soundcard`.
+
 ## Pointing a harness at it
 
 Use `cctl mcp` when the harness runs on the same machine. From another machine, use `cctl --host USER@HOST mcp`, which needs cctl on both ends, or plain `ssh -T USER@HOST ~/.local/bin/cctl mcp`.

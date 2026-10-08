@@ -13,6 +13,7 @@ dependencies = [
 
 [project.optional-dependencies]
 stt = ["faster-whisper>=1.1"]
+audio = ["soundcard>=0.4.3; sys_platform == 'win32'"]   # WASAPI loopback + mic on Windows
 
 [project.scripts]
 cctl = "cctl.cli:main"

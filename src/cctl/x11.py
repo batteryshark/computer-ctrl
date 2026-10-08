@@ -52,6 +52,11 @@ class X11:
             args += ["keyup", "+".join(mods)]
         await self.run(*args)
 
+    async def pointer(self) -> tuple[int, int] | None:
+        out = await self.run("xdotool", "getmouselocation", "--shell", check=False)
+        g = dict(line.split("=", 1) for line in out.split() if "=" in line)
+        return (int(g["X"]), int(g["Y"])) if "X" in g and "Y" in g else None
+
     async def scroll(self, x: int, y: int, direction: str, amount: int) -> None:
         await self.run("xdotool", "mousemove", str(x), str(y), "sleep", SETTLE,
                        "click", "--repeat", str(amount), "--delay", "30", str(WHEEL[direction]))

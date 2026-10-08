@@ -94,6 +94,12 @@ class Engine:
         async with self._start_lock:
             if self.started:
                 return
+            if sys.platform == "win32":  # physical pixels for SetCursorPos/window messages, matching Cua's capture
+                try:
+                    import ctypes
+                    ctypes.windll.shcore.SetProcessDpiAwareness(2)
+                except (AttributeError, OSError):
+                    pass
             linux = sys.platform.startswith("linux")
             self.session_env = discover() if linux else {}
             if linux and not self.session_env:
@@ -632,7 +638,8 @@ class Engine:
         sx, sy, fid = self._point(x, y, frame)
         await self._raise_target()
         await self._need_x11("move").move(sx, sy)
-        return ToolResult(data={"pointer": [sx, sy], "frame": fid})
+        now = await self.input.pointer()
+        return ToolResult(data={"pointer": [sx, sy], "frame": fid, **({"pointer_now": list(now)} if now else {})})
 
     # ------------------------------------------------------------- waiting
     async def tool_wait_for(self, stable_ms: int | None = None, window_title: str | None = None,
@@ -1021,14 +1028,20 @@ class Engine:
             raise ToolError("unsupported", "ffmpeg is not installed on the controlled machine")
         if action == "stop":
             rec = self._pop_recording(capture, "audio")
-            await media.stop_ffmpeg(rec.proc)
+            if rec.meta.get("recorder"):
+                await asyncio.to_thread(rec.meta["recorder"].stop)
+            else:
+                await media.stop_ffmpeg(rec.proc)
             return await self._finish_audio(rec, transcribe, inline, waveform, stt_model)
+        rid = self._rec_id()
+        out = self.artifacts / f"audio-{rid}.wav"
+        if sys.platform in ("win32", "darwin"):
+            return await self._audio_native(rid, out, source, action, seconds, transcribe, inline, waveform,
+                                            stt_model)
         try:
             device = await media.pulse_source(source, self.env)
         except RuntimeError as e:
             raise ToolError("no_audio_source", str(e)) from None
-        rid = self._rec_id()
-        out = self.artifacts / f"audio-{rid}.wav"
         meta = {"source": source, "device": device}
         if action == "start":
             proc = await media.start_ffmpeg(media.pulse_args(device, out, media.MAX_AUDIO_S), self.env)
@@ -1046,6 +1059,32 @@ class Engine:
             raise ToolError("capture_failed", str(e)) from None
         return await self._finish_audio(media.Recording(rid, "audio", out, None, 0, meta), transcribe, inline,
                                         waveform, stt_model)
+
+    async def _audio_native(self, rid: str, out, source: str, action: str, seconds: float, transcribe: bool,
+                            inline: bool, waveform: bool, stt_model: str | None) -> ToolResult:
+        """Windows (WASAPI via soundcard) and macOS (ScreenCaptureKit helper app) capture."""
+        try:
+            if sys.platform == "win32":
+                recorder = media.SoundcardRecorder(source, out, media.MAX_AUDIO_S)
+            else:
+                recorder = media.MacAudioHelper(source, out, media.MAX_AUDIO_S)
+            await asyncio.to_thread(recorder.start)
+        except ImportError:
+            raise ToolError("unsupported", "audio capture needs the `audio` extra (pip install 'cctl[audio]')") from None
+        except RuntimeError as e:
+            raise ToolError("no_audio_source", str(e)) from None
+        rec = media.Recording(rid, "audio", out, None, time.monotonic(),
+                              {"source": source, "device": recorder.name, "recorder": recorder})
+        if action == "start":
+            self.recordings[rid] = rec
+            return ToolResult(data={"capture": rid, "recording": True, "device": recorder.name,
+                                    "hint": "then audio_capture(action='stop')"})
+        await asyncio.sleep(max(0.5, min(float(seconds), 120.0)))
+        try:
+            await asyncio.to_thread(recorder.stop)
+        except RuntimeError as e:
+            raise ToolError("capture_failed", str(e)) from None
+        return await self._finish_audio(rec, transcribe, inline, waveform, stt_model)
 
     async def _finish_audio(self, rec: media.Recording, transcribe: bool, inline: bool, waveform: bool,
                             stt_model: str | None = None) -> ToolResult:

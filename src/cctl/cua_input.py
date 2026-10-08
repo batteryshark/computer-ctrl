@@ -55,7 +55,31 @@ class CuaInput:
 
     # ---- pointer ---------------------------------------------------------
     async def move(self, x: int, y: int) -> None:
-        raise ToolError("unsupported", "hover (pointer move without click) is not available on this platform yet")
+        """Move the real pointer (hover). macOS: Cua's move_cursor at desktop scope, done by CuaDriver.app, which
+        holds the Accessibility grant. Windows: SetCursorPos from cctl itself (it runs in the desktop session
+        there; Cua's Windows move_cursor only moves its overlay)."""
+        k = await self._density()
+        if sys.platform == "win32":
+            import ctypes
+            if not ctypes.windll.user32.SetCursorPos(round(x * k), round(y * k)):
+                raise ToolError("input_failed", "SetCursorPos failed (is cctl running in the desktop session?)")
+            return
+        if sys.platform != "darwin":
+            raise ToolError("unsupported", "hover is not available with this input backend")
+        await self.e.cua.call("move_cursor", {"scope": "desktop", "x": x * k, "y": y * k})
+
+    async def pointer(self) -> tuple[int, int] | None:
+        """Current real pointer position in logical screen points (for verifying a move)."""
+        if sys.platform == "win32":
+            import ctypes
+            import ctypes.wintypes as wt
+            pt = wt.POINT()
+            if ctypes.windll.user32.GetCursorPos(ctypes.byref(pt)):
+                k = await self._density()
+                return round(pt.x / k), round(pt.y / k)
+            return None
+        d = (await self.e.cua.call("get_cursor_position", {}, check=False)).data
+        return (d["x"], d["y"]) if "x" in d and "y" in d else None
 
     async def click(self, x: int, y: int, button: str = "left", count: int = 1,
                     modifiers: list[str] | None = None) -> None:

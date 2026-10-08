@@ -67,8 +67,13 @@ def test_blank_detection():
     ("café", "paste"), ("日本語", "paste"), ("✓", "paste"), ("🙂", "paste"), ("x→y", "paste"),
 ])
 def test_route(text, route):
-    assert choose_route(text) == route
+    assert choose_route(text, platform="linux") == route
     assert is_key_safe(text) == (route == "keys")
+
+
+def test_route_macos_element_uses_ax_insertion():
+    assert choose_route("日本語 ✓ 🙂", has_element=True, platform="darwin") == "keys"
+    assert choose_route("日本語", has_element=False, platform="darwin") == "paste"
 
 
 def test_route_overrides():

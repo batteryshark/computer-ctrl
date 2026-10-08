@@ -2,11 +2,14 @@
 
 Phase 0 showed synthetic key events cannot be trusted with non-ASCII text on
 X11: Cua's AT-SPI route drops it and its key route types the wrong
-characters, both while reporting success. Plain ASCII goes as key events;
-anything else is pasted (or set as the element's value when asked).
+characters, both while reporting success. There, plain ASCII goes as key
+events and anything else is pasted. On macOS, Cua's AX insertion into an
+element is exact for any text, so that route is used throughout.
 """
 
 from __future__ import annotations
+
+import sys
 
 TERMINAL_APPS = {
     "zutty", "xfce4-terminal", "gnome-terminal", "gnome-terminal-server", "konsole", "xterm", "uxterm",
@@ -20,11 +23,14 @@ def is_key_safe(text: str) -> bool:
     return all(c in "\n\t" or 0x20 <= ord(c) < 0x7F for c in text)
 
 
-def choose_route(text: str, mode: str = "auto", has_element: bool = False) -> str:
+def choose_route(text: str, mode: str = "auto", has_element: bool = False, platform: str | None = None) -> str:
     if mode in ("keys", "paste", "set_value"):
         if mode == "set_value" and not has_element:
             raise ValueError("mode=set_value needs an element")
         return mode
+    platform = platform or sys.platform
+    if platform == "darwin" and has_element:
+        return "keys"  # Cua's macOS accessibility insertion is Unicode-exact (verified with CJK and emoji)
     return "keys" if is_key_safe(text) else "paste"
 
 

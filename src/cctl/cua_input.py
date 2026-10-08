@@ -76,13 +76,14 @@ class CuaInput:
                                        "to_y": y1 * k, "button": button})
 
     # ---- keyboard --------------------------------------------------------
-    async def key(self, keys: str, repeat: int = 1) -> None:
+    async def key(self, keys: str, repeat: int = 1, target: tuple[int, int] | None = None) -> None:
         mods, key = cua_keys(keys)
+        where = {"pid": target[0], "window_id": target[1]} if target else {"scope": "desktop"}
         for _ in range(repeat):
             if mods:
-                await self.e.cua.call("hotkey", {"scope": "desktop", "keys": [*mods, key]})
+                await self.e.cua.call("hotkey", {**where, "keys": [*mods, key]})
             else:
-                await self.e.cua.call("press_key", {"scope": "desktop", "key": key})
+                await self.e.cua.call("press_key", {**where, "key": key})
 
     async def type_ascii(self, text: str) -> None:
         await self.e.cua.call("type_text", {"scope": "desktop", "text": text})
@@ -110,9 +111,20 @@ class CuaInput:
         if sys.platform == "win32":  # Cua's alt+F4 goes through a UIA accelerator scan that can time out
             return self._win32(window_id, "close")
         w = await self.e._window(window_id)
+        if sys.platform == "darwin":
+            # Background-safe: press the window's own close button through accessibility. (Cua refuses process-
+            # scoped cmd+w when the app has sibling windows, and won't raise over the user's front app.)
+            st = (await self.e.cua.call("get_window_state", {"pid": w["pid"], "window_id": window_id,
+                                                             "include_screenshot": False, "max_depth": 2})).data
+            b = w["bounds"]
+            btns = [e for e in st.get("elements", []) if e.get("role") == "AXButton" and e.get("frame")
+                    and e["frame"]["y"] - b["y"] < 40 and e["frame"]["x"] - b["x"] < 40]
+            if not btns:
+                raise ToolError("unsupported", "could not find this window's close button")
+            await self.e.cua.call("click", {"pid": w["pid"], "element_token": btns[0]["element_token"]})
+            return
         await self.e.cua.call("bring_to_front", {"pid": w["pid"], "window_id": window_id})
-        keys = ["cmd", "w"] if sys.platform == "darwin" else ["alt", "f4"]
-        await self.e.cua.call("hotkey", {"pid": w["pid"], "window_id": window_id, "keys": keys})
+        await self.e.cua.call("hotkey", {"pid": w["pid"], "window_id": window_id, "keys": ["alt", "f4"]})
 
     async def minimize(self, window_id: int) -> None:
         if sys.platform == "win32":

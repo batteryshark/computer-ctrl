@@ -226,7 +226,7 @@
     },
     {
       "name": "key",
-      "description": "Press a key or key combination in the focused window, e.g. \"Return\", \"Escape\", \"ctrl+s\", \"ctrl+shift+t\", \"alt+F4\".",
+      "description": "Press a key or key combination, e.g. \"Return\", \"Escape\", \"ctrl+s\", \"ctrl+shift+t\", \"alt+F4\". Goes to the focused window, or to `window` (recommended on someone's own machine, so keys can't land in the wrong app).",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -250,10 +250,42 @@
               "observe",
               "wait_stable"
             ]
+          },
+          "window": {
+            "description": "Window id to send the keys to.",
+            "type": "integer"
           }
         },
         "required": [
           "keys"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "menu",
+      "description": "Invoke an application menu item by its path, e.g. [\"File\", \"Save\"] or [\"Edit\", \"Find\", \"Find…\"], through accessibility. Works without focusing the window and fails cleanly if an item is missing or disabled; on macOS it is the safe alternative to shortcuts.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "window": {
+            "type": "integer"
+          },
+          "path": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "maxItems": 16
+          },
+          "intent": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "window",
+          "path"
         ],
         "additionalProperties": false
       }

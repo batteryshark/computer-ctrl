@@ -128,16 +128,18 @@ def main() -> None:
             t0 = time.monotonic()
             try:
                 # PWD too: opencode takes its project directory (and so its opencode.json) from $PWD, not the cwd.
-                p = subprocess.run(argv, cwd=run, env={**env, "PWD": str(run)}, stdin=subprocess.DEVNULL,
-                                   capture_output=True, text=True, timeout=t.timeout_s)
+                p = subprocess.run(argv, cwd=run, env={**env, "PWD": str(run), "CCTL_RUN_TAG": str(run)},
+                                   stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=t.timeout_s)
                 transcript, timed_out = p.stdout + p.stderr, False
             except subprocess.TimeoutExpired as e:
                 transcript = (e.stdout or b"").decode(errors="replace") if isinstance(e.stdout, bytes) else (e.stdout or "")
                 timed_out = True
             seconds = round(time.monotonic() - t0, 1)
             (run / "transcript.txt").write_text(transcript)
-            calls = [json.loads(l) for l in EVENTS.read_text().splitlines() if json.loads(l)["ts"] >= start] \
-                if EVENTS.exists() else []
+            events = [json.loads(l) for l in EVENTS.read_text().splitlines()] if EVENTS.exists() else []
+            tagged = [e for e in events if e.get("tag") == str(run)]
+            # Prefer exact attribution by tag; fall back to the time window for engines without tagging.
+            calls = tagged or [e for e in events if e["ts"] >= start and "tag" not in e]
             answer = answer_text(a.harness, transcript, last)
             try:
                 res = t.check(ctx, answer, calls)

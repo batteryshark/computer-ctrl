@@ -66,7 +66,9 @@ class X11:
         await self.run("xdotool", "mouseup", b)
 
     # ---- keyboard --------------------------------------------------------
-    async def key(self, keys: str, repeat: int = 1) -> None:
+    async def key(self, keys: str, repeat: int = 1, target: tuple[int, int] | None = None) -> None:
+        if target:  # focus the window first; real key events go to the focused window on X11
+            await self.activate(target[1])
         await self.run("xdotool", "key", "--clearmodifiers", "--repeat", str(repeat), "--delay", "40",
                        normalize_keys(keys))
 

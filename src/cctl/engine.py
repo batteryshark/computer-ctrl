@@ -157,6 +157,8 @@ class Engine:
             safe = {k: (v[:200] if isinstance(v, str) else v) for k, v in args.items() if k != "actions"}
             entry = {"ts": time.time(), "run": self.run_id, "tool": name, "args": safe,
                      "ok": not result.is_error, "ms": round(seconds * 1000)}
+            if os.environ.get("CCTL_RUN_TAG"):  # set by eval runners to attribute calls exactly
+                entry["tag"] = os.environ["CCTL_RUN_TAG"]
             if result.is_error:
                 entry["error"] = result.data.get("error")
                 entry["message"] = str(result.data.get("message", ""))[:200]
@@ -499,7 +501,17 @@ class Engine:
             else:
                 await self._need_x11("typing").type_ascii(text)
         else:
-            await self._paste(text, info, element)
+            try:
+                await self._paste(text, info, element)
+            except CuaError as e:
+                # A targeted paste can be refused (macOS: the app has sibling windows, so Cua can't prove where a
+                # process-scoped cmd+v would land). Appending via the element's value is exact and background-safe.
+                if not info:
+                    raise
+                await self.cua.call("set_value", {"pid": info["pid"], "element_token": element,
+                                                  "value": (before or "") + text})
+                route = "set_value_append"
+                self._last_paste_refusal = str(e)[:160]
         if submit:
             await self.tool_key("Return")
         data = {"typed": len(text), "route": route}
@@ -514,7 +526,8 @@ class Engine:
                 return ToolResult(data=data)
             if after is not None:
                 expected = text if route == "set_value" else (before or "") + text
-                data["verified"] = after == expected or text in after
+                norm = lambda v: " ".join(v.split())  # AX/UIA values may trim or reflow whitespace
+                data["verified"] = norm(after) == norm(expected) or norm(text) in norm(after)
                 if not data["verified"]:
                     data["field_value"] = after[-200:]
                     data["hint"] = "the field does not contain the text; try mode='paste' or 'set_value'"
@@ -557,7 +570,8 @@ class Engine:
             pass
         await self.cua.call("clipboard_write", {"text": text})
         if info:
-            await self.cua.call("hotkey", {"pid": info["pid"], "element_token": element, "keys": ["ctrl", "v"]})
+            keys = ["cmd", "v"] if sys.platform == "darwin" else ["ctrl", "v"]
+            await self.cua.call("hotkey", {"pid": info["pid"], "element_token": element, "keys": keys})
         else:
             app = None
             active = await self._active_window_id()
@@ -572,9 +586,19 @@ class Engine:
         if isinstance(saved, str):
             await self.cua.call("clipboard_write", {"text": saved}, check=False)
 
-    async def tool_key(self, keys: str, repeat: int = 1, intent: str | None = None) -> ToolResult:
-        await self._need_x11("key presses").key(keys, repeat)
-        return ToolResult(data={"pressed": keys, "repeat": repeat})
+    async def tool_key(self, keys: str, repeat: int = 1, window: int | None = None,
+                       intent: str | None = None) -> ToolResult:
+        if window is not None:
+            w = await self._window(window)
+            await self._need_x11("key presses").key(keys, repeat, target=(w["pid"], window))
+        else:
+            await self._need_x11("key presses").key(keys, repeat)
+        return ToolResult(data={"pressed": keys, "repeat": repeat, **({"window": window} if window else {})})
+
+    async def tool_menu(self, window: int, path: list[str], intent: str | None = None) -> ToolResult:
+        w = await self._window(window)
+        r = await self.cua.call("invoke_menu", {"pid": w["pid"], "window_id": window, "path": path})
+        return ToolResult(data={"invoked": path, "window": window, "engine": r.summary[:200]})
 
     async def tool_scroll(self, direction: str, amount: int = 3, x: float | None = None, y: float | None = None,
                           frame: str | None = None, element: str | None = None) -> ToolResult:

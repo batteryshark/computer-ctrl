@@ -490,7 +490,13 @@ class Engine:
         data = {"typed": len(text), "route": route}
         if info:
             await asyncio.sleep(0.15)
-            _, after = await self._refresh(element)
+            try:
+                _, after = await self._refresh(element)
+            except (ToolError, CuaError):
+                # The text went in; the field just can't be re-read (its dialog closed or the window changed).
+                data["verified"] = None
+                data["note"] = "typed, but the field could not be re-read (window changed or closed)"
+                return ToolResult(data=data)
             if after is not None:
                 expected = text if route == "set_value" else (before or "") + text
                 data["verified"] = after == expected or text in after
@@ -652,16 +658,23 @@ class Engine:
             want = {"x": b["x"] if x is None else x, "y": b["y"] if y is None else y,
                     "width": b["width"] if width is None else width, "height": b["height"] if height is None else height}
             req = dict(want)
-            # Cua's set_window_frame places the outer frame (title bar and borders included) on xfwm4, while
-            # list_windows reports the client area; read back and correct so callers get what the list shows.
-            for _ in range(3):
-                await self.cua.call("set_window_frame", {"pid": w["pid"], "window_id": window, **req})
-                await asyncio.sleep(0.15)
-                got = (await self._window(window))["bounds"]
-                err = {k: want[k] - got[k] for k in want}
-                if all(abs(v) <= 2 for v in err.values()):
-                    break
-                req = {k: req[k] + err[k] for k in req}
+            if self.x11:
+                # Coordinates are the client area (what the window list and screenshots use), but the WM places
+                # the outer frame there; offset by the decoration sizes it reports.
+                left, _, top, _ = await self.x11.frame_extents(window)
+                req["x"], req["y"] = want["x"] - left, want["y"] - top
+            await self.cua.call("set_window_frame", {"pid": w["pid"], "window_id": window, **req})
+            if self.x11:  # one corrective step if the WM still lands elsewhere
+                for _ in range(10):
+                    await asyncio.sleep(0.1)
+                    got = await self.x11.geometry(window)
+                    if got and abs(got["width"] - want["width"]) <= 2 and abs(got["x"] - want["x"]) <= 2 \
+                            and abs(got["y"] - want["y"]) <= 2:
+                        break
+                else:
+                    if got:
+                        req = {k: req[k] + want[k] - got[k] for k in req}
+                        await self.cua.call("set_window_frame", {"pid": w["pid"], "window_id": window, **req})
         elif action == "minimize":
             await self._need_x11("minimize").minimize(window)
         elif action == "maximize":
@@ -671,6 +684,9 @@ class Engine:
         await asyncio.sleep(0.2)
         try:
             after = self._win_brief(await self._window(window))
+            g = await self.x11.geometry(window) if self.x11 else None
+            if g:  # Cua's list can lag a move; the X server is authoritative
+                after["bounds"] = [g["x"], g["y"], g["width"], g["height"]]
         except ToolError:
             after = None
         return ToolResult(data={"action": action, "window": after or {"id": window, "closed": True}})

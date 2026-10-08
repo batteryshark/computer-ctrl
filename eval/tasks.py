@@ -172,7 +172,7 @@ def _geometry_check(c: Ctx, ans: str, calls: list[dict]) -> Result:
         x, y, w, h = int(g["X"]), int(g["Y"]), int(g["WIDTH"]), int(g["HEIGHT"])
     except (KeyError, ValueError):
         return Result(False, {"geometry": out})
-    ok = abs(x - 150) <= 40 and abs(y - 120) <= 40 and abs(w - 400) <= 20 and abs(h - 300) <= 20
+    ok = abs(x - 150) <= 6 and abs(y - 120) <= 6 and abs(w - 400) <= 6 and abs(h - 300) <= 6
     return Result(ok, {"geometry": [x, y, w, h]})
 
 

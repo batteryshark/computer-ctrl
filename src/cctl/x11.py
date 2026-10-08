@@ -16,6 +16,11 @@ WHEEL = {"up": 4, "down": 5, "left": 6, "right": 7}
 MODIFIER_KEYS = {"ctrl": "ctrl", "shift": "shift", "alt": "alt", "super": "super"}
 
 
+# No `mousemove --sync`: it waits for a core-pointer motion event and, with Cua's XInput2 virtual pointers
+# present, routinely times out after ~15 s. A short sleep after moving is enough for the server to settle.
+SETTLE = "0.03"
+
+
 class X11:
     def __init__(self, env: dict):
         self.env = env
@@ -34,12 +39,12 @@ class X11:
 
     # ---- pointer ---------------------------------------------------------
     async def move(self, x: int, y: int) -> None:
-        await self.run("xdotool", "mousemove", "--sync", str(x), str(y))
+        await self.run("xdotool", "mousemove", str(x), str(y), "sleep", SETTLE)
 
     async def click(self, x: int, y: int, button: str = "left", count: int = 1,
                     modifiers: list[str] | None = None) -> None:
         mods = [MODIFIER_KEYS[m] for m in modifiers or []]
-        args = ["xdotool", "mousemove", "--sync", str(x), str(y)]
+        args = ["xdotool", "mousemove", str(x), str(y), "sleep", SETTLE]
         if mods:
             args += ["keydown", "+".join(mods)]
         args += ["click", "--repeat", str(count), "--delay", "80", str(BUTTONS[button])]
@@ -48,14 +53,14 @@ class X11:
         await self.run(*args)
 
     async def scroll(self, x: int, y: int, direction: str, amount: int) -> None:
-        await self.run("xdotool", "mousemove", "--sync", str(x), str(y),
+        await self.run("xdotool", "mousemove", str(x), str(y), "sleep", SETTLE,
                        "click", "--repeat", str(amount), "--delay", "30", str(WHEEL[direction]))
 
     async def drag(self, x0: int, y0: int, x1: int, y1: int, button: str = "left", steps: int = 12) -> None:
         b = str(BUTTONS[button])
-        await self.run("xdotool", "mousemove", "--sync", str(x0), str(y0), "mousedown", b)
+        await self.run("xdotool", "mousemove", str(x0), str(y0), "sleep", SETTLE, "mousedown", b)
         for i in range(1, steps + 1):
-            await self.run("xdotool", "mousemove", "--sync",
+            await self.run("xdotool", "mousemove",
                            str(round(x0 + (x1 - x0) * i / steps)), str(round(y0 + (y1 - y0) * i / steps)))
             await asyncio.sleep(0.01)
         await self.run("xdotool", "mouseup", b)
@@ -84,6 +89,21 @@ class X11:
                 return True
             await asyncio.sleep(0.05)
         return False
+
+    async def geometry(self, window_id: int) -> dict | None:
+        """Client-area geometry straight from the X server (Cua's list can briefly echo a requested move)."""
+        out = await self.run("xdotool", "getwindowgeometry", "--shell", str(window_id), check=False)
+        g = dict(line.split("=", 1) for line in out.split() if "=" in line)
+        try:
+            return {"x": int(g["X"]), "y": int(g["Y"]), "width": int(g["WIDTH"]), "height": int(g["HEIGHT"])}
+        except (KeyError, ValueError):
+            return None
+
+    async def frame_extents(self, window_id: int) -> tuple[int, int, int, int]:
+        """(left, right, top, bottom) decoration sizes the WM reports via _NET_FRAME_EXTENTS; zeros if none."""
+        out = await self.run("xprop", "-id", str(window_id), "_NET_FRAME_EXTENTS", check=False)
+        m = re.search(r"=\s*(\d+),\s*(\d+),\s*(\d+),\s*(\d+)", out)
+        return tuple(int(v) for v in m.groups()) if m else (0, 0, 0, 0)
 
     async def minimize(self, window_id: int) -> None:
         await self.run("xdotool", "windowminimize", str(window_id))

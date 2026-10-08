@@ -32,4 +32,10 @@ Use `cctl mcp` when the harness runs on the same machine. From another machine, 
 | Claude Code (Opus 5.5) | CLI `--host`, images copied back | PASS: 7 calls, 0 errors |
 | acceptance script | MCP (local stdio, SSH stdio, `--host` passthrough) | 14/14 |
 
+| Harness / model | Browser task: fill a local form with a Unicode code word, submit, report the confirmation |
+|---|---|
+| Codex / gpt-6.1-sol (medium) | PASS: 7 calls, 0 errors |
+| opencode / GLM-5.3 | PASS: 8 calls, 0 errors |
+| `acceptance/phase1b.py` | 10/10 |
+
 Re-run with `acceptance/phase1.py [--cmd …]` and `acceptance/harness_task.sh <harness> [args]`.

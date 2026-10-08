@@ -130,10 +130,14 @@ class CuaClient:
                 out.text.append(c["text"])
             elif c.get("type") == "image":
                 out.images.append((c.get("mimeType", "image/png"), c["data"]))
-        refusal = out.data.get("refusal") if isinstance(out.data, dict) else None
-        if check and (out.is_error or refusal or out.data.get("status") == "refused"):
-            message = (refusal or {}).get("message") if refusal else out.data.get("message") or "\n".join(out.text)
-            raise CuaError(tool, message or "failed", out.data)
+        if check:
+            d = out.data if isinstance(out.data, dict) else {}
+            # Cua reports refusals three ways: isError, {"refusal": {...}} / status=refused, and
+            # {"effect": "refused", "error": {...}} (browser tools).
+            problem = d.get("refusal") or (d.get("error") if isinstance(d.get("error"), dict) else None)
+            if out.is_error or problem or d.get("status") == "refused" or d.get("effect") == "refused":
+                message = (problem or {}).get("message") or d.get("message") or d.get("summary") or "\n".join(out.text)
+                raise CuaError(tool, message or "failed", d)
         return out
 
     async def close(self) -> None:

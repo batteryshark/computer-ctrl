@@ -23,6 +23,7 @@ import psutil
 from PIL import Image
 
 from . import contract, imaging
+from .browser import BrowserTools
 from .config import Config
 from .cua_client import CuaClient, CuaError
 from .frames import Frame, FrameStore
@@ -73,6 +74,7 @@ class Engine:
         self.run_id = time.strftime("%Y%m%d-%H%M%S-") + uuid.uuid4().hex[:4]
         self.artifacts = cfg.artifacts / self.run_id
         self._start_lock = asyncio.Lock()
+        self.browser = BrowserTools(self)
 
     # ------------------------------------------------------------------ setup
     async def start(self) -> None:
@@ -391,6 +393,9 @@ class Engine:
             f = self.frames.get(frame)
         except LookupError as e:
             raise ToolError("no_frame", str(e)) from None
+        if f.kind == "viewport":
+            raise ToolError("bad_frame", f"frame {f.id} is a browser viewport image; use browser_act with x/y "
+                                         "(or take a desktop screenshot for desktop clicks)")
         sx, sy = f.to_screen(x, y)
         self._pending_raise = f.window_id
         return sx, sy, f.id
@@ -753,3 +758,28 @@ class Engine:
         return ToolResult(data={"exit_code": proc.returncode, "stdout": out.decode(errors="replace")[-limit:],
                                 "stderr": err.decode(errors="replace")[-limit:]},
                           is_error=proc.returncode != 0)
+
+    # ---------------------------------------------------------------- browser
+    async def tool_browser_open(self, url: str | None = None, profile: str | None = None) -> ToolResult:
+        return await self.browser.open(url=url, profile=profile)
+
+    async def tool_browser_snapshot(self, query: str | None = None, scope: str | None = None,
+                                    more: str | None = None, screenshot: bool = False,
+                                    browser: str | None = None) -> ToolResult:
+        return await self.browser.snapshot(query=query, scope=scope, more=more, screenshot=screenshot,
+                                           browser=browser)
+
+    async def tool_browser_act(self, action: str, ref: str | None = None, x: float | None = None,
+                               y: float | None = None, frame: str | None = None, text: str | None = None,
+                               replace: bool = False, submit: bool = False, dx: float | None = None,
+                               dy: float | None = None, to_ref: str | None = None, browser: str | None = None,
+                               intent: str | None = None) -> ToolResult:
+        return await self.browser.act(action=action, ref=ref, x=x, y=y, frame=frame, text=text, replace=replace,
+                                      submit=submit, dx=dx, dy=dy, to_ref=to_ref, browser=browser)
+
+    async def tool_browser_navigate(self, url: str | None = None, history: str | None = None,
+                                    browser: str | None = None) -> ToolResult:
+        return await self.browser.navigate(url=url, history=history, browser=browser)
+
+    async def tool_browser_close(self, browser: str | None = None) -> ToolResult:
+        return await self.browser.close(browser=browser)

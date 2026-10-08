@@ -5,13 +5,13 @@ Updated: 2026-10-07
 ## Current state
 
 - Objective: Build a harness-agnostic computer-use toolkit (MCP + CLI + Agent Skill) that lets Claude Code, Codex CLI, opencode, pi (and Gemini/Antigravity) control Windows, macOS and Linux desktops: screenshots + zoom, mouse/keyboard, windows, processes, browser, a11y, OCR, audio and short video clips for capable models.
-- Status: **Phase 1 core done on Linux X11.** `cctl` (Python, uv) serves the 17-tool contract over MCP and a CLI. Acceptance passes 14/14. The same GUI task passed from 3 harnesses (Codex/gpt-6.1-sol MCP, opencode/GLM-5.3 MCP, Claude Code via CLI `--host`). Browser tools are deferred to Phase 1b.
+- Status: **Phase 1 core done on Linux X11.** `cctl` (Python, uv) serves the 17-tool contract over MCP and a CLI. Acceptance passes 14/14. The same GUI task passed from 3 harnesses (Codex/gpt-6.1-sol MCP, opencode/GLM-5.3 MCP, Claude Code via CLI `--host`). Phase 1b (browser) done: 5 browser tools; acceptance 10/10; browser task PASS in Codex and opencode.
 - Main constraint: Harnesses disagree on what tool media reaches the model (see report, "Harness quirks" table). The output layer must target the lowest common denominator.
 - Environment roles: `user@linux-vm` is a disposable sandbox the agent fully controls (not an inference host). The user's own windows there (e.g. Mousepad `~/private.env`, OpenChamber, a terminal in ~/Projects) are off-limits for tests. Model inference (Holo4, grounders, omni) runs on the user's Mac or desktop (Windows, RTX 4090, 96 GB RAM), reached over Tailscale.
 - Where this tracker and the report disagree, this tracker wins (see Decisions: "2026-10-07 corrections").
 - Harness credentials (VM): Codex works via ChatGPT login (gpt-6.1-sol). opencode works with Z.AI (GLM-5.3); other providers are not configured. Claude Code's OAuth is expired. pi 0.85 has no models and predates MCP. Harness CLIs live in `~/.nvm/versions/node/v24.20.0/bin`, which is not on the non-interactive PATH.
 - Pending user action: `gh auth login` on the Mac so the two upstream reports in `upstream/` can be filed (approved by user); re-login Claude Code on the VM.
-- Next action: Phase 1b browser tools (wrap Cua's CDP `browser_*` in one long-lived connection: browser_open/snapshot/act/navigate), then Phase 2 media (record_clip, audio_capture, OCR via Cua perception).
+- Next action: Phase 2 media: record_clip (ffmpeg x11grab, returning MP4 + contact sheet), audio_capture (PulseAudio monitor/mic, returning WAV + optional transcript), OCR (Cua perception extension, AGPL OK). Then rerun the media probe for the new shapes.
 
 ## Active workstreams
 
@@ -27,7 +27,7 @@ Updated: 2026-10-07
 
 ### Phase 1 — Contract + Linux wrapper (1–2 weeks)
 
-- Status: core done (2026-10-07); 1b (browser) open.
+- Status: done (2026-10-07), including 1b (browser).
 - Owner: unassigned
 - Evidence:
   - `contract/tools.json` (17 tools) and `contract/engine/cua-0.34.0-linux-tools.json` (engine snapshot).
@@ -36,8 +36,9 @@ Updated: 2026-10-07
   - `acceptance/phase1.py`: 14/14 over local stdio, SSH stdio and `--host` passthrough.
   - `acceptance/harness_task.sh`: PASS for codex and opencode; Claude Code passed via CLI.
   - `skills/computer-use/SKILL.md`; `packaging/` (Claude plugin scaffold + per-harness snippets).
-- Remaining for 1b: browser tools; event-log rotation; `run` output streaming; an Electron a11y launch helper (`--force-renderer-accessibility`).
-- Next action: Phase 1b browser tools.
+- 1b evidence: `src/cctl/browser.py`; `acceptance/phase1b.py` 10/10 against `acceptance/web/form.html`; `TASK=browser acceptance/harness_task.sh` PASS for codex (7 calls) and opencode (8 calls).
+- Carried forward (small): event-log rotation; `run` output streaming; an Electron a11y launch helper (`--force-renderer-accessibility`); attaching to the user's own browser (`existing_profile` needs a Cua launch grant).
+- Next action: none; Phase 2 is next.
 
 ### Phases 2–4 — Media (clips/audio/OCR), grounding + eval, cross-platform + transport
 
@@ -99,6 +100,7 @@ Updated: 2026-10-07
 - Zoom: fresh native capture, cropped and enlarged up to 4× (default long edge 1024), with its own frame id usable for clicks.
 - Statefulness: one long-lived Cua connection per MCP session; the CLI shares state through `cctl serve` (auto-started, 30 min idle exit).
 - Name: `cctl` (renameable).
+- Browser (1b): isolated Chromium via Cua `browser_prepare` (throwaway or named profile). Sandbox profile uses foreground trusted input; personal profile stays background and falls back to `dom_event` for ref clicks. `browser_act` never reads CDP state afterwards, because any snapshot or re-bind invalidates the caller's refs; the page title comes from the X11 window title. Cua browser refusals (`effect: refused` + `error{}`) are errors.
 
 ### Phase 0 wrapper requirements (2026-10-07, from smoke evidence)
 
@@ -172,3 +174,4 @@ Updated: 2026-10-07
 - 2026-10-07: Phase 0 engine smoke: 10 PASS / 1 KNOWN; go on Cua for Linux (see session note).
 - 2026-10-07: Media probe measured in Codex 0.161/gpt-6.1-sol: image native; image+structuredContent native (codex#10334 not reproduced); audio no; video only via an agent ffmpeg workaround; file path yes; structured-only yes.
 - 2026-10-07: Phase 1 core: cctl built; 3-harness GUI task PASS.
+- 2026-10-07: Phase 1b browser tools; browser task PASS in Codex and opencode.

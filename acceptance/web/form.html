@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>cctl acceptance form</title>
+<style>
+  body { font: 16px system-ui, sans-serif; margin: 40px; }
+  label, button { display: block; margin: 12px 0; }
+  input { font-size: 16px; padding: 4px 8px; width: 280px; }
+  #filler { height: 1600px; background: linear-gradient(#fff, #eef); }
+  #result { font-weight: bold; }
+</style>
+</head>
+<body>
+  <h1>Acceptance form</h1>
+  <form id="f">
+    <label>Code word <input id="code" name="code" autocomplete="off"></label>
+    <label><input type="checkbox" id="agree"> I agree</label>
+    <button type="submit" id="go">Submit</button>
+  </form>
+  <p id="result" role="status"></p>
+  <div id="filler"></div>
+  <p id="footer">Bottom of the page: footer marker ZEBRA-42</p>
+<script>
+  // Confirmation is a deterministic function of the code word, so a harness's answer can be checked in code.
+  function confirmation(s) {
+    let h = 2166136261;
+    for (const c of s) { h ^= c.codePointAt(0); h = Math.imul(h, 16777619) >>> 0; }
+    return "CONF-" + (h % 1000000).toString().padStart(6, "0");
+  }
+  document.getElementById("f").addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    const code = document.getElementById("code").value.trim();
+    const agreed = document.getElementById("agree").checked;
+    document.getElementById("result").textContent = agreed
+      ? "Accepted " + code + ": " + confirmation(code)
+      : "Please tick I agree";
+  });
+</script>
+</body>
+</html>

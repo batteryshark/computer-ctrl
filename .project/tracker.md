@@ -22,7 +22,9 @@ Updated: 2026-10-08
 - Where this tracker and the report disagree, this tracker wins (see Decisions: "2026-10-07 corrections").
 - Harness credentials (VM): Codex works via ChatGPT login (gpt-6.1-sol). opencode works with Z.AI (GLM-5.3); other providers are not configured. Claude Code's OAuth is expired. pi 0.85 has no models and predates MCP. Harness CLIs live in `~/.nvm/versions/node/v24.20.0/bin`, which is not on the non-interactive PATH.
 - Pending user action: none required. Optional: re-login Claude Code on the VM. `upstream/` drafts stay local: the user decided not to file AI-found bugs upstream.
-- Next action: decide on hosting: a private standalone GitHub repo, with Cua pinned as an unmodified dependency rather than a fork. Then run the eval on macOS/Windows, cover the browser tool there, and add harder tasks.
+- Repo: the private GitHub repo (`origin`) (private, standalone; not a fork, since Cua is used unmodified as a pinned dependency). Created 2026-10-08.
+  - The VM (`~/computer-ctrl`) and Windows (`~\computer-ctrl`) copies are synced with rsync/scp, not git clones.
+- Next action: run the eval on macOS/Windows, cover the browser tool there, and add harder tasks.
 
 ## Active workstreams
 

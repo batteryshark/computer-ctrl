@@ -28,5 +28,9 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 </dict>
 </plist>
 PLIST
-codesign --force --sign - --identifier dev.computer-ctrl.audio "$APP"
+# Sign with a real identity when there is one, so macOS keeps the privacy grants across rebuilds (an ad-hoc
+# signature changes with every build and macOS then forgets them). Override with CCTL_AUDIO_SIGN.
+SIGN="${CCTL_AUDIO_SIGN:-$(security find-identity -v -p codesigning 2>/dev/null | awk -F'"' '/Apple Development|Developer ID Application/ {print $2; exit}')}"
+codesign --force --sign "${SIGN:--}" --identifier dev.computer-ctrl.audio "$APP"
+echo "signed with: ${SIGN:-ad-hoc (privacy grants reset on every rebuild)}"
 echo "installed $APP"

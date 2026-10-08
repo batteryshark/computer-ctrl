@@ -1093,6 +1093,13 @@ class Engine:
                             stt_model: str | None = None) -> ToolResult:
         levels = await asyncio.to_thread(media.analyze_wav, rec.path)
         data = {"capture": rec.id, "path": str(rec.path), "device": rec.meta["device"], **levels}
+        if rec.meta.get("source") != "system" and levels["duration_s"] and levels["peak_dbfs"] == -120.0:
+            why = " (a MacBook's built-in mic is off while the lid is closed)" if sys.platform == "darwin" else ""
+            data["hint"] = (f"the input delivered all-zero samples: it is muted, switched off or virtual{why}. "
+                            "Pick another input with source='<device name>'.")
+            inputs = await asyncio.to_thread(media.input_names)
+            if inputs:
+                data["inputs"] = inputs
         if transcribe:
             backend = self.transcriber.available
             if levels["silent"]:

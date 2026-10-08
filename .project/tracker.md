@@ -111,10 +111,17 @@ Updated: 2026-10-07
   - Windows audio uses `soundcard` (WASAPI loopback/mic) in the session daemon. Verified: TTS played in the desktop session was captured and transcribed (Whisper heard "Landern" for "lantern" at 30% volume).
   - macOS audio uses `cctl-audio.app` (ScreenCaptureKit helper, `packaging/macos`, ad-hoc signed), launched via `open` so TCC belongs to it; the user allowed it under Screen & System Audio Recording. Verified: silence detected, then `say` played at 15% volume was transcribed exactly ("…secret word is lighthouse…").
 - Not yet done:
-  - mic capture:
-    - macOS: ScreenCaptureKit mic capture never prompts by itself and delivers all-zero samples without the grant. cctl-audio now calls AVCaptureDevice.requestAccess first and errors clearly if denied.
-    - Rebuilding the ad-hoc-signed helper invalidates its Screen & System Audio Recording grant, so the user must re-allow it. Consider a stable signing identity.
-    - Windows: the mic path works mechanically (device opens, WAV written), but windows-pc has only virtual mics (VR headset, Steam Streaming), so there is no real signal to test.
+  - mic capture (2026-10-08):
+    - macOS:
+      - All-zero samples, even with the grant. Cause: the lid is closed (clamshell), and the default input is the MacBook's built-in mic, which macOS hardware-mutes then.
+      - cctl-audio now takes `--mic-device NAME` (sets SCStreamConfiguration.microphoneCaptureDeviceID). `source=<device name>` selects it, e.g. `source="Webcam"`.
+      - The result's `device` names the real input.
+      - The helper still calls AVCaptureDevice.requestAccess first, since SCK never prompts for the mic.
+    - Signing: the helper is now signed with the user's Apple Development identity when one exists (`CCTL_AUDIO_SIGN` overrides), so rebuilds keep the TCC grants. Switching identities needed one last re-grant.
+    - All-zero mic input now returns a `hint` (muted, off or virtual, plus the lid note on macOS) and `inputs` (available device names).
+    - Windows:
+      - The recorder now waits for the WASAPI stream to open before counting time. A 3 s request had returned 2.0 s; it now returns 3.5 s.
+      - windows-pc has only virtual mics (VR headset, Steam Streaming), which deliver zeros. The path and the hint are verified; a real signal is untested.
   - (done 2026-10-08) clips on Windows/macOS via Cua's recorder + ffmpeg crop: `acceptance/clip_smoke.py` 5/5 on both.
     - Windows Calculator: the display goes 0→7→78→789 across the tiles.
     - macOS TextEdit: text_changes CLIP → CLIP TEST → CLIP TEST WORKS.
@@ -123,7 +130,6 @@ Updated: 2026-10-07
     - Per-host `hosts` table in config.toml (ssh_args, remote_bin, os), PowerShell quoting, Windows paths copied back with scp.
     - Verified: doctor, screenshot, then zoom in a separate call (state persists), Calculator typed "42" via window-targeted keys.
     - Fixes: CLI args follow the contract's types (`--keys 4` stays a string); Cua `session_ended` is detected by refusal code (Windows wording differs), so idle daemons revive.
-  - Rebuilding cctl-audio.app with an ad-hoc signature may re-trigger the permission; sign with a stable identity if that becomes annoying.
 - Pending (user): none.
 - Windows (2026-10-08): `acceptance/windows_smoke.py` 8/8 from the Mac over SSH (`cctl mcp` on windows-pc): doctor, windows, 5120×1440 desktop screenshot, Calculator 123×456 via UIA element clicks, display read back ("56,088"), window closed.
   - Architecture: SSH sessions are not the desktop session. Cua's named pipe only serves its own logon session, and its loopback HTTP MCP makes every request a separate session (element tokens die between calls).

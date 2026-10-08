@@ -13,7 +13,7 @@ The Cua daemon starts on demand inside the logged-in desktop session; SSH sessio
 
 ## Platform notes
 
-- **macOS**: needs Cua's `CuaDriver.app` in /Applications (run `cua-driver permissions grant` once) and, for audio, `packaging/macos/build-audio-helper.sh`. That builds `~/Applications/cctl-audio.app`, a ScreenCaptureKit capture helper; allow it once under Screen & System Audio Recording (and Microphone for `source=mic`). Use the `personal` profile on someone's own Mac.
+- **macOS**: needs Cua's `CuaDriver.app` in /Applications (run `cua-driver permissions grant` once) and, for audio, `packaging/macos/build-audio-helper.sh`. That builds `~/Applications/cctl-audio.app`, a ScreenCaptureKit capture helper; allow it once under Screen & System Audio Recording (and Microphone for `source=mic`). The build signs with your Apple Development identity if you have one, so rebuilds keep those grants (ad-hoc signing loses them). With the lid closed, the built-in mic is off, so pick another input by name, e.g. `source="Webcam"`. Use the `personal` profile on someone's own Mac.
 - **Windows**: needs Cua's `cua-driver.exe` (`~\.cua-driver\<ver>\…`) and `uv tool install --editable ".[audio,stt]"`. `cctl serve` runs in the logged-in desktop session (started on demand via a one-shot scheduled task); `cctl mcp` over SSH relays to it. Audio is WASAPI loopback/mic via `soundcard`.
 
 ## Remote targets for the CLI and MCP

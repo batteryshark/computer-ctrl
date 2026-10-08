@@ -4,10 +4,12 @@
 // Screen & System Audio Recording / Microphone permissions belong to this small app, not to whatever
 // terminal or agent harness started cctl.
 //
-//   cctl-audio --out FILE.wav [--mic] [--max-seconds N] [--stop-file PATH]
+//   cctl-audio --out FILE.wav [--mic [--mic-device NAME]] [--max-seconds N] [--stop-file PATH]
 //
-// Writes FILE.wav.started once capture is running (or FILE.wav.error with a message), then records until
-// --stop-file appears or --max-seconds elapse. Output is the stream's native PCM (48 kHz float32).
+// Writes FILE.wav.started (containing the device name) once capture is running, or FILE.wav.error with a
+// message, then records until --stop-file appears or --max-seconds elapse. Output is the stream's native PCM
+// (48 kHz float32). --mic-device picks an input by (part of) its name or unique ID; the default is the
+// system's default input.
 
 import AVFoundation
 import CoreMedia
@@ -66,12 +68,13 @@ func mark(_ path: String, _ suffix: String, _ text: String = "") {
 @main
 struct Main {
     static func main() async {
-        var out = "", mic = false, maxSeconds = 600.0, stopFile = ""
+        var out = "", mic = false, micDevice = "", maxSeconds = 600.0, stopFile = ""
         var args = CommandLine.arguments.dropFirst().makeIterator()
         while let a = args.next() {
             switch a {
             case "--out": out = args.next() ?? ""
             case "--mic": mic = true
+            case "--mic-device": mic = true; micDevice = args.next() ?? ""
             case "--max-seconds": maxSeconds = Double(args.next() ?? "") ?? 600
             case "--stop-file": stopFile = args.next() ?? ""
             default: break
@@ -99,6 +102,24 @@ struct Main {
                 exit(2)
             }
         }
+        var device: AVCaptureDevice?
+        if mic {
+            let inputs = AVCaptureDevice.DiscoverySession(
+                deviceTypes: [.microphone, .external], mediaType: .audio, position: .unspecified).devices
+            if micDevice.isEmpty {
+                device = AVCaptureDevice.default(for: .audio)
+            } else {
+                let want = micDevice.lowercased()
+                device = inputs.first { $0.uniqueID == micDevice || $0.localizedName.lowercased() == want }
+                    ?? inputs.first { $0.localizedName.lowercased().contains(want) }
+            }
+            guard device != nil else {
+                let names = inputs.map { $0.localizedName }.joined(separator: ", ")
+                mark(out, ".error", micDevice.isEmpty ? "no microphone input available"
+                     : "no microphone matching '\(micDevice)'; inputs: \(names)")
+                exit(2)
+            }
+        }
         do {
             let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
             guard let display = content.displays.first else {
@@ -113,7 +134,10 @@ struct Main {
             cfg.width = 2
             cfg.height = 2
             cfg.minimumFrameInterval = CMTime(value: 1, timescale: 1)
-            if #available(macOS 15.0, *) { cfg.captureMicrophone = mic }
+            if #available(macOS 15.0, *), mic {
+                cfg.captureMicrophone = true
+                cfg.microphoneCaptureDeviceID = device?.uniqueID
+            }
 
             let rec = Recorder(url: URL(fileURLWithPath: out), mic: mic)
             let screen = NullScreen()
@@ -127,7 +151,7 @@ struct Main {
                 try stream.addStreamOutput(rec, type: .audio, sampleHandlerQueue: queue)
             }
             try await stream.startCapture()
-            mark(out, ".started")
+            mark(out, ".started", device?.localizedName ?? "")
             let t0 = Date()
             while Date().timeIntervalSince(t0) < maxSeconds {
                 if !stopFile.isEmpty && FileManager.default.fileExists(atPath: stopFile) { break }

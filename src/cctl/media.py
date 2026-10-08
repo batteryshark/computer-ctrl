@@ -9,8 +9,10 @@ from __future__ import annotations
 
 import array
 import asyncio
+import json
 import math
 import shutil
+import sys
 import time
 import wave
 from dataclasses import dataclass, field
@@ -196,6 +198,23 @@ def write_wav_16k_mono(samples, rate: int, out: Path) -> None:
         w.writeframes(pcm.tobytes())
 
 
+def input_names() -> list[str]:
+    """Names of the recording inputs, for picking source=<device name> (Windows and macOS)."""
+    import subprocess
+    try:
+        if sys.platform == "win32":
+            import soundcard as sc
+            return [m.name for m in sc.all_microphones()]
+        if sys.platform == "darwin":
+            out = subprocess.run(["system_profiler", "-json", "SPAudioDataType"], capture_output=True, text=True,
+                                 timeout=20).stdout
+            items = json.loads(out)["SPAudioDataType"][0]["_items"]
+            return [d["_name"] for d in items if d.get("coreaudio_device_input")]
+    except Exception:  # noqa: BLE001
+        pass
+    return []
+
+
 class SoundcardRecorder:
     """Windows: WASAPI loopback of the default output (system) or the default microphone, via `soundcard`.
     Records on a thread in 100 ms chunks so start/stop works; stop() writes a 16 kHz mono WAV."""
@@ -222,7 +241,7 @@ class SoundcardRecorder:
 
     def start(self) -> None:
         import threading
-        self._stop = threading.Event()
+        self._stop, ready = threading.Event(), threading.Event()
 
         def run():
             try:
@@ -231,14 +250,20 @@ class SoundcardRecorder:
                 pass
             try:
                 with self.device.recorder(samplerate=self.RATE, blocksize=self.RATE // 10) as rec:
+                    ready.set()
                     t0 = time.monotonic()
                     while not self._stop.is_set() and time.monotonic() - t0 < self.max_seconds:
                         self._chunks.append(rec.record(numframes=self.RATE // 10))
             except Exception as e:  # noqa: BLE001
                 self.error = f"{type(e).__name__}: {e}"
+            finally:
+                ready.set()
 
         self._thread = threading.Thread(target=run, daemon=True)
         self._thread.start()
+        ready.wait(timeout=10)  # opening a WASAPI stream takes a moment; don't count it as recorded time
+        if self.error:
+            raise RuntimeError(self.error)
 
     def stop(self) -> Path:
         import numpy as np
@@ -261,9 +286,8 @@ class MacAudioHelper:
         if not (self.app / "Contents" / "MacOS" / "cctl-audio").exists():
             raise RuntimeError(f"macOS audio helper missing at {self.app}; build it with "
                                "packaging/macos/build-audio-helper.sh")
-        if source not in ("system", "mic"):
-            raise RuntimeError("on macOS, source must be 'system' or 'mic'")
-        self.mic = source == "mic"
+        self.mic = source != "system"  # 'mic' = the default input; any other name picks an input device
+        self.mic_device = source if source not in ("system", "mic") else ""
         self.name = "microphone (ScreenCaptureKit)" if self.mic else "system audio (ScreenCaptureKit)"
         self.out, self.max_seconds = out, max_seconds
         self.raw = out.with_suffix(".native.wav")
@@ -280,12 +304,14 @@ class MacAudioHelper:
         args = ["open", "-W", "-n", "-g", "-a", str(self.app), "--args", "--out", str(self.raw),
                 "--max-seconds", str(self.max_seconds), "--stop-file", str(self.stop_file)]
         if self.mic:
-            args.append("--mic")
+            args += ["--mic-device", self.mic_device] if self.mic_device else ["--mic"]
         self.proc = subprocess.Popen(args, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
                                      stderr=subprocess.DEVNULL)
         deadline = time.monotonic() + 10
         while time.monotonic() < deadline:
             if self._marker(".started").exists():
+                if self.mic:
+                    self.name = (self._marker(".started").read_text().strip() or "microphone") + " (ScreenCaptureKit)"
                 return
             if self._marker(".error").exists():
                 raise RuntimeError("audio helper: " + self._marker(".error").read_text())

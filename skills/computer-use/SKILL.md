@@ -38,7 +38,7 @@ Refs remain valid across `browser_act` calls until the page navigates or you tak
 ## Things that change over time, sound, and text without accessibility
 
 - **`record_clip`** records the screen and returns a **contact sheet**: frames sampled evenly over the clip, numbered, each captioned with its time and how much changed. It accepts `--window <id>`, `--region [x0,y0,x1,y1]` or the whole desktop, and `--seconds 6`; `--frames 12` gives more tiles for fast changes. To capture something while you act, use `--action start`, do the actions, then `--action stop`. The MP4 is saved at `path`.
-- **`audio_capture`** records what the computer plays (`--source system`) or the microphone (`--source mic`). It reports `silent` and the time ranges that contain sound. `--transcribe true` adds a speech transcript; `--inline true` attaches the WAV for models that accept audio. It also supports `--action start|stop`.
+- **`audio_capture`** records what the computer plays (`--source system`) or the microphone (`--source mic`, or an input by name such as `--source Webcam`). If a mic recording comes back as all zeros, the result includes `inputs`; pick one of those. It reports `silent` and the time ranges that contain sound. `--transcribe true` adds a speech transcript; `--inline true` attaches the WAV for models that accept audio. It also supports `--action start|stop`.
 - **`ocr`** reads text from the latest screenshot or zoom (or `--window <id>`, or a `--region`). Lines come back with boxes in that image's frame. `--words true` adds a box per word, for clicking one item in a menu bar or tab strip. Use it where `observe` has no accessibility elements: canvases, terminals, remote desktops, images.
 
 ## If you cannot see images

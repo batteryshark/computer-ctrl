@@ -920,7 +920,10 @@ class Engine:
             w = await self._window(window)
             b = w["bounds"]
             rect = (b["x"], b["y"], b["width"], b["height"])
-            await self.input.activate(window)
+            try:  # best effort: macOS won't raise a window over the user's front app
+                await self.input.activate(window)
+            except (ToolError, CuaError):
+                pass
         elif region is not None:
             x0, y0, x1, y1 = [round(v) for v in region]
             rect = (x0, y0, x1 - x0, y1 - y0)

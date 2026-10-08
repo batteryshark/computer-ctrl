@@ -112,7 +112,10 @@ Updated: 2026-10-07
   - macOS audio uses `cctl-audio.app` (ScreenCaptureKit helper, `packaging/macos`, ad-hoc signed), launched via `open` so TCC belongs to it; the user allowed it under Screen & System Audio Recording. Verified: silence detected, then `say` played at 15% volume was transcribed exactly ("…secret word is lighthouse…").
 - Not yet done:
   - mic capture on macOS (needs a Microphone prompt for cctl-audio) and on Windows (not exercised);
-  - clips on Windows/macOS via Cua's recorder (implemented, untested);
+  - (done 2026-10-08) clips on Windows/macOS via Cua's recorder + ffmpeg crop: `acceptance/clip_smoke.py` 5/5 on both.
+    - Windows Calculator: the display goes 0→7→78→789 across the tiles.
+    - macOS TextEdit: text_changes CLIP → CLIP TEST → CLIP TEST WORKS.
+    - Both crops match the window bounds exactly. Cua's agent-cursor badge shows up in recordings.
   - the CLI over `--host` to Windows (MCP works).
   - Rebuilding cctl-audio.app with an ad-hoc signature may re-trigger the permission; sign with a stable identity if that becomes annoying.
 - Pending (user): none.

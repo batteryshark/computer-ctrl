@@ -861,13 +861,13 @@ class Engine:
 
     async def tool_record_clip(self, seconds: float = 5, window: int | None = None, region: list[float] | None = None,
                                fps: int = 8, action: str = "record", clip: str | None = None, frames: int = 9,
-                               audio: bool = False, max_dim: int | None = None) -> ToolResult:
+                               audio: bool = False, max_dim: int | None = None, ocr: bool = False) -> ToolResult:
         if not shutil.which("ffmpeg"):
             raise ToolError("unsupported", "ffmpeg is not installed on the controlled machine")
         if action == "stop":
             rec = self._pop_recording(clip, "clip")
             await media.stop_ffmpeg(rec.proc)
-            return await self._finish_clip(rec, frames, max_dim)
+            return await self._finish_clip(rec, frames, max_dim, ocr)
         if not self.session_env.get("DISPLAY") or self.session_env.get("WAYLAND_DISPLAY"):
             raise ToolError("unsupported", "screen clips need an X11 session in this phase")
         if window is not None:
@@ -903,9 +903,10 @@ class Engine:
                                    self.env, timeout=seconds + 30)
         except RuntimeError as e:
             raise ToolError("capture_failed", str(e)) from None
-        return await self._finish_clip(media.Recording(rid, "clip", out, None, 0, meta), frames, max_dim)
+        return await self._finish_clip(media.Recording(rid, "clip", out, None, 0, meta), frames, max_dim, ocr)
 
-    async def _finish_clip(self, rec: media.Recording, n_frames: int, max_dim: int | None) -> ToolResult:
+    async def _finish_clip(self, rec: media.Recording, n_frames: int, max_dim: int | None,
+                           ocr: bool = False) -> ToolResult:
         duration = await media.probe_duration(rec.path, self.env)
         if duration <= 0:
             raise ToolError("capture_failed", "the clip is empty")
@@ -917,12 +918,28 @@ class Engine:
         sheet, timeline = media.contact_sheet(sampled, max_dim or self.cfg.max_dim)
         sheet_path = self.artifacts / f"clip-{rec.id}-sheet.png"
         sheet.save(sheet_path)
+        if ocr:  # text per tile, for models that can't read the sheet image
+            for entry, (_, img) in zip(timeline, sampled):
+                try:
+                    lines = await asyncio.to_thread(self.ocr_engine.read, img, 0.5)
+                except ImportError:
+                    break
+                entry["text"] = " | ".join(l["text"] for l in lines)[:300]
+        changes = None
+        if ocr:  # the text sequence, collapsed to the moments it changes
+            changes, last = [], None
+            for entry in timeline:
+                txt = entry.get("text", "")
+                if txt != last:
+                    changes.append({"t": entry["t"], "text": txt})
+                    last = txt
         busiest = sorted(timeline[1:], key=lambda t: -t["changed"])[:3]
         return ToolResult(data={
             "clip": rec.id, "path": str(rec.path), "duration_s": round(duration, 2), "fps": rec.meta["fps"],
             "screen_rect": rec.meta["rect"], "has_audio": rec.meta["audio"], "sheet_path": str(sheet_path),
             "timeline": timeline,
             "most_change": [t["tile"] for t in busiest if t["changed"] > 0.0005],
+            **({"text_changes": changes} if changes is not None else {}),
             "note": f"The image is a contact sheet: {len(sampled)} frames sampled evenly, numbered in time order, "
                     "each captioned with its time and the share of pixels changed since the previous tile. "
                     "The MP4 is at path."},

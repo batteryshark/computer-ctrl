@@ -19,7 +19,7 @@ Use `cctl mcp` when the harness runs on the same machine. From another machine, 
 |---|---|---|
 | Claude Code | `claude mcp add cctl -- cctl mcp`, or load the plugin: `claude --plugin-dir packaging/claude-plugin` (set `CCTL_HOST` for a remote machine) | `~/.claude/skills/computer-use` → symlink to `skills/computer-use` |
 | Codex CLI | `~/.codex/config.toml`: `[mcp_servers.cctl]` with `command = "cctl"`, `args = ["mcp"]`, `tool_timeout_sec = 120`. `codex exec` needs MCP calls approved: per-tool `approval_mode`, or `--dangerously-bypass-approvals-and-sandbox` on a sandbox VM | `~/.agents/skills/computer-use` |
-| opencode | `opencode.json`: `"mcp": {"cctl": {"type": "local", "command": ["cctl", "mcp"], "timeout": 120000}}` | `~/.agents/skills/computer-use` (it also reads `~/.claude/skills`) |
+| opencode | `opencode.json`: `"mcp": {"cctl": {"type": "local", "command": ["cctl", "mcp"], "timeout": 120000}}`. opencode locates the project (and so this file) from `$PWD`, not the process working directory. When launching it from a script, set `PWD` or `cd` first | `~/.agents/skills/computer-use` (it also reads `~/.claude/skills`) |
 | pi ≥ 1.0 | `pi mcp add cctl -- cctl mcp`, then set `"exposure": "direct"` for `cctl` in `~/.pi/agent/mcp.json`. The default "codemode" exposure hides the tools behind scripts | `~/.agents/skills/computer-use` |
 | pi < 1.0, or any shell-only harness | none: the agent runs `cctl <tool> …` and opens the image at `path` | `~/.agents/skills/computer-use` |
 
@@ -43,6 +43,15 @@ Use `cctl mcp` when the harness runs on the same machine. From another machine, 
 | Codex / gpt-6.1-sol | clip: read a 5-word cycle flashed on a canvas, PASS in 2 calls · audio: report a spoken secret word, PASS in 1 call |
 | opencode / GLM-5V-Turbo (clip), GLM-5.3 (audio) | clip PASS in 2 calls · audio PASS in 1 call |
 | `acceptance/phase2.py` | 12/12 |
+
+## Eval baselines (16 natural-language tasks, `eval/run.py`, 2026-10-08)
+
+| Harness / model | Score | Notes |
+|---|---|---|
+| Codex / gpt-6.1-sol (medium) | 16/16 | Median 22 s per task. Find-and-replace in Mousepad is the slowest (~37 calls); its dialog hides Replace buttons from accessibility until text is entered |
+| opencode / GLM-5.3 (text-only) | 16/16 | 15/16 first run. The clip task passed after `record_clip --ocr` gained `text_changes`, and is now 2 calls |
+
+`eval/results/*.md` has per-task seconds, calls, errors and tokens.
 
 On the controlled machine, install with `uv tool install --editable '.[stt]'` to get local Whisper transcription (CPU, `small` by default). Without it, or with `stt_url` set, transcription goes to an OpenAI-compatible `/v1/audio/transcriptions` endpoint.
 

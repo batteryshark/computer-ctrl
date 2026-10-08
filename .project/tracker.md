@@ -62,7 +62,20 @@ Updated: 2026-10-07
   - `then=screenshot|observe|wait_stable|browser_snapshot` on input tools returns the after-state in the same call.
   - `apps launch --a11y` adds `--force-renderer-accessibility` for Electron/Chromium; events.jsonl rotates at 20 MB.
 - Blocked on (user): an endpoint for Holo4 (llama.cpp on the 4090 desktop over tailnet, or an H API key) to measure `locate`.
-- Next action: finish the first full-suite baseline (Codex/gpt-6.1-sol medium), fix the failures it exposes, then baseline opencode/GLM; once a grounder exists, run the eval with a weak/text-only host with and without `locate`.
+- Baselines (2026-10-08):
+  - Codex/gpt-6.1-sol medium: 16/16 (`eval/results/20261008-040631-codex-sol-medium-v2.md`).
+  - opencode/GLM-5.3 (text-only): 15/16, then 16/16 after `record_clip ocr` + `text_changes` (`20261008-043652-opencode-glm53.md`, `…051059-opencode-glm53-clip-ocr2.md`).
+- Fixes the eval forced:
+  - xdotool `mousemove --sync` hung ~15 s with Cua's XInput2 pointers; removed.
+  - windows move offsets by `_NET_FRAME_EXTENTS` (the WM places the frame, callers speak client coordinates).
+  - type_text verification is best-effort when a dialog closes.
+  - Eval runner: free ports, UTF-8 pages, session env for checks, `PWD` for opencode (it resolves the project and `opencode.json` from `$PWD`), harness-shell detection (shell `cctl …` counts as toolkit use).
+  - Text-only guidance in MCP instructions and the skill.
+- Model observations:
+  - GLM-5V-Turbo ignored the connected MCP tools and went through the shell instead.
+  - GLM-5.3 is slow (20–60 s per step) but follows tool guidance.
+  - Mousepad's Find and Replace dialog hides its buttons from AT-SPI until text is entered, so it remains the hardest task.
+- Next action: with a grounder endpoint, run the suite with a weak/text-only host with and without `locate`; add harder tasks (multi-app workflows, long scroll lists, drag-and-drop, file pickers in browsers).
 
 ### Phase 4 — Cross-platform + transport
 

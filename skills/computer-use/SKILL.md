@@ -41,6 +41,15 @@ Refs remain valid across `browser_act` calls until the page navigates or you tak
 - **`audio_capture`** records what the computer plays (`--source system`) or the microphone (`--source mic`). It reports `silent` and the time ranges that contain sound. `--transcribe true` adds a speech transcript; `--inline true` attaches the WAV for models that accept audio. It also supports `--action start|stop`.
 - **`ocr`** reads text from the latest screenshot or zoom (or `--window <id>`, or a `--region`). Lines come back with boxes in that image's frame. `--words true` adds a box per word, for clicking one item in a menu bar or tab strip. Use it where `observe` has no accessibility elements: canvases, terminals, remote desktops, images.
 
+## If you cannot see images
+
+Every visual tool has a text route:
+- `observe` gives the accessibility tree as text.
+- `ocr` reads text from any screenshot or zoom, with clickable boxes (`--words true` for single words).
+- `record_clip --ocr true` returns `text_changes`: what the screen said, and when it changed.
+- `audio_capture --transcribe true` gives speech as text.
+- `locate`, when present, finds targets from a description.
+
 ## Typing and keys
 
 - `type_text` sends ASCII as key presses. Anything else (accents, CJK, emoji, symbols) is pasted, because synthetic key events corrupt it, and the clipboard is restored afterwards.

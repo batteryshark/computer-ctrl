@@ -72,6 +72,24 @@ def answer_text(harness: str, transcript: str, last: Path | None) -> str:
     return clean[-3000:]
 
 
+ALLOWED_SHELL = re.compile(r"^\s*(cctl\b|which cctl\b|~?/?[\w/.-]*cctl\b)")
+
+
+def harness_shell_commands(harness: str, transcript: str) -> list[str]:
+    """Shell commands the model ran through the harness itself (not through cctl's run tool)."""
+    clean = re.sub(r"\x1b\[[0-9;]*m", "", transcript)
+    if harness == "opencode":
+        return [l[2:] for l in clean.splitlines() if l.startswith("$ ")]
+    if harness == "codex":
+        return re.findall(r"^exec\n(?:/bin/bash -lc )?'?(.+?)'? in /", clean, re.M)
+    return []
+
+
+def harness_shell_used(harness: str, transcript: str) -> list[str]:
+    """Commands other than the cctl CLI: using `cctl <tool>` from a shell is the toolkit's CLI path, not a bypass."""
+    return [c for c in harness_shell_commands(harness, transcript) if not ALLOWED_SHELL.match(c)]
+
+
 def tokens_used(transcript: str) -> int | None:
     m = re.search(r"tokens used\s*\n?\s*([\d,]+)", transcript)
     return int(m.group(1).replace(",", "")) if m else None
@@ -106,8 +124,9 @@ def main() -> None:
             start = time.time()
             t0 = time.monotonic()
             try:
-                p = subprocess.run(argv, cwd=run, env=env, stdin=subprocess.DEVNULL, capture_output=True, text=True,
-                                   timeout=t.timeout_s)
+                # PWD too: opencode takes its project directory (and so its opencode.json) from $PWD, not the cwd.
+                p = subprocess.run(argv, cwd=run, env={**env, "PWD": str(run)}, stdin=subprocess.DEVNULL,
+                                   capture_output=True, text=True, timeout=t.timeout_s)
                 transcript, timed_out = p.stdout + p.stderr, False
             except subprocess.TimeoutExpired as e:
                 transcript = (e.stdout or b"").decode(errors="replace") if isinstance(e.stdout, bytes) else (e.stdout or "")
@@ -126,6 +145,9 @@ def main() -> None:
             violations = []
             if t.gui_only and "run" in tools:
                 violations.append("used run tool")
+            other_shell = harness_shell_used(a.harness, transcript)
+            if t.gui_only and other_shell:
+                violations.append(f"shell outside cctl: {other_shell[:3]}")
             ok = ok and not violations and not timed_out
             shell(t.teardown(ctx), env)
             row = {"task": t.id, "category": t.category, "rep": rep, "ok": ok, "seconds": seconds,

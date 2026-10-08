@@ -83,6 +83,11 @@ Updated: 2026-10-07
     - GLM-5.3 with locate: 3/3 (6–22 calls).
     - Codex/gpt-6.1-sol (vision) without locate: 3/3 (4 calls).
   - Vision hosts don't need it; text-only hosts go from failing to passing.
+- GLM-5.3 + locate full suite (2026-10-08): 14/17.
+  - terminal_read was tainted and is fixed (see below).
+  - canvas_click_shape clicked the correct shape but GLM didn't answer before the 420 s timeout.
+  - editor_open_dialog timed out twice: a slow model on the GTK file chooser. Without locate it passed earlier in 73 s, so it is flaky.
+- Eval bug found and fixed: `xfce4-terminal --hold` shows an "exited" banner and **no output**, so terminal_read had nothing on screen. Earlier passes, including Codex v2 in 6 calls, most likely read the file through the harness shell (before shell detection existed), so treat them as invalid. With a live process keeping the text visible: Codex 1 call / 14 s, GLM-5.3 2 calls / 12 s, both via OCR or vision with no shell.
 - Next action: run the full suite with a text-only host + locate to check for regressions; add harder tasks (dense icon toolbars, drag-and-drop, multi-app workflows); measure Holo4 on unlabeled icon targets where refine may matter.
 
 ### Phase 4 — Cross-platform + transport (active, 2026-10-08)

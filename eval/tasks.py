@@ -268,8 +268,9 @@ task(id="filemanager_mkdir", category="apps",
 def _terminal_setup(c: Ctx) -> str:
     c.v["code"] = code(8)
     (c.run / "motd").write_text(f"Build finished.\nArtifact checksum: {c.v['code']}\n", encoding="utf-8")
-    return (f"setsid xfce4-terminal --disable-server --title 'build-log' --hold "
-            f"-x cat {c.run}/motd </dev/null >/dev/null 2>&1 & sleep 2")
+    # Not --hold: xfce4-terminal 1.1 then shows an "exited" banner and no output. Keep a live process instead.
+    return (f"setsid xfce4-terminal --disable-server --title 'build-log' "
+            f"-x bash -c 'cat {c.run}/motd; exec sleep 900' </dev/null >/dev/null 2>&1 & sleep 2")
 
 
 task(id="terminal_read", category="ocr",
@@ -277,7 +278,8 @@ task(id="terminal_read", category="ocr",
      prompt=lambda c: f"{NO_SHELL} A terminal window titled 'build-log' shows the output of a build. Read the "
                       "artifact checksum shown in it and reply with the checksum only.",
      check=lambda c, ans, calls: Result(c.v["code"] in ans.replace(" ", ""), {"want": c.v["code"]}),
-     teardown=lambda c: "pkill -f '[x]fce4-terminal --disable-server --title build-log'", needs_vision=True)
+     teardown=lambda c: f"pkill -f '[c]at {c.run}/motd; exec sleep 900'; "
+                        "xdotool search --name '^build-log$' windowclose 2>/dev/null; true", needs_vision=True)
 
 
 # -------------------------------------------------------------------- browser

@@ -31,6 +31,8 @@ class Config:
     grounder_model: str = ""
     grounder_api_key_env: str = ""
     grounder_image_max: int = 1280
+    # Remote targets for `cctl --host`: {"user@host": {"ssh_args": [...], "remote_bin": "...", "os": "windows"}}
+    hosts: dict = field(default_factory=dict)
     state_dir: Path = field(default_factory=lambda: Path.home() / ".local" / "state" / "cctl")
     cache_dir: Path = field(default_factory=lambda: Path.home() / ".cache" / "cctl")
 

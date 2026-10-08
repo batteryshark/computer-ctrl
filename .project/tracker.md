@@ -116,7 +116,10 @@ Updated: 2026-10-07
     - Windows Calculator: the display goes 0→7→78→789 across the tiles.
     - macOS TextEdit: text_changes CLIP → CLIP TEST → CLIP TEST WORKS.
     - Both crops match the window bounds exactly. Cua's agent-cursor badge shows up in recordings.
-  - the CLI over `--host` to Windows (MCP works).
+  - (done 2026-10-08) CLI over `--host` to Windows.
+    - Per-host `hosts` table in config.toml (ssh_args, remote_bin, os), PowerShell quoting, Windows paths copied back with scp.
+    - Verified: doctor, screenshot, then zoom in a separate call (state persists), Calculator typed "42" via window-targeted keys.
+    - Fixes: CLI args follow the contract's types (`--keys 4` stays a string); Cua `session_ended` is detected by refusal code (Windows wording differs), so idle daemons revive.
   - Rebuilding cctl-audio.app with an ad-hoc signature may re-trigger the permission; sign with a stable identity if that becomes annoying.
 - Pending (user): none.
 - Windows (2026-10-08): `acceptance/windows_smoke.py` 8/8 from the Mac over SSH (`cctl mcp` on windows-pc): doctor, windows, 5120×1440 desktop screenshot, Calculator 123×456 via UIA element clicks, display read back ("56,088"), window closed.

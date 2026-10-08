@@ -30,7 +30,15 @@ from . import contract
 from .config import load
 
 
-def parse_args(argv: list[str]) -> dict:
+def parse_args(argv: list[str], schema: dict | None = None) -> dict:
+    """--key value pairs; values are JSON-decoded unless the tool's schema says the parameter is a string
+    (so `key --keys 4` stays "4" and `type_text --text true` stays "true")."""
+    props = (schema or {}).get("properties", {})
+
+    def is_string(key: str) -> bool:
+        t = props.get(key, {}).get("type")
+        return t == "string" or (isinstance(t, list) and "string" in t and "integer" not in t)
+
     args: dict = {}
     i = 0
     if argv and argv[0].startswith("{"):
@@ -50,6 +58,9 @@ def parse_args(argv: list[str]) -> dict:
         else:
             raw = "true"
             i += 1
+        if is_string(key):
+            args[key] = raw
+            continue
         try:
             args[key] = json.loads(raw)
         except json.JSONDecodeError:
@@ -123,10 +134,30 @@ def run_local(tool: str, args: dict) -> int:
     return 1 if resp.get("is_error") else 0
 
 
+PATH_KEYS = ("path", "sheet_path", "waveform_path")
+
+
+def remote_target(host: str) -> tuple[list[str], str, bool]:
+    """(ssh args, remote cctl command, remote is Windows) for a host, from the `hosts` table in config.toml."""
+    entry = load().hosts.get(host, {})
+    ssh_args = [os.path.expanduser(a) for a in entry.get("ssh_args", [])]
+    windows = entry.get("os", "").lower() == "windows"
+    default_bin = "cctl" if windows else "~/.local/bin/cctl"
+    return ssh_args, entry.get("remote_bin") or os.environ.get("CCTL_REMOTE_BIN", default_bin), windows
+
+
+def ps_quote(arg: str) -> str:
+    """Single-quote for PowerShell (the default OpenSSH shell on Windows): '' escapes a quote."""
+    return "'" + arg.replace("'", "''") + "'"
+
+
 def run_remote(host: str, argv: list[str]) -> int:
-    remote_bin = os.environ.get("CCTL_REMOTE_BIN", "~/.local/bin/cctl")
-    cmd = remote_bin + " " + " ".join(shlex.quote(a) for a in argv)
-    p = subprocess.run(["ssh", "-T", "-o", "BatchMode=yes", host, cmd], capture_output=True, text=True)
+    ssh_args, remote_bin, windows = remote_target(host)
+    quote = ps_quote if windows else shlex.quote
+    cmd = (f"& {quote(remote_bin)} " if windows and " " in remote_bin else remote_bin + " ") + \
+        " ".join(quote(a) for a in argv)
+    p = subprocess.run(["ssh", "-T", "-o", "BatchMode=yes", *ssh_args, host, cmd], capture_output=True, text=True,
+                       encoding="utf-8", errors="replace")
     out = p.stdout.strip()
     try:
         data = json.loads(out.splitlines()[-1]) if out else {}
@@ -134,14 +165,16 @@ def run_remote(host: str, argv: list[str]) -> int:
         sys.stdout.write(p.stdout)
         sys.stderr.write(p.stderr)
         return p.returncode
-    for key in ("path",):
+    local_dir = Path(tempfile.gettempdir()) / "cctl-remote"
+    local_dir.mkdir(exist_ok=True)
+    for key in PATH_KEYS:
         remote = data.get(key)
-        if isinstance(remote, str):
-            local_dir = Path(tempfile.gettempdir()) / "cctl-remote"
-            local_dir.mkdir(exist_ok=True)
-            local = local_dir / f"{host.replace('@', '_')}-{Path(remote).name}"
-            if subprocess.run(["scp", "-q", f"{host}:{remote}", str(local)]).returncode == 0:
-                data["remote_path"] = remote
+        if isinstance(remote, str) and remote:
+            src = remote.replace("\\", "/") if windows else remote
+            local = local_dir / f"{host.replace('@', '_')}-{Path(src).name}"
+            if subprocess.run(["scp", "-q", "-o", "BatchMode=yes", *ssh_args, f"{host}:{src}", str(local)]
+                              ).returncode == 0:
+                data[f"remote_{key}"] = remote
                 data[key] = str(local)
     print(json.dumps(data, ensure_ascii=False))
     return p.returncode
@@ -161,8 +194,8 @@ def main(argv: list[str] | None = None) -> None:
         return
     if host and argv[0] == "mcp":
         # Remote MCP: stdio passes straight through SSH to cctl on the target.
-        remote_bin = os.environ.get("CCTL_REMOTE_BIN", "~/.local/bin/cctl")
-        os.execvp("ssh", ["ssh", "-T", "-o", "BatchMode=yes", "-o", "ServerAliveInterval=30", host,
+        ssh_args, remote_bin, _ = remote_target(host)
+        os.execvp("ssh", ["ssh", "-T", "-o", "BatchMode=yes", "-o", "ServerAliveInterval=30", *ssh_args, host,
                           f"{remote_bin} mcp"])
     if host and argv[0] != "serve":
         raise SystemExit(run_remote(host, argv))
@@ -181,7 +214,7 @@ def main(argv: list[str] | None = None) -> None:
         for t in contract.tools():
             print(f"{t['name']:12s} {t['description'].split('. ')[0]}")
     elif cmd in contract.tool_names():
-        raise SystemExit(run_local(cmd, parse_args(argv[1:])))
+        raise SystemExit(run_local(cmd, parse_args(argv[1:], contract.schema(cmd))))
     else:
         raise SystemExit(f"unknown command {cmd!r}; try `cctl tools`")
 

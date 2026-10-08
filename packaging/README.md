@@ -16,6 +16,21 @@ The Cua daemon starts on demand inside the logged-in desktop session; SSH sessio
 - **macOS**: needs Cua's `CuaDriver.app` in /Applications (run `cua-driver permissions grant` once) and, for audio, `packaging/macos/build-audio-helper.sh`. That builds `~/Applications/cctl-audio.app`, a ScreenCaptureKit capture helper; allow it once under Screen & System Audio Recording (and Microphone for `source=mic`). Use the `personal` profile on someone's own Mac.
 - **Windows**: needs Cua's `cua-driver.exe` (`~\.cua-driver\<ver>\…`) and `uv tool install --editable ".[audio,stt]"`. `cctl serve` runs in the logged-in desktop session (started on demand via a one-shot scheduled task); `cctl mcp` over SSH relays to it. Audio is WASAPI loopback/mic via `soundcard`.
 
+## Remote targets for the CLI and MCP
+
+Describe each remote machine once in `~/.config/cctl/config.toml` on the machine you run from:
+
+```toml
+[hosts."user@windows-pc"]          # Windows (OpenSSH, PowerShell default shell)
+os = "windows"
+ssh_args = ["-i", "~/.ssh/id_ed25519", "-o", "IdentitiesOnly=yes"]
+
+[hosts."user@linux-vm"]            # Linux
+remote_bin = "~/.local/bin/cctl"
+```
+
+Then use `cctl --host user@windows-pc <tool> …` (images, clip sheets and waveforms are copied back, and `path` points at the local copy) or `cctl --host user@windows-pc mcp`. On Windows the session-resident daemon keeps state between calls, so frame ids and element tokens survive across separate commands.
+
 ## Pointing a harness at it
 
 Use `cctl mcp` when the harness runs on the same machine. From another machine, use `cctl --host USER@HOST mcp`, which needs cctl on both ends, or plain `ssh -T USER@HOST ~/.local/bin/cctl mcp`.

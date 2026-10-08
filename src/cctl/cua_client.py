@@ -164,7 +164,7 @@ class CuaClient:
             if not self.alive:
                 await self.start()
         r = await self._request("tools/call", {"name": tool, "arguments": args}, timeout)
-        if r.get("isError") and "session has ended" in json.dumps(r.get("content", [])):
+        if self._session_ended(r):
             # Cua ends idle lifecycle sessions and ordinary actions never revive them; start_session does.
             await self._request("tools/call", {"name": "start_session", "arguments": {"session": self.session}}, 30)
             r = await self._request("tools/call", {"name": tool, "arguments": args}, timeout)
@@ -183,6 +183,17 @@ class CuaClient:
                 message = (problem or {}).get("message") or d.get("message") or d.get("summary") or "\n".join(out.text)
                 raise CuaError(tool, message or "failed", d)
         return out
+
+    @staticmethod
+    def _session_ended(r: dict) -> bool:
+        """Cua ended our lifecycle session (idle). Worded differently per platform; the refusal code is stable."""
+        sc = r.get("structuredContent") or {}
+        if isinstance(sc, dict) and ((sc.get("refusal") or {}).get("code") == "session_ended"
+                                     or sc.get("code") == "session_ended"):
+            return True
+        text = json.dumps(r.get("content", []))
+        return bool(r.get("isError")) and ("session has ended" in text or "has ended; call start_session" in text
+                                           or "session_ended" in text)
 
     async def close(self) -> None:
         if self.http_url:

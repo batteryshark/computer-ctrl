@@ -204,3 +204,19 @@ def test_grounder_maps_normalized_point_and_refines(monkeypatch):
     r = g.locate(Image.new("RGB", (1920, 1080), "white"), "the centre", refine=True)
     srv.shutdown()
     assert round(r["x"]) == 960 and round(r["y"]) == 540 and len(r["passes"]) == 2
+
+
+def test_cua_session_ended_detection():
+    from cctl.cua_client import CuaClient
+    linux = {"isError": True, "content": [{"type": "text", "text": "session has ended; tool call 'x' was rejected"}]}
+    windows = {"isError": True, "structuredContent": {"refusal": {"code": "session_ended", "message": "..."}},
+               "content": [{"type": "text", "text": "session 'cctl-1' has ended; call start_session ..."}]}
+    ok = {"content": [{"type": "text", "text": "fine"}]}
+    assert CuaClient._session_ended(linux) and CuaClient._session_ended(windows) and not CuaClient._session_ended(ok)
+
+
+def test_parse_args_respects_string_params():
+    from cctl import contract
+    assert parse_args(["--keys", "4"], contract.schema("key")) == {"keys": "4"}
+    assert parse_args(["--text", "true"], contract.schema("type_text")) == {"text": "true"}
+    assert parse_args(["--window", "123", "--keys", "ctrl+s"], contract.schema("key")) == {"window": 123, "keys": "ctrl+s"}

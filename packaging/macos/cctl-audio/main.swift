@@ -85,6 +85,20 @@ struct Main {
             mark(out, ".error", "microphone capture needs macOS 15 or later")
             exit(2)
         }
+        if mic {
+            // ScreenCaptureKit's microphone capture does not prompt by itself; without the grant it delivers
+            // silence. Ask explicitly (first run shows the Microphone prompt for this app).
+            var status = AVCaptureDevice.authorizationStatus(for: .audio)
+            if status == .notDetermined {
+                _ = await AVCaptureDevice.requestAccess(for: .audio)
+                status = AVCaptureDevice.authorizationStatus(for: .audio)
+            }
+            if status != .authorized {
+                mark(out, ".error", "microphone permission not granted: allow cctl-audio under System Settings > "
+                     + "Privacy & Security > Microphone, then retry")
+                exit(2)
+            }
+        }
         do {
             let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
             guard let display = content.displays.first else {

@@ -111,7 +111,10 @@ Updated: 2026-10-07
   - Windows audio uses `soundcard` (WASAPI loopback/mic) in the session daemon. Verified: TTS played in the desktop session was captured and transcribed (Whisper heard "Landern" for "lantern" at 30% volume).
   - macOS audio uses `cctl-audio.app` (ScreenCaptureKit helper, `packaging/macos`, ad-hoc signed), launched via `open` so TCC belongs to it; the user allowed it under Screen & System Audio Recording. Verified: silence detected, then `say` played at 15% volume was transcribed exactly ("…secret word is lighthouse…").
 - Not yet done:
-  - mic capture on macOS (needs a Microphone prompt for cctl-audio) and on Windows (not exercised);
+  - mic capture:
+    - macOS: ScreenCaptureKit mic capture never prompts by itself and delivers all-zero samples without the grant. cctl-audio now calls AVCaptureDevice.requestAccess first and errors clearly if denied.
+    - Rebuilding the ad-hoc-signed helper invalidates its Screen & System Audio Recording grant, so the user must re-allow it. Consider a stable signing identity.
+    - Windows: the mic path works mechanically (device opens, WAV written), but windows-pc has only virtual mics (VR headset, Steam Streaming), so there is no real signal to test.
   - (done 2026-10-08) clips on Windows/macOS via Cua's recorder + ffmpeg crop: `acceptance/clip_smoke.py` 5/5 on both.
     - Windows Calculator: the display goes 0→7→78→789 across the tiles.
     - macOS TextEdit: text_changes CLIP → CLIP TEST → CLIP TEST WORKS.

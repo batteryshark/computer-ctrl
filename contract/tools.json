@@ -163,6 +163,15 @@
           "intent": {
             "description": "Optional: what this click is for (kept in the event log).",
             "type": "string"
+          },
+          "then": {
+            "description": "Return the state after the action in the same call: screenshot, observe, wait_stable.",
+            "type": "string",
+            "enum": [
+              "screenshot",
+              "observe",
+              "wait_stable"
+            ]
           }
         },
         "additionalProperties": false
@@ -197,6 +206,15 @@
           },
           "intent": {
             "type": "string"
+          },
+          "then": {
+            "description": "Return the state after the action in the same call: screenshot, observe, wait_stable.",
+            "type": "string",
+            "enum": [
+              "screenshot",
+              "observe",
+              "wait_stable"
+            ]
           }
         },
         "required": [
@@ -222,6 +240,15 @@
           },
           "intent": {
             "type": "string"
+          },
+          "then": {
+            "description": "Return the state after the action in the same call: screenshot, observe, wait_stable.",
+            "type": "string",
+            "enum": [
+              "screenshot",
+              "observe",
+              "wait_stable"
+            ]
           }
         },
         "required": [
@@ -262,6 +289,15 @@
           },
           "element": {
             "type": "string"
+          },
+          "then": {
+            "description": "Return the state after the action in the same call: screenshot, observe, wait_stable.",
+            "type": "string",
+            "enum": [
+              "screenshot",
+              "observe",
+              "wait_stable"
+            ]
           }
         },
         "required": [
@@ -305,6 +341,15 @@
           },
           "intent": {
             "type": "string"
+          },
+          "then": {
+            "description": "Return the state after the action in the same call: screenshot, observe, wait_stable.",
+            "type": "string",
+            "enum": [
+              "screenshot",
+              "observe",
+              "wait_stable"
+            ]
           }
         },
         "required": [
@@ -449,6 +494,10 @@
           },
           "running": {
             "description": "list: only running apps (default true).",
+            "type": "boolean"
+          },
+          "a11y": {
+            "description": "launch: enable the accessibility tree of Electron/Chromium apps (VS Code, Slack, Discord, Chrome…) so observe can see their controls.",
             "type": "boolean"
           }
         },
@@ -694,6 +743,16 @@
           },
           "intent": {
             "type": "string"
+          },
+          "then": {
+            "description": "Return the state after the action in the same call: screenshot, observe, wait_stable, browser_snapshot.",
+            "type": "string",
+            "enum": [
+              "screenshot",
+              "observe",
+              "wait_stable",
+              "browser_snapshot"
+            ]
           }
         },
         "required": [
@@ -870,6 +929,34 @@
             "type": "boolean"
           }
         },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "locate",
+      "description": "Ask a dedicated GUI-grounding model where something is: give a description (\"the blue Save button in the dialog\") and get a point on the latest image (or `frame`), with the image returned marked at that point so you can check it before clicking. Useful for small or ambiguous targets. Only present when a grounding model is configured.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "description": "What to find, described the way a person would.",
+            "type": "string"
+          },
+          "frame": {
+            "type": "string"
+          },
+          "refine": {
+            "description": "Second pass on a zoomed crop around the first answer (default true).",
+            "type": "boolean"
+          },
+          "mark": {
+            "description": "Return the image marked at the point (default true).",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "target"
+        ],
         "additionalProperties": false
       }
     }

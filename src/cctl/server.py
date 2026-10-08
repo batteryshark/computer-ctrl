@@ -32,7 +32,12 @@ def render(result: ToolResult) -> types.CallToolResult:
 
 
 def build(engine: Engine) -> Server:
-    visible = [t for t in contract.tools() if engine.cfg.shell_enabled or t["name"] != "run"]
+    hidden = set()
+    if not engine.cfg.shell_enabled:
+        hidden.add("run")
+    if not (engine.cfg.grounder_url and engine.cfg.grounder_model):
+        hidden.add("locate")
+    visible = [t for t in contract.tools() if t["name"] not in hidden]
 
     async def list_tools(ctx, params) -> types.ListToolsResult:
         return types.ListToolsResult(tools=[

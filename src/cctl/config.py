@@ -24,6 +24,10 @@ class Config:
     stt_url: str = ""              # OpenAI-compatible base URL (…/v1); empty = local faster-whisper if installed
     stt_model: str = "small"
     stt_api_key_env: str = ""      # name of the env var holding the endpoint's API key
+    grounder_url: str = ""         # OpenAI-compatible base URL (…/v1) of a GUI grounding model; empty hides `locate`
+    grounder_model: str = ""
+    grounder_api_key_env: str = ""
+    grounder_image_max: int = 1280
     state_dir: Path = field(default_factory=lambda: Path.home() / ".local" / "state" / "cctl")
     cache_dir: Path = field(default_factory=lambda: Path.home() / ".cache" / "cctl")
 
@@ -48,11 +52,13 @@ def load() -> Config:
         "profile": "CCTL_PROFILE", "max_dim": "CCTL_MAX_DIM", "zoom_dim": "CCTL_ZOOM_DIM",
         "input_backend": "CCTL_INPUT_BACKEND", "cua_bin": "CCTL_CUA_BIN", "cua_socket": "CCTL_CUA_SOCKET",
         "stt_url": "CCTL_STT_URL", "stt_model": "CCTL_STT_MODEL", "stt_api_key_env": "CCTL_STT_API_KEY_ENV",
+        "grounder_url": "CCTL_GROUNDER_URL", "grounder_model": "CCTL_GROUNDER_MODEL",
+        "grounder_api_key_env": "CCTL_GROUNDER_API_KEY_ENV", "grounder_image_max": "CCTL_GROUNDER_IMAGE_MAX",
     }
     for key, var in env.items():
         if var in os.environ:
             value = os.environ[var]
-            setattr(cfg, key, int(value) if key in ("max_dim", "zoom_dim") else value)
+            setattr(cfg, key, int(value) if key in ("max_dim", "zoom_dim", "grounder_image_max") else value)
     if cfg.profile not in PROFILES:
         raise ValueError(f"profile must be one of {PROFILES}, got {cfg.profile!r}")
     if not cfg.cua_bin:

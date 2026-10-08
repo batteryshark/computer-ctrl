@@ -109,7 +109,7 @@ def test_every_contract_tool_has_a_handler_with_matching_params():
         sig = inspect.signature(handler)
         params = set(sig.parameters) - {"self"}
         accepts_kwargs = any(p.kind == p.VAR_KEYWORD for p in sig.parameters.values())
-        props = set(tool["inputSchema"].get("properties", {}))
+        props = set(tool["inputSchema"].get("properties", {})) - {"then"}  # consumed by Engine.dispatch
         missing = props - params
         assert not missing or accepts_kwargs, f"{tool['name']}: schema params {missing} not accepted"
         for req in tool["inputSchema"].get("required", []):
@@ -165,3 +165,37 @@ def test_capture_args():
     a = x11grab_args(":0", (10, 20, 641, 481), 8, Path("/tmp/c.mp4"), 3, None)
     assert a[a.index("-video_size") + 1] == "640x480" and a[a.index("-i") + 1] == ":0+10,20"
     assert pulse_args("auto_null.monitor", Path("/tmp/a.wav"), 2)[:4] == ["-f", "pulse", "-i", "auto_null.monitor"]
+
+
+# ---- grounding ----------------------------------------------------------------
+@pytest.mark.parametrize("reply,want", [
+    ('{"x": 500, "y": 250}', (500, 250)), ("[120, 880]", (120, 880)), ("<point>40 960</point>", (40, 960)),
+    ('Sure! {"x":7,"y":993}', (7, 993)),
+])
+def test_parse_point(reply, want):
+    from cctl.grounding import parse_point
+    assert parse_point(reply) == want
+
+
+def test_grounder_maps_normalized_point_and_refines(monkeypatch):
+    """A fake OpenAI-compatible server that always answers the centre of whatever image it gets."""
+    import http.server, json as j, threading
+    from cctl.grounding import Grounder
+
+    class H(http.server.BaseHTTPRequestHandler):
+        def do_POST(self):
+            body = j.loads(self.rfile.read(int(self.headers["Content-Length"])))
+            assert body["temperature"] == 0 and body["messages"][0]["content"][0]["type"] == "image_url"
+            out = j.dumps({"choices": [{"message": {"content": '{"x": 500, "y": 500}'}}]}).encode()
+            self.send_response(200); self.send_header("Content-Type", "application/json"); self.end_headers()
+            self.wfile.write(out)
+
+        def log_message(self, *a):
+            pass
+
+    srv = http.server.HTTPServer(("127.0.0.1", 0), H)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    g = Grounder(f"http://127.0.0.1:{srv.server_port}/v1", "fake")
+    r = g.locate(Image.new("RGB", (1920, 1080), "white"), "the centre", refine=True)
+    srv.shutdown()
+    assert round(r["x"]) == 960 and round(r["y"]) == 540 and len(r["passes"]) == 2

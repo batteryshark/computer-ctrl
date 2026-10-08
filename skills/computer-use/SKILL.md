@@ -18,7 +18,8 @@ Run `cctl tools` for the list. Every tool takes the same arguments over both MCP
 2. **Act on elements when you can.** Pass the token, e.g. `click --element s0000004f:17` or `type_text --element … --text …`. Element actions don't depend on pixel accuracy, and `type_text` with an element reads the field back and reports `verified`.
 3. **Use pixels when there is no element.** Canvases, games, web content and custom widgets have none. Take a `screenshot`, read the coordinates off that image, and pass them with its `frame` id (e.g. `click --x 412 --y 230 --frame c3`). Coordinates map back to the screen automatically, even though the image was downscaled.
 4. **Zoom instead of guessing.** For small text or icons, call `zoom --region [x0,y0,x1,y1]` on the image you have. It returns an enlarged native-resolution view with its own frame id (`z4`), and you can click directly in its coordinates.
-5. **Verify.** After anything that matters, `observe` or `screenshot` again. Use `wait_for --stable_ms 500` (or `--window_title`, or `--query`) after actions that load or animate, rather than sleeping.
+5. **Verify.** After anything that matters, `observe` or `screenshot` again, or add `--then screenshot|observe|wait_stable` to the action itself (`click`, `type_text`, `key`, `scroll`, `drag`, `browser_act`), which returns the after-state in the same call. Use `wait_for --stable_ms 500` (or `--window_title`, or `--query`) after actions that load or animate, rather than sleeping.
+6. **Ask the grounder if it is there.** When a `locate` tool exists, it finds hard targets from a description: `locate --target "the gear icon in the toolbar"`. It returns a point on the latest image, plus the image marked at that point. Check the mark before clicking.
 
 ## Browser
 
@@ -50,7 +51,7 @@ Refs remain valid across `browser_act` calls until the page navigates or you tak
 ## Other tools
 
 - `windows --action list|focus|move|minimize|maximize|close`
-- `apps --action list|launch|quit`: launch takes `--name` (an app or command), `--args`, or `--urls`. quit closes an app's windows gracefully.
+- `apps --action list|launch|quit`: launch takes `--name` (an app or command), `--args`, or `--urls`. Add `--a11y true` for Electron/Chromium apps (VS Code, Slack, Chrome…) so `observe` can see their controls. quit closes an app's windows gracefully.
 - `processes --action list --filter firefox --sort cpu` · `processes --action kill --pid N`
 - `clipboard --action read|write`
 - `batch --actions '[{"tool":"click","args":{…}},{"tool":"type_text","args":{…}}]' --screenshot_after true`: runs steps you are sure of in one call and stops at the first failure.

@@ -74,8 +74,16 @@ class X11:
         out = await self.run("xdotool", "getactivewindow", check=False)
         return int(out.strip()) if out.strip().isdigit() else None
 
-    async def activate(self, window_id: int) -> None:
-        await self.run("xdotool", "windowactivate", "--sync", str(window_id), check=False)
+    async def activate(self, window_id: int, wait_s: float = 1.0) -> bool:
+        """Ask the WM to activate a window and wait briefly for it. Not `--sync`: for transient dialogs some
+        WMs never report the dialog itself as active, and `--sync` then blocks for ~15 s."""
+        await self.run("xdotool", "windowactivate", str(window_id), check=False, timeout=5)
+        deadline = asyncio.get_running_loop().time() + wait_s
+        while asyncio.get_running_loop().time() < deadline:
+            if await self.active_window() == window_id:
+                return True
+            await asyncio.sleep(0.05)
+        return False
 
     async def minimize(self, window_id: int) -> None:
         await self.run("xdotool", "windowminimize", str(window_id))

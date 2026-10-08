@@ -54,9 +54,19 @@ Updated: 2026-10-07
   - Cua ends idle sessions; revive them with `start_session`.
   - Harness runs over SSH need stdin from /dev/null (`codex exec` waits on a piped stdin).
 
-### Phases 3–4 — Grounding + eval, cross-platform + transport
+### Phase 3 — Grounding + reliability (active, started 2026-10-08)
 
-- Status: paused
+- Evidence so far:
+  - `eval/tasks.py` and `eval/run.py`: 16 natural-language tasks across editor, windows, processes, apps, dialogs, OCR, browser, mixed and media. Each uses random values and is checked in code (files, process state, window geometry, answers, event log); GUI-only tasks fail if `run` was used. Results go to `eval/results/<ts>-<label>.{jsonl,md}`.
+  - `locate` (`src/cctl/grounding.py`): an OpenAI-compatible grounding sidecar using H's element-localization contract (JSON x/y in 0–1000 of the exact image sent), with zoom-refinement second pass and a marked image back. Hidden until `grounder_url`/`grounder_model` are set. Unit-tested against a fake server; setup guide in `docs/grounder-setup.md`.
+  - `then=screenshot|observe|wait_stable|browser_snapshot` on input tools returns the after-state in the same call.
+  - `apps launch --a11y` adds `--force-renderer-accessibility` for Electron/Chromium; events.jsonl rotates at 20 MB.
+- Blocked on (user): an endpoint for Holo4 (llama.cpp on the 4090 desktop over tailnet, or an H API key) to measure `locate`.
+- Next action: finish the first full-suite baseline (Codex/gpt-6.1-sol medium), fix the failures it exposes, then baseline opencode/GLM; once a grounder exists, run the eval with a weak/text-only host with and without `locate`.
+
+### Phase 4 — Cross-platform + transport
+
+- Status: paused. Needs Windows/macOS sandbox VMs: the user's own Mac and desktop are not computer-use targets.
 - Owner: unassigned
 - Completion evidence: per-phase exit criteria in the report's phase table.
 

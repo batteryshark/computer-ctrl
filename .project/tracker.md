@@ -96,9 +96,17 @@ Updated: 2026-10-07
   - Clips on non-X11 use Cua start/stop_recording, then ffmpeg crop.
   - VM run with `CCTL_INPUT_BACKEND=cua`: phase1 acceptance 13/14. The one failure was a quit blocked by a save prompt (the editor had unsaved changes); input itself works.
   - Mac: CuaDriver.app 0.34.0 installed in /Applications (signature verified, team YCK386LBJ7), CLI symlinked to `~/.local/bin/cua-driver`, telemetry off. `cctl` installed with `uv tool install --editable`. llama.cpp 0.6.0 via brew. Holo4-35B-A3B GGUF (q4_k_m 19.8 GB + mmproj 0.84 GB) downloading to `~/models/holo4`.
-- Pending (user):
-  - `cua-driver permissions grant` on the Mac (Accessibility + Screen Recording approval).
-  - Authorize the SSH key on windows-pc.
+- macOS (2026-10-08): `acceptance/mac_smoke.py` 11/11 on this Mac (profile `personal`, so no `run` tool), with Cua permissions granted by the user.
+  - TextEdit is driven in the background without stealing focus: AX typing (Unicode-exact on macOS), File > Save via the new `menu` tool, file verified, window closed with its AX close button.
+  - Cua refuses process-scoped keys when an app has sibling windows (`same_pid_keyboard_ambiguity`), so element/menu/AX routes are preferred on macOS.
+- Cross-platform regression after these changes: Linux 14/14 + 10/10, Windows 8/8, macOS 11/11.
+- Eval hygiene: events now carry `CCTL_RUN_TAG`. The 14:43 GLM+locate full run overlapped manual acceptance runs (terminal_read is tainted, editor_open_dialog suspect), so rerun those after it finishes.
+- Not yet done:
+  - audio capture on macOS/Windows;
+  - hover/`move` on macOS/Windows;
+  - Windows clips (Cua recorder via gdigrab; untested);
+  - the CLI over `--host` to Windows (MCP works).
+- Pending (user): none.
 - Windows (2026-10-08): `acceptance/windows_smoke.py` 8/8 from the Mac over SSH (`cctl mcp` on windows-pc): doctor, windows, 5120×1440 desktop screenshot, Calculator 123×456 via UIA element clicks, display read back ("56,088"), window closed.
   - Architecture: SSH sessions are not the desktop session. Cua's named pipe only serves its own logon session, and its loopback HTTP MCP makes every request a separate session (element tokens die between calls).
   - So `cctl serve` runs **in the desktop session**, started by a one-shot scheduled task that is removed immediately; no autostart is left behind. It talks stdio to `cua-driver mcp`.

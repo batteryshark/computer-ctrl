@@ -1,0 +1,174 @@
+# Project Tracker: computer-ctrl: harness-agnostic computer-use toolkit
+
+Updated: 2026-10-07
+
+## Current state
+
+- Objective: Build a harness-agnostic computer-use toolkit (MCP + CLI + Agent Skill) that lets Claude Code, Codex CLI, opencode, pi (and Gemini/Antigravity) control Windows, macOS and Linux desktops: screenshots + zoom, mouse/keyboard, windows, processes, browser, a11y, OCR, audio and short video clips for capable models.
+- Status: **Phase 1 core done on Linux X11.** `cctl` (Python, uv) serves the 17-tool contract over MCP and a CLI. Acceptance passes 14/14. The same GUI task passed from 3 harnesses (Codex/gpt-6.1-sol MCP, opencode/GLM-5.3 MCP, Claude Code via CLI `--host`). Browser tools are deferred to Phase 1b.
+- Main constraint: Harnesses disagree on what tool media reaches the model (see report, "Harness quirks" table). The output layer must target the lowest common denominator.
+- Environment roles: `user@linux-vm` is a disposable sandbox the agent fully controls (not an inference host). The user's own windows there (e.g. Mousepad `~/private.env`, OpenChamber, a terminal in ~/Projects) are off-limits for tests. Model inference (Holo4, grounders, omni) runs on the user's Mac or desktop (Windows, RTX 4090, 96 GB RAM), reached over Tailscale.
+- Where this tracker and the report disagree, this tracker wins (see Decisions: "2026-10-07 corrections").
+- Harness credentials (VM): Codex works via ChatGPT login (gpt-6.1-sol). opencode works with Z.AI (GLM-5.3); other providers are not configured. Claude Code's OAuth is expired. pi 0.85 has no models and predates MCP. Harness CLIs live in `~/.nvm/versions/node/v24.20.0/bin`, which is not on the non-interactive PATH.
+- Pending user action: `gh auth login` on the Mac so the two upstream reports in `upstream/` can be filed (approved by user); re-login Claude Code on the VM.
+- Next action: Phase 1b browser tools (wrap Cua's CDP `browser_*` in one long-lived connection: browser_open/snapshot/act/navigate), then Phase 2 media (record_clip, audio_capture, OCR via Cua perception).
+
+## Active workstreams
+
+### Phase 0 — Validate on VM (1–2 days)
+
+- Status: done for what is measurable now. Engine: go. Media matrix measured for Codex (`phase0/media-probe/RESULTS.md`). Claude/opencode/pi rows wait on credentials.
+- Owner: unassigned (any harness)
+- Current evidence: `phase0/cua-smoke/results/20261007-194215.json`; details in `.project/sessions/2026-10-07-1942-phase-0-cua-smoke-on-linux-vm.md`.
+- Completion evidence: smoke script + log; measured harness media matrix from a probe MCP server; Holo4 serving check on the desktop (or Mac) reachable from the VM; go/no-go on Cua as Linux engine.
+- Next action: run the media probe in ≥2 harnesses. Optional: Holo4 serving check on the desktop (deferred to Phase 3 by decision).
+- Re-run engine smoke any time: `uv run --script phase0/cua-smoke/smoke.py`.
+- Stop condition: type/click reliable on Mousepad, Thunar, Chromium → Cua is the Linux engine; otherwise switch Linux adapter to agent-sh/computer-use-linux and file upstream bugs.
+
+### Phase 1 — Contract + Linux wrapper (1–2 weeks)
+
+- Status: core done (2026-10-07); 1b (browser) open.
+- Owner: unassigned
+- Evidence:
+  - `contract/tools.json` (17 tools) and `contract/engine/cua-0.34.0-linux-tools.json` (engine snapshot).
+  - `src/cctl/`: engine, MCP server, CLI + daemon, remote `--host`.
+  - `tests/test_unit.py`: 28 pass.
+  - `acceptance/phase1.py`: 14/14 over local stdio, SSH stdio and `--host` passthrough.
+  - `acceptance/harness_task.sh`: PASS for codex and opencode; Claude Code passed via CLI.
+  - `skills/computer-use/SKILL.md`; `packaging/` (Claude plugin scaffold + per-harness snippets).
+- Remaining for 1b: browser tools; event-log rotation; `run` output streaming; an Electron a11y launch helper (`--force-renderer-accessibility`).
+- Next action: Phase 1b browser tools.
+
+### Phases 2–4 — Media (clips/audio/OCR), grounding + eval, cross-platform + transport
+
+- Status: paused
+- Owner: unassigned
+- Completion evidence: per-phase exit criteria in the report's phase table.
+
+## Important paths and artifacts
+
+- `reports/Harness agnostic computer use toolkit.md`: synthesized research report; decision, architecture, tool surface, phase plan.
+- `research_notes/Harness agnostic computer use toolkit/`: seven sourced research notes (vendor APIs, OS plumbing, existing toolkits, Cua Driver deep dive, harness integration, browser automation, Holo4 + grounders).
+- `AGENTS.md`: handoff entry point for any harness working on this project.
+- `src/cctl/`: the toolkit. `engine.py` holds the tools, `server.py` MCP, `cli.py` and `daemon.py` the CLI, `frames.py` coordinate mapping, `textentry.py` typing routes, `session_env.py` session discovery and the Cua daemon, `x11.py` xdotool/EWMH/health.
+- `contract/tools.json`: the tool contract, the source of truth for names, schemas and descriptions.
+- `acceptance/`: `phase1.py` (scripted MCP acceptance) and `harness_task.sh` (natural-language GUI task per harness, verified in code + event log).
+- `upstream/`: drafted trycua/cua reports (comment for #4754; new issue for key-route Unicode corruption).
+- VM: `~/computer-ctrl` (rsync of the repo) installed with `uv tool install --editable`, giving `~/.local/bin/cctl`. Event log: `~/.local/state/cctl/events.jsonl`. Artifacts: `~/.cache/cctl/artifacts/<run>/`.
+- `phase0/media-probe/server.py`: MCP server (Python, mcp SDK 2.x) that hides random codes in image, image+structuredContent, audio, video blob, resource_link and file-path results.
+- `phase0/media-probe/run.sh`: runs the probe headless in claude/opencode/pi/codex and grades what reached the model (`runs/<harness>-<ts>/grade.json`).
+- VM: Cua Driver 0.34.0 at `~/opt/cua-0.34.0/`, symlinked to `~/.local/bin/cua-driver`. Daemon started with `serve --no-overlay`; log at `~/.cache/cua-driver/serve.log`. Telemetry disabled.
+
+## Recent attempts and results
+
+### 2026-10-07 — VM probe (`ssh user@linux-vm`)
+
+- Intent: Establish the test target's real environment.
+- Method: Read-only SSH probe (os-release, loginctl, ps, lspci, tool lookup).
+- Result: Debian 13, kernel 6.12, **XFCE on X11 via lightdm (not Wayland)**, DISPLAY=:0, XAUTHORITY=~/.Xauthority, admin owns seat0 session. Ryzen 7 8745HS / Radeon 780M passed through (`/dev/dri`, `/dev/kfd`), 6 vCPU, ~11 GiB RAM, ~164 GB free. Present: python3, uv, docker, xdotool, chromium, firefox. Missing: node/bun, ffmpeg, claude/codex/opencode/pi (only `agy`, `cairn` in ~/.local/bin).
+- Evidence: this session's probe output.
+- Follow-up: install ffmpeg, libxi6, at-spi2-core, vulkan-tools; determine PipeWire vs PulseAudio.
+
+### 2026-10-07 — Phase 0 start
+
+- Intent: Install Cua on the VM and smoke-test it; measure what each harness forwards.
+- Method: apt install of ffmpeg, vulkan-tools and wmctrl (passwordless sudo works). Downloaded the pinned 0.34.0 linux-x86_64 tarball and verified it against SHA256SUMS. Ran `doctor`, `list-tools` and `serve --no-overlay`, then `call get_desktop_state`.
+- Result:
+  - `doctor` OK: X11 on :0, 11 windows, AT-SPI bus reachable, telemetry off. 64 tools listed. Screen is 1920×1080, scale 1.0.
+  - `get_desktop_state` with `max_image_dimension:1568` took 71 ms and returned a 1568×882 PNG with `frame_scale` 1.2245.
+  - **The image was all black.** light-locker had locked the session and switched seat0 to the lightdm greeter (VT8, :1), leaving admin's :0 on VT7 inactive. DPMS also reports "Monitor is Off". Cua's `doctor` did not flag either condition.
+  - Audio stack is PulseAudio 17, not PipeWire. at-spi2-core, libxi6 and mesa-vulkan are already installed.
+  - Media probe: the server works over raw stdio (all six result types emitted). No harness run could complete yet (see Blocked on).
+- Fix the user must apply (the agent may not change lock settings):
+  `ssh user@linux-vm 'export DISPLAY=:0 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus; mkdir -p ~/.config/autostart && printf "[Desktop Entry]\nHidden=true\n" > ~/.config/autostart/light-locker.desktop; pkill light-locker; P=/xfce4-power-manager; xfconf-query -c xfce4-power-manager -p $P/dpms-enabled -n -t bool -s false; xfconf-query -c xfce4-power-manager -p $P/blank-on-ac -n -t int -s 0; xfconf-query -c xfce4-power-manager -p $P/lock-screen-suspend-hibernate -n -t bool -s false; xset s off -dpms; sudo chvt 7'`
+- Follow-up (toolkit requirement): our `doctor`/`observe` must detect an inactive or locked session (loginctl Active=no, a light-locker/greeter window, DPMS off) and an all-black frame. It should return an explicit `display_unavailable` error, never a black screenshot.
+
+### 2026-10-07 — Deep research (7 tracks)
+
+- Intent: Decide build-on vs fork vs fresh; learn state of the art.
+- Result: Recommendation to wrap pinned Cua Driver; Holo4 does not fit the VM (Q4 ≈21 GB vs 11 GiB); a 2–4B grounder on llama.cpp Vulkan is feasible.
+- Evidence: report + notes above. Nothing tested hands-on yet.
+
+## Decisions
+
+### Phase 1 implementation choices (2026-10-07)
+
+- Language: Python 3.11+ via uv, MCP SDK 2.x lowlevel server. The contract is language-neutral JSON so a later Rust port stays mechanical.
+- Input on X11: pixel actions use xdotool, which sends real pointer/keyboard events and reaches canvases, Electron and games. Element actions, capture, the a11y tree, set_value and the clipboard use Cua. Pixel actions on a window frame raise that window first, because window captures show occluded content but real clicks hit the top window.
+- Element identity: tokens are refreshed by role + identical bounds, falling back to index + label. Indices shift when toolbars change, and GtkTextView's label is its content.
+- Zoom: fresh native capture, cropped and enlarged up to 4× (default long edge 1024), with its own frame id usable for clicks.
+- Statefulness: one long-lived Cua connection per MCP session; the CLI shares state through `cctl serve` (auto-started, 30 min idle exit).
+- Name: `cctl` (renameable).
+
+### Phase 0 wrapper requirements (2026-10-07, from smoke evidence)
+
+- Text entry: never trust `type_text` for non-ASCII. It silently drops (a11y route) or corrupts (key route) while reporting success. Route non-ASCII through `set_value` (editable a11y element) or clipboard + paste, restore the clipboard, and verify by readback where an a11y value exists.
+- Zoom: own it. Crop from a native-resolution capture and upscale to the image budget. Cua's `zoom` is window-only, a crop with no magnification, and ≤500 px.
+- Display availability: `doctor`/`observe` must detect an inactive/locked session or DPMS-off and an all-black frame, and return `display_unavailable`. Cua's `doctor` misses this.
+- Tool surface: expose ~20 tools. Cua's raw `tools/list` is 199 KB (~50k tokens).
+- Result shape: mirror `structuredContent` into a compact text block. Cua's browser snapshot and window state put the payload only in `structuredContent`.
+- Statefulness: the wrapper must hold one long-lived Cua connection (daemon socket) per agent session. Cua session labels end on disconnect, browser ids are per-bind, and `kill_app` is per-connection in standard mode. The CLI front-end goes through the wrapper's daemon, not one-shot `cua-driver call`.
+- Electron/Chromium apps: launch with `--force-renderer-accessibility` (or `ACCESSIBILITY_ENABLED=1`) when the a11y tree is needed. OpenChamber exposed 1 element without it.
+- Batching: `run_actions` is absent in Linux 0.34.0, so `batch` is implemented in the wrapper.
+- App isolation for tests: launch test apps with throwaway XDG dirs (Mousepad crash-restore prompts otherwise).
+
+### 2026-10-07 corrections from user (override the report)
+
+- Licensing is a non-issue (private, undistributed project). Use Cua's perception extension (OmniParser icon detection + OCR) as-is; "non-AGPL OCR" is no longer a gap. Holo4-27B's CC BY-NC license is also fine.
+- Policy is per target profile. `sandbox` (the VM): Cua `unrestricted` mode, shell tool on, no app tiers. `personal` (Mac/desktop): bounded mode + tiers. Default profile for this project is `sandbox`.
+- Holo4 role: optional, not core. The only architectural commitment now is a generic "sidecar model" setting: one OpenAI-compatible endpoint, used by `locate`, `delegate` and `describe_media`. Defer real work to Phase 3 and keep or drop it on eval evidence. Candidate roles, in order of expected value:
+  1. Eyes for text-only local models: a11y tree + `locate`/`describe`. The user's pi local models (Qwen3.8-27B via mtplx) have no image input.
+  2. `delegate(task)`: offload long GUI chores so the frontier model doesn't pay for every screenshot.
+  3. Eval baseline: HoloDesktop CLI in the VM with `--base-url` pointed at the local server.
+- Inference host: desktop with an RTX 4090 (24 GB) and 96 GB RAM, running Windows. vLLM needs WSL2, so use llama.cpp CUDA (or LM Studio) natively. Holo4-27B Q4 (~16–17 GB) fits in VRAM. Holo4-35B-A3B Q4 (~21 GB) is tight, so offload experts with `--n-cpu-moe`; only 3B parameters are active, so it should stay fast. The "time a 2B grounder on the VM's 780M" experiment is dropped.
+
+### Engine: build on Cua Driver behind an owned wrapper (provisional)
+
+- Choice: Pin trycua/cua `cua-driver` 0.34.0 (MIT, Rust) as engine; own a thin wrapper (Python + uv) for contract, output normalization, policy profiles, media broker (desktop zoom, clips, audio), artifacts.
+- Rationale: only active engine covering Win/macOS/X11/Wayland with MCP + CLI + skill already; gaps (audio, on-demand clips, desktop zoom, Codex image-drop with `structuredContent`) fit outside it.
+- Alternatives rejected: fork (368k LOC, 113 releases since May, 9 breaking, one lead dev); fresh build (months for UIA/TCC/SCK/Wayland); per-OS server assembly (incompatible contracts).
+- Reconsider when: Phase 0 shows unreliable X11 input; Cua licensing/telemetry changes; Wayland becomes primary target and Cua stays weak there.
+
+### Output shape for image tools
+
+- Choice: one text block (JSON: path, dims, scale, frame, capture_id) + at most one image; no `structuredContent`/`outputSchema`; long edge ≤ ~2000 px default.
+- Rationale: Codex drops all images when `structuredContent` is present (codex#10334); pi resizes to 2000; Codex caps 2048.
+- Reconsider when: Phase 0 media probe measures different behavior.
+
+### Remote transport: SSH stdio first
+
+- Choice: `ssh -T user@linux-vm 'toolkit mcp'` over Tailscale; CLI gets `--remote` that pulls artifacts back locally. Tailnet HTTP + bearer token later.
+
+## Open questions and theories
+
+### Does Cua Driver type/click reliably on XFCE/xfwm4?
+
+- Type: question
+- Status: open
+- Evidence needed: Phase 0 smoke (cua#3774, #3237, #3871, #4754).
+- Next validation: Phase 0.
+
+### What does each harness actually forward (image / image+structuredContent / audio / video)?
+
+- Type: question
+- Status: open (current matrix is from source reading, not measurement)
+- Next validation: 50-line probe MCP server run in Claude Code, Codex, opencode, pi, `agy`.
+
+### Is a Holo4 grounder / sub-agent worth it?
+
+- Type: theory. Useful for open or cheap host models and dense UIs. Frontier hosts already ground at ~85–88% on ScreenSpot-Pro.
+- Status: open
+- Next validation: serve Holo4-35B-A3B on the desktop; measure locate latency and accuracy from the VM; Phase 3 eval vs the host model's own grounding.
+
+### Unknowns
+
+- Desktop GPU and OS (decides vLLM vs llama.cpp for Holo4); Mac unified memory size.
+- What `agy` and `cairn` on the VM are (agy presumed Antigravity CLI); audio stack on the VM; lightdm XAUTHORITY path conventions on Debian 13.
+
+## Completed or resolved
+
+- 2026-10-07: Project scaffolded; research complete; report delivered.
+- 2026-10-07: User disabled light-locker/DPMS on the VM; seat0 switched back to the admin session with `loginctl activate 2`.
+- 2026-10-07: Phase 0 engine smoke: 10 PASS / 1 KNOWN; go on Cua for Linux (see session note).
+- 2026-10-07: Media probe measured in Codex 0.161/gpt-6.1-sol: image native; image+structuredContent native (codex#10334 not reproduced); audio no; video only via an agent ffmpeg workaround; file path yes; structured-only yes.
+- 2026-10-07: Phase 1 core: cctl built; 3-harness GUI task PASS.

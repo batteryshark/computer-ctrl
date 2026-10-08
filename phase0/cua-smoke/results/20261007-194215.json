@@ -1,0 +1,74 @@
+{
+  "session": "smoke-e3cc69",
+  "server": "cua-driver 0.34.0",
+  "results": [
+    {
+      "check": "desktop_capture_not_black",
+      "status": "PASS",
+      "size": [
+        1568,
+        882
+      ],
+      "mean_luma": 250.4
+    },
+    {
+      "check": "list_apps_includes_non_gui",
+      "status": "PASS",
+      "running": 269
+    },
+    {
+      "check": "a11y_text_element_found",
+      "status": "PASS",
+      "pid": 1650478,
+      "window_id": 23068675
+    },
+    {
+      "check": "type_text_ascii",
+      "status": "PASS",
+      "got": 42,
+      "want": 42
+    },
+    {
+      "check": "type_text_unicode",
+      "status": "KNOWN",
+      "note": "type_text drops/corrupts non-Latin-1 while reporting success",
+      "tail": "''"
+    },
+    {
+      "check": "set_value_unicode",
+      "status": "PASS",
+      "got": "'set_value: 日本語 ✓ 🙂'"
+    },
+    {
+      "check": "clipboard_paste_unicode",
+      "status": "PASS",
+      "got": "'本語 ✓ 🙂 | paste: 日本 ✓'"
+    },
+    {
+      "check": "pixel_click_menu_bar",
+      "status": "PASS",
+      "summary": "Clicked at (294.0, 12.5) × 1 (delivery_mode=background, path=x11_atspi); hit: menu \"\" action=click path=/org/a11y/atspi/"
+    },
+    {
+      "check": "zoom_returns_crop",
+      "status": "PASS",
+      "size": [
+        240,
+        35
+      ],
+      "note": "crop only, no magnification"
+    },
+    {
+      "check": "record_video_mp4",
+      "status": "PASS",
+      "duration_s": "3.533333"
+    },
+    {
+      "check": "browser_semantic_snapshot",
+      "status": "PASS",
+      "ms": 17,
+      "structured_bytes": 8105,
+      "text_chars": 80
+    }
+  ]
+}

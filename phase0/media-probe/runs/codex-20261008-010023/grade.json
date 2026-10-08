@@ -1,0 +1,37 @@
+{
+  "probe_image": {
+    "expected": "5XQH5",
+    "reported": "5XQH5",
+    "reached_model": true
+  },
+  "probe_image_structured": {
+    "expected": "W3YDN",
+    "reported": "W3YDN",
+    "reached_model": true
+  },
+  "probe_audio": {
+    "expected": "YFNPW",
+    "reported": "NONE",
+    "reached_model": false
+  },
+  "probe_video_blob": {
+    "expected": "KX5C3",
+    "reported": "KX5C3",
+    "reached_model": true
+  },
+  "probe_resource_link": {
+    "expected": "8UNTX",
+    "reported": "NONE",
+    "reached_model": false
+  },
+  "probe_image_path": {
+    "expected": "WGVCT",
+    "reported": "WGVCT",
+    "reached_model": true
+  },
+  "probe_structured_only": {
+    "expected": "B9364",
+    "reported": "B9364",
+    "reached_model": true
+  }
+}

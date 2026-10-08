@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "cctl": {
+      "command": "cctl",
+      "args": ["mcp"],
+      "env": {"CCTL_HOST": "${CCTL_HOST:-}"}
+    }
+  }
+}

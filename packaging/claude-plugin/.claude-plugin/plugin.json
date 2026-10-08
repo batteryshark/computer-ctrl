@@ -1,0 +1,6 @@
+{
+  "name": "computer-ctrl",
+  "version": "0.1.0",
+  "description": "Desktop computer use (screenshots, zoom, accessibility, mouse, keyboard, windows, apps) via cctl",
+  "author": {"name": "computer-ctrl"}
+}

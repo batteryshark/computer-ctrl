@@ -237,10 +237,8 @@ class BrowserTools:
             h.tab_id = d.get("tab_id", h.tab_id)
             h.target_id = d.get("target_id", h.target_id)
         elif history:
-            if not self.e.x11:
-                raise ToolError("unsupported", "history navigation needs the X11 backend in this phase")
-            await self.e.x11.activate(h.window_id)
-            await self.e.x11.key({"back": "alt+Left", "forward": "alt+Right", "reload": "F5"}[history])
+            await self.e.input.activate(h.window_id)
+            await self.e.input.key({"back": "alt+Left", "forward": "alt+Right", "reload": "F5"}[history])
         else:
             raise ToolError("bad_arguments", "give url or history")
         page = {}
@@ -256,8 +254,8 @@ class BrowserTools:
         try:
             await self.e.cua.call("kill_app", {"pid": h.pid})
         except CuaError:
-            if self.e.x11:
-                await self.e.x11.close(h.window_id)
+            if self.e.input:
+                await self.e.input.close(h.window_id)
         self.handles.pop(h.id, None)
         if self._last == h.id:
             self._last = next(reversed(self.handles), None) if self.handles else None

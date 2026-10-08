@@ -50,8 +50,8 @@ class CuaResult:
 
 
 class CuaClient:
-    def __init__(self, cua_bin: str, socket: str, env: dict, stderr_log: Path):
-        self.cmd = [cua_bin, "mcp", "--socket", socket]
+    def __init__(self, cua_bin: str, socket: str | None, env: dict, stderr_log: Path):
+        self.cmd = [cua_bin, "mcp", *(["--socket", socket] if socket else [])]
         self.env = env
         self.stderr_log = stderr_log
         self.session = "cctl-" + uuid.uuid4().hex[:8]

@@ -77,9 +77,24 @@ Updated: 2026-10-07
   - Mousepad's Find and Replace dialog hides its buttons from AT-SPI until text is entered, so it remains the hardest task.
 - Next action: with a grounder endpoint, run the suite with a weak/text-only host with and without `locate`; add harder tasks (multi-app workflows, long scroll lists, drag-and-drop, file pickers in browsers).
 
-### Phase 4 — Cross-platform + transport
+### Phase 4 — Cross-platform + transport (active, 2026-10-08)
 
-- Status: paused. Needs Windows/macOS sandbox VMs: the user's own Mac and desktop are not computer-use targets.
+- Targets (user approved, "be cautious"):
+  - this Mac: M5 Max, 128 GB, macOS 27.0.1;
+  - Windows `windows-pc` (tailnet <tailnet-ip>, a local user, OpenSSH on 22). Key auth uses `~/.ssh/id_ed25519` (the user's general key); the user still has to authorize it on Windows (encoded PowerShell command given).
+- Done:
+  - `src/cctl/cua_input.py`: Cua desktop-coordinate input backend (click/scroll/drag/keys/windows) with the same interface as X11. The engine now uses `self.input` (xdotool on X11, Cua elsewhere).
+  - On non-Linux, the engine skips session discovery and runs `cua-driver mcp` without `--socket`; on macOS that proxies to CuaDriver.app, so TCC stays with Cua's signed identity.
+  - Clips on non-X11 use Cua start/stop_recording, then ffmpeg crop.
+  - VM run with `CCTL_INPUT_BACKEND=cua`: phase1 acceptance 13/14. The one failure was a quit blocked by a save prompt (the editor had unsaved changes); input itself works.
+  - Mac: CuaDriver.app 0.34.0 installed in /Applications (signature verified, team YCK386LBJ7), CLI symlinked to `~/.local/bin/cua-driver`, telemetry off. `cctl` installed with `uv tool install --editable`. llama.cpp 0.6.0 via brew. Holo4-35B-A3B GGUF (q4_k_m 19.8 GB + mmproj 0.84 GB) downloading to `~/models/holo4`.
+- Pending (user):
+  - `cua-driver permissions grant` on the Mac (Accessibility + Screen Recording approval).
+  - Authorize the SSH key on windows-pc.
+- Open questions:
+  - Windows OpenSSH sessions can't see the interactive desktop. Cua's daemon must run in the logged-in session (`cua-driver autostart enable` logon task), and `cua-driver mcp` from SSH must reach it via its named pipe. To verify.
+  - macOS audio capture (needs ScreenCaptureKit audio or a loopback device) and Windows audio (WASAPI loopback): not implemented.
+  - Hover (`move`) has no Cua equivalent; not implemented.
 - Owner: unassigned
 - Completion evidence: per-phase exit criteria in the report's phase table.
 

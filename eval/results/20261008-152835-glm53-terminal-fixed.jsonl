@@ -1,0 +1,1 @@
+{"task": "terminal_read", "category": "ocr", "rep": 0, "ok": true, "seconds": 12.0, "timed_out": false, "calls": 2, "errors": 0, "tools": ["observe", "ocr"], "tokens": null, "violations": [], "detail": {"want": "6QQNMNXP"}, "answer": "6QQNMNXP", "run": "/tmp/cctl-eval/20261008-152835/terminal_read-0"}

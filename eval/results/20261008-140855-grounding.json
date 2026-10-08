@@ -1,0 +1,522 @@
+{
+ "summary": {
+  "cases": 30,
+  "hits": 0,
+  "accuracy": 0.0,
+  "refine": true,
+  "latency_median_s": 1.57,
+  "latency_p90_s": 1.62
+ },
+ "cases": [
+  {
+   "app": "Mousepad",
+   "role": "menu",
+   "label": "File",
+   "screen": [
+    640,
+    325,
+    679,
+    350
+   ],
+   "frame": "c1",
+   "k": 1.2245,
+   "error": {
+    "error": "grounder_error",
+    "message": "ValueError: no point in grounder reply: ''"
+   }
+  },
+  {
+   "app": "Mousepad",
+   "role": "menu",
+   "label": "Edit",
+   "screen": [
+    679,
+    325,
+    720,
+    350
+   ],
+   "frame": "c1",
+   "k": 1.2245,
+   "error": {
+    "error": "grounder_error",
+    "message": "ValueError: no point in grounder reply: ''"
+   }
+  },
+  {
+   "app": "Mousepad",
+   "role": "menu",
+   "label": "Search",
+   "screen": [
+    720,
+    325,
+    780,
+    350
+   ],
+   "frame": "c1",
+   "k": 1.2245,
+   "error": {
+    "error": "grounder_error",
+    "message": "ValueError: no point in grounder reply: ''"
+   }
+  },
+  {
+   "app": "Mousepad",
+   "role": "menu",
+   "label": "View",
+   "screen": [
+    780,
+    325,
+    828,
+    350
+   ],
+   "frame": "c1",
+   "k": 1.2245,
+   "error": {
+    "error": "grounder_error",
+    "message": "ValueError: no point in grounder reply: ''"
+   }
+  },
+  {
+   "app": "Mousepad",
+   "role": "menu",
+   "label": "Document",
+   "screen": [
+    828,
+    325,
+    911,
+    350
+   ],
+   "frame": "c1",
+   "k": 1.2245,
+   "error": {
+    "error": "grounder_error",
+    "message": "ValueError: no point in grounder reply: ''"
+   }
+  },
+  {
+   "app": "Mousepad",
+   "role": "menu",
+   "label": "Help",
+   "screen": [
+    911,
+    325,
+    957,
+    350
+   ],
+   "frame": "c1",
+   "k": 1.2245,
+   "error": {
+    "error": "grounder_error",
+    "message": "ValueError: no point in grounder reply: ''"
+   }
+  },
+  {
+   "app": "Galculator",
+   "role": "menu",
+   "label": "File",
+   "screen": [
+    794,
+    394,
+    833,
+    419
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "error": {
+    "error": "grounder_error",
+    "message": "ValueError: no point in grounder reply: ''"
+   }
+  },
+  {
+   "app": "Galculator",
+   "role": "menu",
+   "label": "Edit",
+   "screen": [
+    833,
+    394,
+    874,
+    419
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "error": {
+    "error": "grounder_error",
+    "message": "ValueError: no point in grounder reply: ''"
+   }
+  },
+  {
+   "app": "Galculator",
+   "role": "menu",
+   "label": "View",
+   "screen": [
+    874,
+    394,
+    922,
+    419
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "error": {
+    "error": "grounder_error",
+    "message": "ValueError: no point in grounder reply: ''"
+   }
+  },
+  {
+   "app": "Galculator",
+   "role": "menu",
+   "label": "Calculator",
+   "screen": [
+    922,
+    394,
+    1004,
+    419
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "error": {
+    "error": "grounder_error",
+    "message": "ValueError: no point in grounder reply: ''"
+   }
+  },
+  {
+   "app": "Galculator",
+   "role": "menu",
+   "label": "Help",
+   "screen": [
+    1004,
+    394,
+    1050,
+    419
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "error": {
+    "error": "grounder_error",
+    "message": "ValueError: no point in grounder reply: ''"
+   }
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "<-",
+   "screen": [
+    1069,
+    491,
+    1119,
+    525
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "error": {
+    "error": "grounder_error",
+    "message": "ValueError: no point in grounder reply: ''"
+   }
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "C",
+   "screen": [
+    955,
+    491,
+    1005,
+    525
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "error": {
+    "error": "grounder_error",
+    "message": "ValueError: no point in grounder reply: ''"
+   }
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "AC",
+   "screen": [
+    1011,
+    491,
+    1063,
+    525
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "error": {
+    "error": "grounder_error",
+    "message": "ValueError: no point in grounder reply: ''"
+   }
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "%",
+   "screen": [
+    1060,
+    617,
+    1119,
+    651
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "error": {
+    "error": "grounder_error",
+    "message": "ValueError: no point in grounder reply: ''"
+   }
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "sqrt",
+   "screen": [
+    1060,
+    577,
+    1119,
+    611
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "error": {
+    "error": "grounder_error",
+    "message": "ValueError: no point in grounder reply: ''"
+   }
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "=",
+   "screen": [
+    1060,
+    657,
+    1119,
+    731
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "error": {
+    "error": "grounder_error",
+    "message": "ValueError: no point in grounder reply: ''"
+   }
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "2",
+   "screen": [
+    865,
+    657,
+    924,
+    691
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "error": {
+    "error": "grounder_error",
+    "message": "ValueError: no point in grounder reply: ''"
+   }
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "1",
+   "screen": [
+    800,
+    657,
+    859,
+    691
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "error": {
+    "error": "grounder_error",
+    "message": "ValueError: no point in grounder reply: ''"
+   }
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": ".",
+   "screen": [
+    865,
+    697,
+    924,
+    731
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "error": {
+    "error": "grounder_error",
+    "message": "ValueError: no point in grounder reply: ''"
+   }
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "0",
+   "screen": [
+    800,
+    697,
+    859,
+    731
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "error": {
+    "error": "grounder_error",
+    "message": "ValueError: no point in grounder reply: ''"
+   }
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "(",
+   "screen": [
+    800,
+    537,
+    859,
+    571
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "error": {
+    "error": "grounder_error",
+    "message": "ValueError: no point in grounder reply: ''"
+   }
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": ")",
+   "screen": [
+    865,
+    537,
+    924,
+    571
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "error": {
+    "error": "grounder_error",
+    "message": "ValueError: no point in grounder reply: ''"
+   }
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "MS",
+   "screen": [
+    930,
+    537,
+    989,
+    571
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "error": {
+    "error": "grounder_error",
+    "message": "ValueError: no point in grounder reply: ''"
+   }
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "*",
+   "screen": [
+    995,
+    617,
+    1054,
+    651
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "error": {
+    "error": "grounder_error",
+    "message": "ValueError: no point in grounder reply: ''"
+   }
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "+/-",
+   "screen": [
+    930,
+    697,
+    989,
+    731
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "error": {
+    "error": "grounder_error",
+    "message": "ValueError: no point in grounder reply: ''"
+   }
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "+",
+   "screen": [
+    995,
+    697,
+    1054,
+    731
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "error": {
+    "error": "grounder_error",
+    "message": "ValueError: no point in grounder reply: ''"
+   }
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "-",
+   "screen": [
+    995,
+    657,
+    1054,
+    691
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "error": {
+    "error": "grounder_error",
+    "message": "ValueError: no point in grounder reply: ''"
+   }
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "3",
+   "screen": [
+    930,
+    657,
+    989,
+    691
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "error": {
+    "error": "grounder_error",
+    "message": "ValueError: no point in grounder reply: ''"
+   }
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "6",
+   "screen": [
+    930,
+    617,
+    989,
+    651
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "error": {
+    "error": "grounder_error",
+    "message": "ValueError: no point in grounder reply: ''"
+   }
+  }
+ ]
+}

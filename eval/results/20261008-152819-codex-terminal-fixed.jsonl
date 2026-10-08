@@ -1,0 +1,1 @@
+{"task": "terminal_read", "category": "ocr", "rep": 0, "ok": true, "seconds": 14.4, "timed_out": false, "calls": 1, "errors": 0, "tools": ["observe"], "tokens": 25985, "violations": [], "detail": {"want": "4JV27R66"}, "answer": "4JV27R66", "run": "/tmp/cctl-eval/20261008-152819/terminal_read-0"}

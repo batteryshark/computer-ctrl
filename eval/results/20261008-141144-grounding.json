@@ -1,0 +1,660 @@
+{
+ "summary": {
+  "cases": 36,
+  "hits": 36,
+  "accuracy": 1.0,
+  "refine": false,
+  "latency_median_s": 1.26,
+  "latency_p90_s": 1.33
+ },
+ "cases": [
+  {
+   "app": "Mousepad",
+   "role": "menu",
+   "label": "File",
+   "screen": [
+    640,
+    325,
+    679,
+    350
+   ],
+   "frame": "c1",
+   "k": 1.2245,
+   "hit": true,
+   "point": [
+    655,
+    343
+   ]
+  },
+  {
+   "app": "Mousepad",
+   "role": "menu",
+   "label": "Edit",
+   "screen": [
+    679,
+    325,
+    720,
+    350
+   ],
+   "frame": "c1",
+   "k": 1.2245,
+   "hit": true,
+   "point": [
+    697,
+    343
+   ]
+  },
+  {
+   "app": "Mousepad",
+   "role": "menu",
+   "label": "Search",
+   "screen": [
+    720,
+    325,
+    780,
+    350
+   ],
+   "frame": "c1",
+   "k": 1.2245,
+   "hit": true,
+   "point": [
+    751,
+    343
+   ]
+  },
+  {
+   "app": "Mousepad",
+   "role": "menu",
+   "label": "View",
+   "screen": [
+    780,
+    325,
+    828,
+    350
+   ],
+   "frame": "c1",
+   "k": 1.2245,
+   "hit": true,
+   "point": [
+    803,
+    343
+   ]
+  },
+  {
+   "app": "Mousepad",
+   "role": "menu",
+   "label": "Document",
+   "screen": [
+    828,
+    325,
+    911,
+    350
+   ],
+   "frame": "c1",
+   "k": 1.2245,
+   "hit": true,
+   "point": [
+    866,
+    343
+   ]
+  },
+  {
+   "app": "Mousepad",
+   "role": "menu",
+   "label": "Help",
+   "screen": [
+    911,
+    325,
+    957,
+    350
+   ],
+   "frame": "c1",
+   "k": 1.2245,
+   "hit": true,
+   "point": [
+    931,
+    343
+   ]
+  },
+  {
+   "app": "Galculator",
+   "role": "menu",
+   "label": "File",
+   "screen": [
+    794,
+    394,
+    833,
+    419
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "hit": true,
+   "point": [
+    812,
+    411
+   ]
+  },
+  {
+   "app": "Galculator",
+   "role": "menu",
+   "label": "Edit",
+   "screen": [
+    833,
+    394,
+    874,
+    419
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "hit": true,
+   "point": [
+    854,
+    411
+   ]
+  },
+  {
+   "app": "Galculator",
+   "role": "menu",
+   "label": "View",
+   "screen": [
+    874,
+    394,
+    922,
+    419
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "hit": true,
+   "point": [
+    899,
+    411
+   ]
+  },
+  {
+   "app": "Galculator",
+   "role": "menu",
+   "label": "Calculator",
+   "screen": [
+    922,
+    394,
+    1004,
+    419
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "hit": true,
+   "point": [
+    962,
+    411
+   ]
+  },
+  {
+   "app": "Galculator",
+   "role": "menu",
+   "label": "Help",
+   "screen": [
+    1004,
+    394,
+    1050,
+    419
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "hit": true,
+   "point": [
+    1027,
+    411
+   ]
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "<-",
+   "screen": [
+    1069,
+    491,
+    1119,
+    525
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "hit": true,
+   "point": [
+    1094,
+    509
+   ]
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "C",
+   "screen": [
+    955,
+    491,
+    1005,
+    525
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "hit": true,
+   "point": [
+    979,
+    509
+   ]
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "AC",
+   "screen": [
+    1011,
+    491,
+    1063,
+    525
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "hit": true,
+   "point": [
+    1039,
+    509
+   ]
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "%",
+   "screen": [
+    1060,
+    617,
+    1119,
+    651
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "hit": true,
+   "point": [
+    1091,
+    630
+   ]
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "sqrt",
+   "screen": [
+    1060,
+    577,
+    1119,
+    611
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "hit": true,
+   "point": [
+    1091,
+    592
+   ]
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "=",
+   "screen": [
+    1060,
+    657,
+    1119,
+    731
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "hit": true,
+   "point": [
+    1091,
+    681
+   ]
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "2",
+   "screen": [
+    865,
+    657,
+    924,
+    691
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "hit": true,
+   "point": [
+    893,
+    669
+   ]
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "1",
+   "screen": [
+    800,
+    657,
+    859,
+    691
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "hit": true,
+   "point": [
+    828,
+    669
+   ]
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": ".",
+   "screen": [
+    865,
+    697,
+    924,
+    731
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "hit": true,
+   "point": [
+    889,
+    707
+   ]
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "0",
+   "screen": [
+    800,
+    697,
+    859,
+    731
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "hit": true,
+   "point": [
+    828,
+    707
+   ]
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "(",
+   "screen": [
+    800,
+    537,
+    859,
+    571
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "hit": true,
+   "point": [
+    824,
+    552
+   ]
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": ")",
+   "screen": [
+    865,
+    537,
+    924,
+    571
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "hit": true,
+   "point": [
+    885,
+    552
+   ]
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "MS",
+   "screen": [
+    930,
+    537,
+    989,
+    571
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "hit": true,
+   "point": [
+    962,
+    552
+   ]
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "*",
+   "screen": [
+    995,
+    617,
+    1054,
+    651
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "hit": true,
+   "point": [
+    1023,
+    627
+   ]
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "+/-",
+   "screen": [
+    930,
+    697,
+    989,
+    731
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "hit": true,
+   "point": [
+    956,
+    707
+   ]
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "+",
+   "screen": [
+    995,
+    697,
+    1054,
+    731
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "hit": true,
+   "point": [
+    1023,
+    707
+   ]
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "-",
+   "screen": [
+    995,
+    657,
+    1054,
+    691
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "hit": true,
+   "point": [
+    1023,
+    669
+   ]
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "3",
+   "screen": [
+    930,
+    657,
+    989,
+    691
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "hit": true,
+   "point": [
+    958,
+    667
+   ]
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "6",
+   "screen": [
+    930,
+    617,
+    989,
+    651
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "hit": true,
+   "point": [
+    958,
+    627
+   ]
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "5",
+   "screen": [
+    865,
+    617,
+    924,
+    651
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "hit": true,
+   "point": [
+    893,
+    630
+   ]
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "4",
+   "screen": [
+    800,
+    617,
+    859,
+    651
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "hit": true,
+   "point": [
+    828,
+    630
+   ]
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "/",
+   "screen": [
+    995,
+    577,
+    1054,
+    611
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "hit": true,
+   "point": [
+    1020,
+    592
+   ]
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "9",
+   "screen": [
+    930,
+    577,
+    989,
+    611
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "hit": true,
+   "point": [
+    958,
+    589
+   ]
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "8",
+   "screen": [
+    865,
+    577,
+    924,
+    611
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "hit": true,
+   "point": [
+    893,
+    589
+   ]
+  },
+  {
+   "app": "Galculator",
+   "role": "toggle button",
+   "label": "7",
+   "screen": [
+    800,
+    577,
+    859,
+    611
+   ],
+   "frame": "c2",
+   "k": 1.2245,
+   "hit": true,
+   "point": [
+    828,
+    589
+   ]
+  }
+ ]
+}

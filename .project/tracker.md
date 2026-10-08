@@ -116,6 +116,8 @@ Updated: 2026-10-07
       - All-zero samples, even with the grant. Cause: the lid is closed (clamshell), and the default input is the MacBook's built-in mic, which macOS hardware-mutes then.
       - cctl-audio now takes `--mic-device NAME` (sets SCStreamConfiguration.microphoneCaptureDeviceID). `source=<device name>` selects it, e.g. `source="Webcam"`.
       - The result's `device` names the real input.
+      - Verified 2026-10-08 after the re-grant: `source="Webcam"` with `say` played on the closed MacBook's speakers was transcribed exactly ("…code word is Marmalade…").
+      - `source=mic` (built-in, lid closed) returns all zeros, plus the hint and the list of 3 inputs.
       - The helper still calls AVCaptureDevice.requestAccess first, since SCK never prompts for the mic.
     - Signing: the helper is now signed with the user's Apple Development identity when one exists (`CCTL_AUDIO_SIGN` overrides), so rebuilds keep the TCC grants. Switching identities needed one last re-grant.
     - All-zero mic input now returns a `hint` (muted, off or virtual, plus the lid note on macOS) and `inputs` (available device names).

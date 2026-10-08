@@ -96,19 +96,35 @@ class CuaInput:
         await self.e.cua.call("bring_to_front", {"pid": w["pid"], "window_id": window_id})
         return True
 
+    @staticmethod
+    def _win32(hwnd: int, msg: str) -> None:
+        """Windows: window messages straight to the HWND (cctl runs in the desktop session there)."""
+        import ctypes
+        user32 = ctypes.windll.user32
+        if msg == "close":
+            user32.PostMessageW(hwnd, 0x0010, 0, 0)          # WM_CLOSE
+        else:
+            user32.ShowWindow(hwnd, {"minimize": 6, "maximize": 3}[msg])
+
     async def close(self, window_id: int) -> None:
+        if sys.platform == "win32":  # Cua's alt+F4 goes through a UIA accelerator scan that can time out
+            return self._win32(window_id, "close")
         w = await self.e._window(window_id)
         await self.e.cua.call("bring_to_front", {"pid": w["pid"], "window_id": window_id})
         keys = ["cmd", "w"] if sys.platform == "darwin" else ["alt", "f4"]
         await self.e.cua.call("hotkey", {"pid": w["pid"], "window_id": window_id, "keys": keys})
 
     async def minimize(self, window_id: int) -> None:
+        if sys.platform == "win32":
+            return self._win32(window_id, "minimize")
         if sys.platform != "darwin":
             raise ToolError("unsupported", "minimize is not available on this platform yet")
         w = await self.e._window(window_id)
         await self.e.cua.call("hotkey", {"pid": w["pid"], "window_id": window_id, "keys": ["cmd", "m"]})
 
     async def maximize(self, window_id: int) -> None:
+        if sys.platform == "win32":
+            return self._win32(window_id, "maximize")
         raise ToolError("unsupported", "maximize is not available on this platform yet; use windows move with a size")
 
     async def geometry(self, window_id: int) -> dict | None:

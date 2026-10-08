@@ -50,7 +50,12 @@ class CuaResult:
 
 
 class CuaClient:
-    def __init__(self, cua_bin: str, socket: str | None, env: dict, stderr_log: Path):
+    """stdio by default; `http_url` + `http_token` talk to the daemon's loopback HTTP MCP listener instead (Windows:
+    an SSH session is a different logon session, and the daemon's named pipe only serves its own)."""
+
+    def __init__(self, cua_bin: str, socket: str | None, env: dict, stderr_log: Path,
+                 http_url: str | None = None, http_token: str | None = None):
+        self.http_url, self.http_token = http_url, http_token
         self.cmd = [cua_bin, "mcp", *(["--socket", socket] if socket else [])]
         self.env = env
         self.stderr_log = stderr_log
@@ -63,6 +68,13 @@ class CuaClient:
         self.server_info: dict = {}
 
     async def start(self) -> None:
+        if self.http_url:
+            init = await self._request("initialize", {"protocolVersion": PROTOCOL, "capabilities": {},
+                                                      "clientInfo": {"name": "cctl", "version": "0.1.0"}})
+            self.server_info = init.get("serverInfo", {})
+            await self._http_post({"jsonrpc": "2.0", "method": "notifications/initialized", "params": {}})
+            self._http_started = True
+            return
         self.stderr_log.parent.mkdir(parents=True, exist_ok=True)
         err = open(self.stderr_log, "ab")
         self._proc = await asyncio.create_subprocess_exec(
@@ -76,7 +88,28 @@ class CuaClient:
 
     @property
     def alive(self) -> bool:
+        if self.http_url:
+            return getattr(self, "_http_started", False)
         return self._proc is not None and self._proc.returncode is None
+
+    async def _http_post(self, msg: dict, timeout: float = 120) -> dict | None:
+        import urllib.request
+
+        def post():
+            req = urllib.request.Request(self.http_url, data=json.dumps(msg).encode(), method="POST", headers={
+                "Content-Type": "application/json", "Accept": "application/json, text/event-stream",
+                "Authorization": f"Bearer {self.http_token}"})
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                body = r.read()
+                ctype = r.headers.get("Content-Type", "")
+            if not body:
+                return None
+            if "text/event-stream" in ctype:  # take the last JSON data event
+                data = [l[5:].strip() for l in body.decode().splitlines() if l.startswith("data:")]
+                return json.loads(data[-1]) if data else None
+            return json.loads(body)
+
+        return await asyncio.to_thread(post)
 
     async def _send(self, msg: dict) -> None:
         assert self._proc and self._proc.stdin
@@ -109,6 +142,13 @@ class CuaClient:
     async def _request(self, method: str, params: dict, timeout: float = 120) -> dict:
         self._next += 1
         rid = self._next
+        if self.http_url:
+            msg = await self._http_post({"jsonrpc": "2.0", "id": rid, "method": method, "params": params}, timeout)
+            if msg is None:
+                raise CuaError(method, "empty HTTP response")
+            if "error" in msg:
+                raise CuaError(method, msg["error"].get("message", str(msg["error"])), msg["error"])
+            return msg["result"]
         fut = asyncio.get_running_loop().create_future()
         self._pending[rid] = fut
         await self._send({"jsonrpc": "2.0", "id": rid, "method": method, "params": params})
@@ -145,6 +185,8 @@ class CuaClient:
         return out
 
     async def close(self) -> None:
+        if self.http_url:
+            return
         if self._proc and self._proc.returncode is None:
             self._proc.stdin.close()
             try:

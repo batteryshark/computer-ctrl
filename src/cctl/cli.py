@@ -57,27 +57,61 @@ def parse_args(argv: list[str]) -> dict:
     return args
 
 
+def daemon_alive(sock: Path) -> bool:
+    import socket as s
+    from .daemon import USE_TCP
+    try:
+        if USE_TCP:
+            port = json.loads(sock.read_text())["port"]
+            with s.create_connection(("127.0.0.1", port), timeout=1):
+                return True
+        c = s.socket(s.AF_UNIX)
+        c.connect(str(sock))
+        c.close()
+        return True
+    except (OSError, ValueError, KeyError):
+        return False
+
+
 def ensure_daemon(cfg) -> None:
     from .daemon import socket_path
     sock = socket_path(cfg)
     if sock.exists():
-        try:
-            import socket as s
-            c = s.socket(s.AF_UNIX)
-            c.connect(str(sock))
-            c.close()
+        if daemon_alive(sock):
             return
-        except OSError:
-            sock.unlink(missing_ok=True)
+        sock.unlink(missing_ok=True)
     cfg.state_dir.mkdir(parents=True, exist_ok=True)
-    with open(cfg.state_dir / "daemon.log", "ab") as log:
-        subprocess.Popen([sys.executable, "-m", "cctl.cli", "serve"], stdin=subprocess.DEVNULL, stdout=log,
-                         stderr=log, start_new_session=True)
-    for _ in range(100):
-        if sock.exists():
+    if sys.platform == "win32":
+        start_in_desktop_session(cfg)
+    else:
+        with open(cfg.state_dir / "daemon.log", "ab") as log:
+            subprocess.Popen([sys.executable, "-m", "cctl.cli", "serve"], stdin=subprocess.DEVNULL, stdout=log,
+                             stderr=log, start_new_session=True)
+    for _ in range(300 if sys.platform == "win32" else 100):
+        if sock.exists() and daemon_alive(sock):
             return
         time.sleep(0.1)
     raise SystemExit(f"cctl service did not start; see {cfg.state_dir / 'daemon.log'}")
+
+
+def start_in_desktop_session(cfg) -> None:
+    """Windows: SSH sessions are not the interactive desktop session, and processes they start die with them.
+    Start `cctl serve` in the logged-in user's desktop session through a one-shot scheduled task (removed again
+    right away), so it can drive the desktop and outlive the SSH connection."""
+    log = cfg.state_dir / "daemon.log"
+    py = sys.executable.replace("python.exe", "pythonw.exe") if sys.executable.endswith("python.exe") else sys.executable
+    ps = f"""
+$tn = 'cctl-serve-once'
+$a = New-ScheduledTaskAction -Execute '{py}' -Argument '-m cctl.cli serve'
+$p = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Limited
+$s = New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Days 30) -AllowStartIfOnBatteries
+Register-ScheduledTask -TaskName $tn -Action $a -Principal $p -Settings $s -Force | Out-Null
+Start-ScheduledTask -TaskName $tn
+Start-Sleep -Seconds 2
+Unregister-ScheduledTask -TaskName $tn -Confirm:$false
+"""
+    with open(log, "ab") as f:
+        subprocess.run(["powershell", "-NoProfile", "-NonInteractive", "-Command", ps], stdout=f, stderr=f, check=False)
 
 
 def run_local(tool: str, args: dict) -> int:
@@ -114,6 +148,9 @@ def run_remote(host: str, argv: list[str]) -> int:
 
 
 def main(argv: list[str] | None = None) -> None:
+    for stream in (sys.stdout, sys.stderr):  # Windows consoles default to cp1252; titles and text are Unicode
+        if hasattr(stream, "reconfigure") and (stream.encoding or "").lower() not in ("utf-8", "utf8"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
     argv = list(sys.argv[1:] if argv is None else argv)
     host = os.environ.get("CCTL_HOST")
     if argv[:1] == ["--host"]:
@@ -132,7 +169,11 @@ def main(argv: list[str] | None = None) -> None:
     cmd = argv[0]
     if cmd == "mcp":
         from .server import main as mcp_main
-        mcp_main()
+        if sys.platform == "win32" and "--direct" not in argv:
+            ensure_daemon(load())  # the engine lives in the desktop session; this process only relays MCP
+            mcp_main(via_daemon=True)
+        else:
+            mcp_main()
     elif cmd == "serve":
         from .daemon import serve
         asyncio.run(serve())

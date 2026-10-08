@@ -107,7 +107,10 @@ class Engine:
                                         self.cfg.state_dir / "cua-serve.log")
                 socket = self.cfg.cua_socket
             # macOS: `cua-driver mcp` proxies to the CuaDriver.app daemon, so permissions stay with Cua's signed app.
-            self.cua = CuaClient(self.cfg.cua_bin, socket, self.env, self.cfg.state_dir / "cua-mcp.log")
+            token = Path(self.cfg.cua_http_token_file).expanduser().read_text().strip() \
+                if self.cfg.cua_http_token_file else None
+            self.cua = CuaClient(self.cfg.cua_bin, socket, self.env, self.cfg.state_dir / "cua-mcp.log",
+                                 http_url=self.cfg.cua_http_url or None, http_token=token)
             await self.cua.start()
             backend = self.cfg.input_backend
             x11_ok = bool(self.session_env.get("DISPLAY")) and not self.session_env.get("WAYLAND_DISPLAY")

@@ -99,8 +99,14 @@ Updated: 2026-10-07
 - Pending (user):
   - `cua-driver permissions grant` on the Mac (Accessibility + Screen Recording approval).
   - Authorize the SSH key on windows-pc.
+- Windows (2026-10-08): `acceptance/windows_smoke.py` 8/8 from the Mac over SSH (`cctl mcp` on windows-pc): doctor, windows, 5120×1440 desktop screenshot, Calculator 123×456 via UIA element clicks, display read back ("56,088"), window closed.
+  - Architecture: SSH sessions are not the desktop session. Cua's named pipe only serves its own logon session, and its loopback HTTP MCP makes every request a separate session (element tokens die between calls).
+  - So `cctl serve` runs **in the desktop session**, started by a one-shot scheduled task that is removed immediately; no autostart is left behind. It talks stdio to `cua-driver mcp`.
+  - SSH-side `cctl mcp` (default on win32; `--direct` opts out) and the CLI proxy to it over loopback TCP with a token file, carrying images and audio inline.
+  - Window close/minimize/maximize use Win32 messages, because Cua's alt+F4 does a UIA accelerator scan that timed out on Calculator. CLI forces UTF-8 stdout (cp1252 console).
+  - Tooling: `phase4/winps.py` runs PowerShell on windows-pc via -EncodedCommand. Cua 0.34.0 is at `~\.cua-driver\0.34.0\…\cua-driver.exe` (Authenticode: Cua AI, Inc.); cctl is at `~\computer-ctrl` (uv tool, editable).
 - Open questions:
-  - Windows OpenSSH sessions can't see the interactive desktop. Cua's daemon must run in the logged-in session (`cua-driver autostart enable` logon task), and `cua-driver mcp` from SSH must reach it via its named pipe. To verify.
+  - (resolved, see above) Windows OpenSSH sessions can't see the interactive desktop. Cua's daemon must run in the logged-in session (`cua-driver autostart enable` logon task), and `cua-driver mcp` from SSH must reach it via its named pipe. To verify.
   - macOS audio capture (needs ScreenCaptureKit audio or a loopback device) and Windows audio (WASAPI loopback): not implemented.
   - Hover (`move`) has no Cua equivalent; not implemented.
 - Owner: unassigned

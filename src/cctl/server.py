@@ -52,8 +52,13 @@ def build(engine: Engine) -> Server:
                   on_list_tools=list_tools, on_call_tool=call_tool)
 
 
-async def serve_stdio() -> None:
-    engine = Engine(load())
+async def serve_stdio(via_daemon: bool = False) -> None:
+    cfg = load()
+    if via_daemon:
+        from .daemon import RemoteEngine
+        engine = RemoteEngine(cfg)
+    else:
+        engine = Engine(cfg)
     server = build(engine)
     try:
         async with stdio_server() as (r, w):
@@ -62,5 +67,5 @@ async def serve_stdio() -> None:
         await engine.close()
 
 
-def main() -> None:
-    asyncio.run(serve_stdio())
+def main(via_daemon: bool = False) -> None:
+    asyncio.run(serve_stdio(via_daemon))

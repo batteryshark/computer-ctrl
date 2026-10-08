@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import shutil
+import sys
 import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -21,6 +22,8 @@ class Config:
     input_backend: str = "auto"    # auto | xdotool | cua
     cua_bin: str = ""
     cua_socket: str = ""
+    cua_http_url: str = ""         # loopback HTTP MCP of the Cua daemon (Windows over SSH); empty = stdio
+    cua_http_token_file: str = ""
     stt_url: str = ""              # OpenAI-compatible base URL (…/v1); empty = local faster-whisper if installed
     stt_model: str = "small"
     stt_api_key_env: str = ""      # name of the env var holding the endpoint's API key
@@ -51,6 +54,7 @@ def load() -> Config:
     env = {
         "profile": "CCTL_PROFILE", "max_dim": "CCTL_MAX_DIM", "zoom_dim": "CCTL_ZOOM_DIM",
         "input_backend": "CCTL_INPUT_BACKEND", "cua_bin": "CCTL_CUA_BIN", "cua_socket": "CCTL_CUA_SOCKET",
+        "cua_http_url": "CCTL_CUA_HTTP_URL", "cua_http_token_file": "CCTL_CUA_HTTP_TOKEN_FILE",
         "stt_url": "CCTL_STT_URL", "stt_model": "CCTL_STT_MODEL", "stt_api_key_env": "CCTL_STT_API_KEY_ENV",
         "grounder_url": "CCTL_GROUNDER_URL", "grounder_model": "CCTL_GROUNDER_MODEL",
         "grounder_api_key_env": "CCTL_GROUNDER_API_KEY_ENV", "grounder_image_max": "CCTL_GROUNDER_IMAGE_MAX",
@@ -63,6 +67,10 @@ def load() -> Config:
         raise ValueError(f"profile must be one of {PROFILES}, got {cfg.profile!r}")
     if not cfg.cua_bin:
         cfg.cua_bin = shutil.which("cua-driver") or str(Path.home() / ".local" / "bin" / "cua-driver")
+        if sys.platform == "win32" and not Path(cfg.cua_bin).exists():
+            found = sorted((Path.home() / ".cua-driver").glob("*/*/cua-driver.exe"))
+            if found:
+                cfg.cua_bin = str(found[-1])
     if not cfg.cua_socket:
         cfg.cua_socket = str(Path.home() / ".cache" / "cua-driver" / "cua-driver.sock")
     return cfg

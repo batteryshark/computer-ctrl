@@ -18,6 +18,8 @@ import json
 import os
 import re
 import shlex
+import shutil
+import signal
 import subprocess
 import sys
 import time
@@ -29,6 +31,24 @@ from tasks import Ctx, by_id, used  # noqa: E402
 CCTL = os.environ.get("CCTL_BIN", str(Path.home() / ".local/bin/cctl"))
 EVENTS = Path.home() / ".local/state/cctl/events.jsonl"
 ROOT = Path("/tmp/cctl-eval")
+DONE = Path("/tmp/cctl-eval-done")
+
+
+def release_opencode(run: Path) -> Path:
+    """On the VM, the MCP servers of `opencode run` sessions end up owned by OpenChamber's long-lived `opencode serve`.
+    It keeps each run's project instance and respawns its `cctl mcp` whenever that exits; 53 had piled up. So move
+    the run directory away (a respawn then fails on the missing cwd), then stop the cctl servers working in it.
+    Returns the directory's new place."""
+    dest = DONE / run.relative_to(ROOT)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    shutil.move(str(run), dest)
+    for proc in Path("/proc").glob("[0-9]*"):
+        try:  # a renamed directory stays the process's cwd, now under its new path
+            if os.readlink(proc / "cwd").startswith(str(dest)) and b"cctl" in (proc / "cmdline").read_bytes():
+                os.kill(int(proc.name), signal.SIGTERM)
+        except (OSError, ValueError):
+            continue
+    return dest
 
 
 def session_env() -> dict:
@@ -155,6 +175,8 @@ def main() -> None:
                 violations.append(f"shell outside cctl: {other_shell[:3]}")
             ok = ok and not violations and not timed_out
             shell(t.teardown(ctx), env)
+            if a.harness == "opencode":
+                run = release_opencode(run)
             row = {"task": t.id, "category": t.category, "rep": rep, "ok": ok, "seconds": seconds,
                    "timed_out": timed_out, "calls": len(calls), "errors": sum(not c["ok"] for c in calls),
                    "tools": sorted(tools), "tokens": tokens_used(transcript), "violations": violations,

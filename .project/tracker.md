@@ -154,7 +154,10 @@ Updated: 2026-10-07
     - Clip audio was 235 ms early: ffmpeg starts each input (x11grab, pulse) at zero, losing pulse's later start.
       - Fix: with audio, capture to Matroska with `-copyts` (input-side `-t`), then remux with `aresample=first_pts=0`.
       - `clip_audio_smoke.py --host user@linux-vm` passes 7/7, A/V offset -13 ms.
-    - The VM has about 53 idle `cctl mcp` children of OpenChamber's `opencode serve` (each a past session's MCP server, 50–70 MB). Left alone: OpenChamber is the user's.
+    - Stale MCP servers (2026-10-08, user asked to kill them):
+      - The 53 idle `cctl mcp` processes on the VM were eval runs' MCP servers, owned by OpenChamber's long-lived `opencode serve`. It keeps each run's project instance and respawned them within seconds of a kill.
+      - Fix: moved the `/tmp/cctl-eval/*` scratch dirs to `/tmp/cctl-eval-parked/` (respawn then fails on the missing cwd), then killed them. 0 remain, about 1 GB freed, OpenChamber untouched.
+      - `eval/run.py` now does this per opencode task (`release_opencode`: move the run dir to `/tmp/cctl-eval-done/`, SIGTERM the cctl processes working in it). Self-tested with a dummy process.
   - (done 2026-10-08) CLI over `--host` to Windows.
     - Per-host `hosts` table in config.toml (ssh_args, remote_bin, os), PowerShell quoting, Windows paths copied back with scp.
     - Verified: doctor, screenshot, then zoom in a separate call (state persists), Calculator typed "42" via window-targeted keys.

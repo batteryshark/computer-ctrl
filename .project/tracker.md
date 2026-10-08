@@ -1,17 +1,28 @@
 # Project Tracker: computer-ctrl: harness-agnostic computer-use toolkit
 
-Updated: 2026-10-07
+Updated: 2026-10-08
 
 ## Current state
 
 - Objective: Build a harness-agnostic computer-use toolkit (MCP + CLI + Agent Skill) that lets Claude Code, Codex CLI, opencode, pi (and Gemini/Antigravity) control Windows, macOS and Linux desktops: screenshots + zoom, mouse/keyboard, windows, processes, browser, a11y, OCR, audio and short video clips for capable models.
-- Status: **Phase 1 core done on Linux X11.** `cctl` (Python, uv) serves the 17-tool contract over MCP and a CLI. Acceptance passes 14/14. The same GUI task passed from 3 harnesses (Codex/gpt-6.1-sol MCP, opencode/GLM-5.3 MCP, Claude Code via CLI `--host`). Phase 1b (browser) done. **Phase 2 (media) done**: record_clip, audio_capture and ocr; acceptance 12/12; clip and audio tasks PASS in Codex and opencode.
+- Status (2026-10-08):
+  - Phases 0, 1, 1b and 2 are done. Phase 3 (eval, `locate`) and Phase 4 (macOS/Windows, `--host`) are functionally done.
+  - `cctl` serves the 27-tool contract over MCP and the CLI on Linux X11, macOS and Windows.
+  - Verified per platform:
+    - Linux: phase1 14/14, 1b 10/10, phase2 19/19 including the virtual mic, clip audio 7/7. Eval: Codex 16/16; GLM-5.3 + locate 14/17, where the failures are slow-model timeouts.
+    - macOS: smoke 11/11, clips, clip audio 7/7, system and mic audio, hover, menu.
+    - Windows: smoke 8/8, clips 5/5 (gdigrab), clip audio 7/7, system audio, hover, `--host` CLI.
+  - Gaps:
+    - The browser tool and the 17-task eval are verified only on Linux.
+    - Wayland is untested.
+    - Windows mic is untested with a real signal.
+    - Claude Code and pi are not in the eval: Claude's OAuth on the VM has expired, and pi has no models.
 - Main constraint: Harnesses disagree on what tool media reaches the model (see report, "Harness quirks" table). The output layer must target the lowest common denominator.
 - Environment roles: `user@linux-vm` is a disposable sandbox the agent fully controls (not an inference host). The user's own windows there (e.g. Mousepad `~/private.env`, OpenChamber, a terminal in ~/Projects) are off-limits for tests. Model inference (Holo4, grounders, omni) runs on the user's Mac or desktop (Windows, RTX 4090, 96 GB RAM), reached over Tailscale.
 - Where this tracker and the report disagree, this tracker wins (see Decisions: "2026-10-07 corrections").
 - Harness credentials (VM): Codex works via ChatGPT login (gpt-6.1-sol). opencode works with Z.AI (GLM-5.3); other providers are not configured. Claude Code's OAuth is expired. pi 0.85 has no models and predates MCP. Harness CLIs live in `~/.nvm/versions/node/v24.20.0/bin`, which is not on the non-interactive PATH.
-- Pending user action: `gh auth login` on the Mac so the two upstream reports in `upstream/` can be filed (approved by user); re-login Claude Code on the VM.
-- Next action: Phase 3: grounding + reliability. Holo4 `locate`/`delegate` via an OpenAI-compatible sidecar on the 4090 desktop (llama.cpp CUDA), verify-after-act, and a 20–30-task eval with a Holo baseline. In parallel: Phase 4 cross-platform engine adapters (Windows first: the desktop is Windows).
+- Pending user action: none required. Optional: re-login Claude Code on the VM. `upstream/` drafts stay local: the user decided not to file AI-found bugs upstream.
+- Next action: decide on hosting: a private standalone GitHub repo, with Cua pinned as an unmodified dependency rather than a fork. Then run the eval on macOS/Windows, cover the browser tool there, and add harder tasks.
 
 ## Active workstreams
 
@@ -176,8 +187,8 @@ Updated: 2026-10-07
   - Tooling: `phase4/winps.py` runs PowerShell on windows-pc via -EncodedCommand. Cua 0.34.0 is at `~\.cua-driver\0.34.0\…\cua-driver.exe` (Authenticode: Cua AI, Inc.); cctl is at `~\computer-ctrl` (uv tool, editable).
 - Open questions:
   - (resolved, see above) Windows OpenSSH sessions can't see the interactive desktop. Cua's daemon must run in the logged-in session (`cua-driver autostart enable` logon task), and `cua-driver mcp` from SSH must reach it via its named pipe. To verify.
-  - macOS audio capture (needs ScreenCaptureKit audio or a loopback device) and Windows audio (WASAPI loopback): not implemented.
-  - Hover (`move`) has no Cua equivalent; not implemented.
+  - (resolved 2026-10-08) macOS audio (cctl-audio ScreenCaptureKit helper) and Windows audio (WASAPI via soundcard): implemented and verified.
+  - (resolved 2026-10-08) Hover: Cua move_cursor on macOS, SetCursorPos on Windows.
 - Owner: unassigned
 - Completion evidence: per-phase exit criteria in the report's phase table.
 

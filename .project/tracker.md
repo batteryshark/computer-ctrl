@@ -157,6 +157,11 @@ Updated: 2026-10-07
     - Stale MCP servers (2026-10-08, user asked to kill them):
       - The 53 idle `cctl mcp` processes on the VM were eval runs' MCP servers, owned by OpenChamber's long-lived `opencode serve`. It keeps each run's project instance and respawned them within seconds of a kill.
       - Fix: moved the `/tmp/cctl-eval/*` scratch dirs to `/tmp/cctl-eval-parked/` (respawn then fails on the missing cwd), then killed them. 0 remain, about 1 GB freed, OpenChamber untouched.
+      - The user then had OpenChamber restarted and updated: 1.22.1 → 2.1.1, which bundles opencode v2.0.22 at its own mount path. Facts about the update:
+        - The in-app updater's relaunch inherits the old process and found the old bundled opencode 1.18.28, so it ran without OpenCode. A clean relaunch from the desktop entry fixed it.
+        - The updater deleted the 1.22.1 AppImage, leaving `~/Applications/OpenChamber.AppImage` dangling; it was repointed to the 2.1.1 file.
+        - The opencode server port changes on every launch.
+        - The eval's opencode CLI is the separate nvm install, unaffected.
       - `eval/run.py` now does this per opencode task (`release_opencode`: move the run dir to `/tmp/cctl-eval-done/`, SIGTERM the cctl processes working in it). Self-tested with a dummy process.
   - (done 2026-10-08) CLI over `--host` to Windows.
     - Per-host `hosts` table in config.toml (ssh_args, remote_bin, os), PowerShell quoting, Windows paths copied back with scp.

@@ -51,7 +51,8 @@ class Ctx:
 
     def serve(self) -> str:
         return (f"mkdir -p {self.run}/web && cp -r {WEB}/. {self.run}/web/ && (cd {self.run}/web && setsid python3 "
-                f"-m http.server {self.port} --bind 127.0.0.1 </dev/null >/dev/null 2>&1 &) && sleep 0.5")
+                f"-m http.server {self.port} --bind 127.0.0.1 </dev/null >/dev/null 2>{self.run}/access.log &) "
+                "&& sleep 0.5")
 
     def launch_args(self, path: str) -> str:
         x = self.run / "xdg"
@@ -419,6 +420,52 @@ task(id="audio_secret_word", category="media",
                       "computer's audio output and reply with the secret word it says.",
      check=lambda c, ans, calls: Result(c.v["word"] in ans.lower(), {"want": c.v["word"]}),
      teardown=lambda c: f"pkill -f '[f]or i in .*paplay {c.run}'; pkill -f '[p]aplay {c.run}'")
+
+
+SHAPES = {"red triangle": "#d62828", "blue circle": "#1d4ed8", "green square": "#15803d",
+          "orange diamond": "#ea580c", "purple star": "#7e22ce"}
+
+
+def _shapes_setup(c: Ctx) -> str:
+    names = list(SHAPES)
+    random.shuffle(names)
+    slots = random.sample([(x, y) for x in range(90, 860, 150) for y in range(90, 460, 140)], len(names))
+    c.v["target"] = random.choice(names)
+    spec = [{"name": n, "color": SHAPES[n], "x": x, "y": y} for n, (x, y) in zip(names, slots)]
+    page = c.run / "web" / "shapes.html"
+    page.parent.mkdir(parents=True, exist_ok=True)
+    page.write_text(
+        "<meta charset='utf-8'><title>shapes</title><body style='margin:0;background:#f4f4f4'>"
+        "<canvas id=c width=920 height=520 style='display:block'></canvas><script>"
+        f"const S={json.dumps(spec)};const g=document.getElementById('c').getContext('2d');"
+        "function draw(s){g.fillStyle=s.color;g.beginPath();const r=34,x=s.x,y=s.y;"
+        "if(s.name.endsWith('triangle')){g.moveTo(x,y-r);g.lineTo(x+r,y+r);g.lineTo(x-r,y+r);}"
+        "else if(s.name.endsWith('circle')){g.arc(x,y,r,0,7);}"
+        "else if(s.name.endsWith('square')){g.rect(x-r,y-r,2*r,2*r);}"
+        "else if(s.name.endsWith('diamond')){g.moveTo(x,y-r);g.lineTo(x+r,y);g.lineTo(x,y+r);g.lineTo(x-r,y);}"
+        "else{for(let i=0;i<10;i++){const a=i*Math.PI/5-Math.PI/2,rr=i%2?r/2.2:r;g.lineTo(x+rr*Math.cos(a),y+rr*Math.sin(a));}}"
+        "g.closePath();g.fill();}S.forEach(draw);"
+        "document.getElementById('c').addEventListener('click',e=>{const b=e.target.getBoundingClientRect();"
+        "const x=e.clientX-b.left,y=e.clientY-b.top;let hit='none';"
+        "S.forEach(s=>{if(Math.abs(x-s.x)<=36&&Math.abs(y-s.y)<=36)hit=s.name;});"
+        "fetch('/hit?shape='+encodeURIComponent(hit)+'&x='+Math.round(x)+'&y='+Math.round(y));});"
+        "</script>", encoding="utf-8")
+    return c.serve()
+
+
+def _shapes_check(c: Ctx, ans: str, calls: list[dict]) -> Result:
+    import urllib.parse
+    hits = [urllib.parse.unquote(m) for m in re.findall(r"GET /hit\?shape=([^&\s]+)", read(c.run / "access.log"))]
+    return Result(bool(hits) and hits[0] == c.v["target"], {"target": c.v["target"], "clicks": hits[:5]})
+
+
+task(id="canvas_click_shape", category="grounding",
+     setup=_shapes_setup,
+     prompt=lambda c: f"{NO_SHELL} Open {c.url}/shapes.html in the cctl browser. The page draws several colored "
+                      f"shapes on a canvas (they are pixels, not page elements). Click the {c.v['target']} exactly "
+                      "once, then close the browser and reply DONE.",
+     check=_shapes_check,
+     teardown=lambda c: f"pkill -f '[h]ttp.server {c.port}'", needs_vision=True)
 
 
 def by_id(ids: list[str] | None) -> list[Task]:

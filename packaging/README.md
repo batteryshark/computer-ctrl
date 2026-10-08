@@ -53,6 +53,8 @@ Use `cctl mcp` when the harness runs on the same machine. From another machine, 
 
 `eval/results/*.md` has per-task seconds, calls, errors and tokens.
 
+**`locate` with Holo4-35B-A3B** (llama.cpp on the M5 Max, over the tailnet): 36/36 on labeled controls, ~1.3 s per call (2.2 s with the refine pass). On `canvas_click_shape` (unlabeled shapes on a canvas), the text-only GLM-5.3 goes from 1/3 without `locate` to 3/3 with it. Codex, which can see, needs none (3/3 in 4 calls).
+
 On the controlled machine, install with `uv tool install --editable '.[stt]'` to get local Whisper transcription (CPU, `small` by default). Without it, or with `stt_url` set, transcription goes to an OpenAI-compatible `/v1/audio/transcriptions` endpoint.
 
 Re-run with `acceptance/phase1.py | phase1b.py | phase2.py [--cmd …]` and `TASK=editor|browser|audio|clip acceptance/harness_task.sh <harness> [args]`.

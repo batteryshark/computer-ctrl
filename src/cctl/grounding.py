@@ -69,7 +69,9 @@ class Grounder:
     def ask(self, img: Image.Image, target: str) -> tuple[float, float, dict]:
         """Point in pixels of `img` for `target`, plus call metadata."""
         data_url, sent = encode(img, self.image_max)
-        body = {"model": self.model, "temperature": 0, "max_tokens": 64,
+        body = {"model": self.model, "temperature": 0, "max_tokens": 96,
+                # Thinking off (H's localization contract); Qwen-family templates honour this kwarg.
+                "chat_template_kwargs": {"enable_thinking": False},
                 "messages": [{"role": "user", "content": [
                     {"type": "image_url", "image_url": {"url": data_url}},
                     {"type": "text", "text": PROMPT + target}]}],
@@ -80,7 +82,8 @@ class Grounder:
         t0 = time.monotonic()
         with urllib.request.urlopen(req, timeout=self.timeout) as r:
             reply = json.loads(r.read())
-        text = reply["choices"][0]["message"].get("content") or ""
+        msg = reply["choices"][0]["message"]
+        text = msg.get("content") or msg.get("reasoning_content") or ""
         nx, ny = parse_point(text)
         nx, ny = min(max(nx, 0), 1000), min(max(ny, 0), 1000)
         meta = {"ms": round((time.monotonic() - t0) * 1000), "sent": list(sent), "raw": text[:120],

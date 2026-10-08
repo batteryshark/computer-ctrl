@@ -101,6 +101,8 @@ def main() -> None:
     ap.add_argument("--tasks", default="all")
     ap.add_argument("--repeat", type=int, default=1)
     ap.add_argument("--label", default="")
+    ap.add_argument("--set-env", action="append", default=[], metavar="KEY=VALUE",
+                    help="extra environment for the harness and cctl (e.g. CCTL_GROUNDER_URL= to hide locate)")
     ap.add_argument("extra", nargs=argparse.REMAINDER)
     a = ap.parse_args()
     extra = a.extra[1:] if a.extra[:1] == ["--"] else a.extra
@@ -111,6 +113,7 @@ def main() -> None:
     out_dir.mkdir(exist_ok=True)
     out = out_dir / f"{stamp}-{label}.jsonl"
     env = session_env()
+    env.update(kv.split("=", 1) for kv in a.set_env)
     os.environ.update(env)  # checks shell out (xdotool, pgrep) and need the desktop session too
     rows = []
     for rep in range(a.repeat):

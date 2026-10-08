@@ -75,7 +75,15 @@ Updated: 2026-10-07
   - GLM-5V-Turbo ignored the connected MCP tools and went through the shell instead.
   - GLM-5.3 is slow (20–60 s per step) but follows tool guidance.
   - Mousepad's Find and Replace dialog hides its buttons from AT-SPI until text is entered, so it remains the hardest task.
-- Next action: with a grounder endpoint, run the suite with a weak/text-only host with and without `locate`; add harder tasks (multi-app workflows, long scroll lists, drag-and-drop, file pickers in browsers).
+- Grounder live (2026-10-08): Holo4-35B-A3B q4_k_m + mmproj on this Mac via llama.cpp 0.6.0, `llama-server --host <tailnet-ip> --port 8080 --alias holo4 -ngl 999 -fa on -c 32768 -np 2 --image-min-tokens 1024`, run with nohup (log `~/models/holo4/server.log`). The VM's `~/.config/cctl/config.toml` points `grounder_url` at it. Requests must send `chat_template_kwargs.enable_thinking=false`; with thinking on, the model spends its token budget thinking and returns empty content.
+- Grounding bench (`eval/grounding_bench.py`, labeled menus/buttons in Mousepad + galculator, a11y bounds as truth): 36/36 hits with and without the refine pass. Median latency 1.26 s single pass, 2.21 s with refine.
+- **Decision: keep `locate` as an optional sidecar, recommended for hosts without vision.**
+  - `canvas_click_shape` (unlabeled shapes on a canvas), 3 reps each:
+    - GLM-5.3 text-only without locate: 1/3 (timeouts, 26–34 calls).
+    - GLM-5.3 with locate: 3/3 (6–22 calls).
+    - Codex/gpt-6.1-sol (vision) without locate: 3/3 (4 calls).
+  - Vision hosts don't need it; text-only hosts go from failing to passing.
+- Next action: run the full suite with a text-only host + locate to check for regressions; add harder tasks (dense icon toolbars, drag-and-drop, multi-app workflows); measure Holo4 on unlabeled icon targets where refine may matter.
 
 ### Phase 4 — Cross-platform + transport (active, 2026-10-08)
 

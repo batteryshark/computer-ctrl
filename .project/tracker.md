@@ -106,11 +106,15 @@ Updated: 2026-10-07
   - Cua refuses process-scoped keys when an app has sibling windows (`same_pid_keyboard_ambiguity`), so element/menu/AX routes are preferred on macOS.
 - Cross-platform regression after these changes: Linux 14/14 + 10/10, Windows 8/8, macOS 11/11.
 - Eval hygiene: events now carry `CCTL_RUN_TAG`. The 14:43 GLM+locate full run overlapped manual acceptance runs (terminal_read is tainted, editor_open_dialog suspect), so rerun those after it finishes.
+- Hover and audio (2026-10-08):
+  - Hover on macOS uses Cua move_cursor at desktop scope and is verified (exact move and restore). On Windows it uses SetCursorPos in the desktop-session daemon and is verified via `pointer_now`.
+  - Windows audio uses `soundcard` (WASAPI loopback/mic) in the session daemon. Verified: TTS played in the desktop session was captured and transcribed (Whisper heard "Landern" for "lantern" at 30% volume).
+  - macOS audio uses `cctl-audio.app` (ScreenCaptureKit helper, `packaging/macos`, ad-hoc signed), launched via `open` so TCC belongs to it; the user allowed it under Screen & System Audio Recording. Verified: silence detected, then `say` played at 15% volume was transcribed exactly ("…secret word is lighthouse…").
 - Not yet done:
-  - audio capture on macOS/Windows;
-  - hover/`move` on macOS/Windows;
-  - Windows clips (Cua recorder via gdigrab; untested);
+  - mic capture on macOS (needs a Microphone prompt for cctl-audio) and on Windows (not exercised);
+  - clips on Windows/macOS via Cua's recorder (implemented, untested);
   - the CLI over `--host` to Windows (MCP works).
+  - Rebuilding cctl-audio.app with an ad-hoc signature may re-trigger the permission; sign with a stable identity if that becomes annoying.
 - Pending (user): none.
 - Windows (2026-10-08): `acceptance/windows_smoke.py` 8/8 from the Mac over SSH (`cctl mcp` on windows-pc): doctor, windows, 5120×1440 desktop screenshot, Calculator 123×456 via UIA element clicks, display read back ("56,088"), window closed.
   - Architecture: SSH sessions are not the desktop session. Cua's named pipe only serves its own logon session, and its loopback HTTP MCP makes every request a separate session (element tokens die between calls).

@@ -27,6 +27,10 @@ Updated: 2026-10-08
     - VM: `git pull` works, because gh there is logged in.
     - Windows: has no GitHub credentials (gh's login expired, no credential helper). Pulling needs `gh auth login` + `gh auth setup-git` there; until then, push from the Mac with a git bundle.
   - VM-only `eval/results/` (32 files) is now committed.
+- Shareable repo (2026-10-09):
+  - History was rewritten to remove personal identifiers (hostnames, usernames, tailnet IPs, key names, the author email), and the GitHub repo was deleted and recreated with only the clean history.
+  - Keep it that way: committed files use placeholders (`user@windows-pc`, `user@linux-vm`, `<tailnet-ip>`, `~/.ssh/id_ed25519`).
+  - Real hosts stay in local `~/.config/cctl/config.toml` and the `WIN_HOST`/`WIN_KEY` env vars. Each clone commits as the GitHub noreply address.
 - Next action: run the eval on macOS/Windows, cover the browser tool there, and add harder tasks.
 
 ## Active workstreams

@@ -996,6 +996,173 @@
         ],
         "additionalProperties": false
       }
+    },
+    {
+      "name": "delegate",
+      "description": "Experimental, opt-in bounded native form/wizard executor for one explicit window. Caller supplies exact labels, values, checkbox states, permitted stage buttons and fresh success checks. Skips the model for one eligible action; an optional choice-model selects among several. Returns completed only after success checks, otherwise escalated with progress. Limits steps/time; ambiguous, missing or unreadable targets return control. Observe first to obtain labels. No arbitrary goal-only tasks or pixel/browser control.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "task": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "intent": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "window": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "stages": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "fields": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "label": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 500
+                      },
+                      "role": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 100
+                      },
+                      "value": {
+                        "type": "string",
+                        "maxLength": 8192
+                      }
+                    },
+                    "required": [
+                      "label",
+                      "value"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "minItems": 0,
+                  "maxItems": 32
+                },
+                "checks": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "label": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 500
+                      },
+                      "role": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 100
+                      },
+                      "checked": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "label",
+                      "checked"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "minItems": 0,
+                  "maxItems": 32
+                },
+                "button": {
+                  "type": "object",
+                  "properties": {
+                    "label": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 500
+                    },
+                    "role": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    }
+                  },
+                  "required": [
+                    "label"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [],
+              "additionalProperties": false,
+              "description": "Complete all fields and checkbox states before clicking the optional button once. At least one field, check or button is required."
+            },
+            "minItems": 1,
+            "maxItems": 8
+          },
+          "success": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500
+                },
+                "role": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "value": {
+                  "type": "string",
+                  "maxLength": 8192
+                },
+                "checked": {
+                  "type": "boolean"
+                },
+                "absent": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "label"
+              ],
+              "additionalProperties": false,
+              "description": "Fresh exact accessibility check. Label-only requires unique presence; absent=true requires absence and cannot be combined with value or checked."
+            },
+            "minItems": 1,
+            "maxItems": 32
+          },
+          "max_steps": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 64,
+            "default": 32
+          },
+          "timeout_ms": {
+            "type": "integer",
+            "minimum": 100,
+            "maximum": 120000,
+            "default": 30000
+          }
+        },
+        "required": [
+          "task",
+          "intent",
+          "window",
+          "stages",
+          "success"
+        ],
+        "additionalProperties": false
+      }
     }
   ]
 }

@@ -37,6 +37,8 @@ def build(engine: Engine) -> Server:
         hidden.add("run")
     if not (engine.cfg.grounder_url and engine.cfg.grounder_model):
         hidden.add("locate")
+    if not engine.cfg.executor_enabled:
+        hidden.add("delegate")
     visible = [t for t in contract.tools() if t["name"] not in hidden]
 
     async def list_tools(ctx, params) -> types.ListToolsResult:

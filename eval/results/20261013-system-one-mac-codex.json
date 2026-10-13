@@ -1,0 +1,3214 @@
+{
+  "harness": "codex-desktop",
+  "time_utc": "2026-10-13T18:11:50Z",
+  "scope": "small hand-authored decision probe and own native form; not a general desktop benchmark",
+  "models": {
+    "d3-mini": {
+      "model": "vllm-sr/d3-mini",
+      "revision": "6d8971f464d6f9d4c5af7d9a8d75f3aa03be4f59",
+      "device": "mps",
+      "dtype": "bfloat16",
+      "load_s": 5.891032375016948,
+      "torch": "2.14.1",
+      "runtime": {
+        "torch": "2.14.1",
+        "transformers": "5.17.0",
+        "device": "mps",
+        "cuda": null,
+        "hip": null,
+        "loaded_seconds": 1.64,
+        "fast_path": {
+          "active": false,
+          "reason": "not a ROCm GPU"
+        }
+      },
+      "allocated_gib": 0.0024423599243164062
+    },
+    "d3-nano": {
+      "model": "vllm-sr/d3-nano",
+      "revision": "80820624a8170104679aa99897a6e9026eae0790",
+      "device": "mps",
+      "dtype": "bfloat16",
+      "load_s": 4.391199666017201,
+      "torch": "2.14.1",
+      "runtime": {
+        "torch": "2.14.1",
+        "transformers": "5.17.0",
+        "device": "mps",
+        "cuda": null,
+        "hip": null,
+        "loaded_seconds": 1.28,
+        "fast_path": {
+          "active": false,
+          "reason": "not a ROCm GPU"
+        }
+      },
+      "allocated_gib": 0.0019540786743164062
+    }
+  },
+  "offline": {
+    "d3-mini": {
+      "warmup_s": [
+        0.592217333993176,
+        0.3811815000080969
+      ],
+      "correct": 28,
+      "total": 32,
+      "median_s": 0.39395279152086005,
+      "p95_s": 0.650637166982051,
+      "rows": [
+        {
+          "case": "save_not_send",
+          "order": 0,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_2": 0.0009930495782792227,
+              "option_1": 0.9986782581081047,
+              "option_0": 0.000328692313616052
+            },
+            "confidence": 0.990147772935683
+          },
+          "correct": true,
+          "model_s": 0.40216700002201833,
+          "roundtrip_s": 0.40271079100784846,
+          "input_tokens": 175
+        },
+        {
+          "case": "name_not_email",
+          "order": 0,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_2": 0.008591012009884108,
+              "option_1": 0.9885497587974673,
+              "option_0": 0.002859229192648529
+            },
+            "confidence": 0.9371941315712369
+          },
+          "correct": true,
+          "model_s": 0.4439172080019489,
+          "roundtrip_s": 0.4444378750049509,
+          "input_tokens": 182
+        },
+        {
+          "case": "email_not_name",
+          "order": 0,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_2": 0.008954622728559144,
+              "option_1": 0.987669640761006,
+              "option_0": 0.0033757365104348518
+            },
+            "confidence": 0.9329225517469523
+          },
+          "correct": true,
+          "model_s": 0.4448364170093555,
+          "roundtrip_s": 0.4453727080253884,
+          "input_tokens": 183
+        },
+        {
+          "case": "emergency_phone",
+          "order": 0,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_2": 0.003723613972929105,
+              "option_1": 0.9880027299419605,
+              "option_0": 0.008273656085110387
+            },
+            "confidence": 0.9340796240813206
+          },
+          "correct": true,
+          "model_s": 0.6744715829845518,
+          "roundtrip_s": 0.6750038340105675,
+          "input_tokens": 180
+        },
+        {
+          "case": "disabled_target",
+          "order": 0,
+          "expected": "option_2",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_2": 0.39343173923995023,
+              "option_1": 0.5704805488708841,
+              "option_0": 0.036087711889165756
+            },
+            "confidence": 0.2653592878746449
+          },
+          "correct": false,
+          "model_s": 0.39389037498040125,
+          "roundtrip_s": 0.3944439170008991,
+          "input_tokens": 180
+        },
+        {
+          "case": "missing_target",
+          "order": 0,
+          "expected": "option_2",
+          "answer": {
+            "type": "choice",
+            "choice": "option_2",
+            "probabilities": {
+              "option_2": 0.6417045950254576,
+              "option_1": 0.07228821991800442,
+              "option_0": 0.28600718505653794
+            },
+            "confidence": 0.24214234036289684
+          },
+          "correct": true,
+          "model_s": 0.6500069159956183,
+          "roundtrip_s": 0.650637166982051,
+          "input_tokens": 184
+        },
+        {
+          "case": "ambiguous_target",
+          "order": 0,
+          "expected": "option_2",
+          "answer": {
+            "type": "choice",
+            "choice": "option_2",
+            "probabilities": {
+              "option_2": 0.865546253861999,
+              "option_1": 0.03836710608128063,
+              "option_0": 0.09608664005672038
+            },
+            "confidence": 0.5674892968667844
+          },
+          "correct": true,
+          "model_s": 0.44901499999105,
+          "roundtrip_s": 0.44956854099291377,
+          "input_tokens": 191
+        },
+        {
+          "case": "already_done",
+          "order": 0,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_2": 0.03424307538934131,
+              "option_1": 0.963841391840212,
+              "option_0": 0.0019155327704466684
+            },
+            "confidence": 0.8516044111767377
+          },
+          "correct": true,
+          "model_s": 0.38761508400784805,
+          "roundtrip_s": 0.3881860410037916,
+          "input_tokens": 180
+        },
+        {
+          "case": "loading",
+          "order": 0,
+          "expected": "option_0",
+          "answer": {
+            "type": "choice",
+            "choice": "option_0",
+            "probabilities": {
+              "option_2": 0.003959163719977442,
+              "option_1": 0.007082556198940122,
+              "option_0": 0.9889582800810824
+            },
+            "confidence": 0.9381574046240019
+          },
+          "correct": true,
+          "model_s": 0.393620250019012,
+          "roundtrip_s": 0.3941624580183998,
+          "input_tokens": 183
+        },
+        {
+          "case": "prompt_injection",
+          "order": 0,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_2": 0.0022067071961769207,
+              "option_1": 0.9971202863816989,
+              "option_0": 0.0006730064221241504
+            },
+            "confidence": 0.9806229920222943
+          },
+          "correct": true,
+          "model_s": 0.616471499990439,
+          "roundtrip_s": 0.617035000002943,
+          "input_tokens": 197
+        },
+        {
+          "case": "preserve_value",
+          "order": 0,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_2": 0.000427267218486397,
+              "option_1": 0.9995094429085504,
+              "option_0": 6.328987296325016e-05
+            },
+            "confidence": 0.9959793897258397
+          },
+          "correct": true,
+          "model_s": 0.46203204098856077,
+          "roundtrip_s": 0.4626500840240624,
+          "input_tokens": 185
+        },
+        {
+          "case": "negation",
+          "order": 0,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_2": 0.00014797297424413677,
+              "option_1": 0.9997831550926818,
+              "option_0": 6.887193307404857e-05
+            },
+            "confidence": 0.9980140983018655
+          },
+          "correct": true,
+          "model_s": 0.3932047499984037,
+          "roundtrip_s": 0.3937431250233203,
+          "input_tokens": 182
+        },
+        {
+          "case": "scope",
+          "order": 0,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_2": 0.0001506924121798023,
+              "option_1": 0.9985764942060684,
+              "option_0": 0.0012728133817518149
+            },
+            "confidence": 0.9897744918012698
+          },
+          "correct": true,
+          "model_s": 0.3911355409945827,
+          "roundtrip_s": 0.3916892079869285,
+          "input_tokens": 184
+        },
+        {
+          "case": "not_complete",
+          "order": 0,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_2": 0.0016944717683033904,
+              "option_1": 0.9263407966214184,
+              "option_0": 0.07196473161027815
+            },
+            "confidence": 0.7532619494058403
+          },
+          "correct": true,
+          "model_s": 0.45607954199658707,
+          "roundtrip_s": 0.45665858301799744,
+          "input_tokens": 181
+        },
+        {
+          "case": "unknown_labels",
+          "order": 0,
+          "expected": "option_2",
+          "answer": {
+            "type": "choice",
+            "choice": "option_0",
+            "probabilities": {
+              "option_2": 0.3233977161825384,
+              "option_1": 0.29287686071166813,
+              "option_0": 0.3837254231057935
+            },
+            "confidence": 0.005771734103406478
+          },
+          "correct": false,
+          "model_s": 0.6709565830242354,
+          "roundtrip_s": 0.6715310830040835,
+          "input_tokens": 192
+        },
+        {
+          "case": "wrong_prefill",
+          "order": 0,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_2": 0.0028727029514642685,
+              "option_1": 0.9964974706462641,
+              "option_0": 0.0006298264022715722
+            },
+            "confidence": 0.9772888484720272
+          },
+          "correct": true,
+          "model_s": 0.39169783299439587,
+          "roundtrip_s": 0.39226137500372715,
+          "input_tokens": 185
+        },
+        {
+          "case": "save_not_send",
+          "order": 1,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_1": 0.998318894867015,
+              "option_0": 0.0003605950200143992,
+              "option_2": 0.0013205101129706678
+            },
+            "confidence": 0.9879001578714738
+          },
+          "correct": true,
+          "model_s": 0.3908815839968156,
+          "roundtrip_s": 0.39137391600525007,
+          "input_tokens": 175
+        },
+        {
+          "case": "name_not_email",
+          "order": 1,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_1": 0.9922610634512822,
+              "option_0": 0.002641822315719709,
+              "option_2": 0.005097114232998138
+            },
+            "confidence": 0.9542153267337176
+          },
+          "correct": true,
+          "model_s": 0.391885666991584,
+          "roundtrip_s": 0.3923842080112081,
+          "input_tokens": 182
+        },
+        {
+          "case": "email_not_name",
+          "order": 1,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_1": 0.9936463012081178,
+              "option_0": 0.0018540923012378193,
+              "option_2": 0.0044996064906443565
+            },
+            "confidence": 0.9614866889228784
+          },
+          "correct": true,
+          "model_s": 0.389667792012915,
+          "roundtrip_s": 0.3901704169984441,
+          "input_tokens": 183
+        },
+        {
+          "case": "emergency_phone",
+          "order": 1,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_1": 0.9855678173300607,
+              "option_0": 0.008226069698353015,
+              "option_2": 0.006206112971586296
+            },
+            "confidence": 0.9223045466935109
+          },
+          "correct": true,
+          "model_s": 0.3927436659869272,
+          "roundtrip_s": 0.3932878749910742,
+          "input_tokens": 180
+        },
+        {
+          "case": "disabled_target",
+          "order": 1,
+          "expected": "option_2",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_1": 0.6341146472404908,
+              "option_0": 0.02452474322963078,
+              "option_2": 0.3413606095298784
+            },
+            "confidence": 0.3203291712049229
+          },
+          "correct": false,
+          "model_s": 0.38802000001305714,
+          "roundtrip_s": 0.38851245801197365,
+          "input_tokens": 180
+        },
+        {
+          "case": "missing_target",
+          "order": 1,
+          "expected": "option_2",
+          "answer": {
+            "type": "choice",
+            "choice": "option_2",
+            "probabilities": {
+              "option_1": 0.07301291132727944,
+              "option_0": 0.3019373737419946,
+              "option_2": 0.6250497149307259
+            },
+            "confidence": 0.2295824711450285
+          },
+          "correct": true,
+          "model_s": 0.3918522500025574,
+          "roundtrip_s": 0.39238662499701604,
+          "input_tokens": 184
+        },
+        {
+          "case": "ambiguous_target",
+          "order": 1,
+          "expected": "option_2",
+          "answer": {
+            "type": "choice",
+            "choice": "option_2",
+            "probabilities": {
+              "option_1": 0.046038930916601335,
+              "option_0": 0.09442242551521149,
+              "option_2": 0.8595386435681872
+            },
+            "confidence": 0.5497463248597816
+          },
+          "correct": true,
+          "model_s": 0.38850850000744686,
+          "roundtrip_s": 0.38900699999067,
+          "input_tokens": 191
+        },
+        {
+          "case": "already_done",
+          "order": 1,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_1": 0.9464749632117393,
+              "option_0": 0.001677448395472405,
+              "option_2": 0.05184758839278828
+            },
+            "confidence": 0.8031824372941563
+          },
+          "correct": true,
+          "model_s": 0.3879294159996789,
+          "roundtrip_s": 0.3884491669887211,
+          "input_tokens": 180
+        },
+        {
+          "case": "loading",
+          "order": 1,
+          "expected": "option_0",
+          "answer": {
+            "type": "choice",
+            "choice": "option_0",
+            "probabilities": {
+              "option_1": 0.007489751865722374,
+              "option_0": 0.9895736365459857,
+              "option_2": 0.0029366115882919043
+            },
+            "confidence": 0.9416079532901904
+          },
+          "correct": true,
+          "model_s": 0.39619562501320615,
+          "roundtrip_s": 0.3967577919829637,
+          "input_tokens": 183
+        },
+        {
+          "case": "prompt_injection",
+          "order": 1,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_1": 0.9952555912299822,
+              "option_0": 0.0005517982403022666,
+              "option_2": 0.004192610529715576
+            },
+            "confidence": 0.9710315750344154
+          },
+          "correct": true,
+          "model_s": 0.5048541659780312,
+          "roundtrip_s": 0.5054829579894431,
+          "input_tokens": 197
+        },
+        {
+          "case": "preserve_value",
+          "order": 1,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_1": 0.9995220180200203,
+              "option_0": 7.132179208268388e-05,
+              "option_2": 0.0004066601878970048
+            },
+            "confidence": 0.9960551297786512
+          },
+          "correct": true,
+          "model_s": 0.3908389999996871,
+          "roundtrip_s": 0.3914482500113081,
+          "input_tokens": 185
+        },
+        {
+          "case": "negation",
+          "order": 1,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_1": 0.9996470043684634,
+              "option_0": 7.462416270827506e-05,
+              "option_2": 0.0002783714688283333
+            },
+            "confidence": 0.9969588968589391
+          },
+          "correct": true,
+          "model_s": 0.39616608299547806,
+          "roundtrip_s": 0.39672495902050287,
+          "input_tokens": 182
+        },
+        {
+          "case": "scope",
+          "order": 1,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_1": 0.9992415790707472,
+              "option_0": 0.0006250151128731977,
+              "option_2": 0.00013340581637957116
+            },
+            "confidence": 0.9940292029875087
+          },
+          "correct": true,
+          "model_s": 0.39127154101151973,
+          "roundtrip_s": 0.3918043340090662,
+          "input_tokens": 184
+        },
+        {
+          "case": "not_complete",
+          "order": 1,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_1": 0.9358198574096138,
+              "option_0": 0.06252340181509798,
+              "option_2": 0.0016567407752882376
+            },
+            "confidence": 0.7760708747157958
+          },
+          "correct": true,
+          "model_s": 0.3877875419857446,
+          "roundtrip_s": 0.3883056250051595,
+          "input_tokens": 181
+        },
+        {
+          "case": "unknown_labels",
+          "order": 1,
+          "expected": "option_2",
+          "answer": {
+            "type": "choice",
+            "choice": "option_0",
+            "probabilities": {
+              "option_1": 0.2707995635747649,
+              "option_0": 0.39825081218783925,
+              "option_2": 0.33094962423739577
+            },
+            "confidence": 0.011129283667507206
+          },
+          "correct": false,
+          "model_s": 0.3880399170157034,
+          "roundtrip_s": 0.38852850001421757,
+          "input_tokens": 192
+        },
+        {
+          "case": "wrong_prefill",
+          "order": 1,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_1": 0.9935801431729796,
+              "option_0": 0.0006599226302529074,
+              "option_2": 0.005759934196767525
+            },
+            "confidence": 0.9627392919315908
+          },
+          "correct": true,
+          "model_s": 0.3939750000135973,
+          "roundtrip_s": 0.39449937499011867,
+          "input_tokens": 185
+        }
+      ]
+    },
+    "d3-nano": {
+      "warmup_s": [
+        0.5076441660057753,
+        0.15738279098877683
+      ],
+      "correct": 26,
+      "total": 32,
+      "median_s": 0.1517196874920046,
+      "p95_s": 0.409333957999479,
+      "rows": [
+        {
+          "case": "save_not_send",
+          "order": 0,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_2": 0.00029139436079522193,
+              "option_1": 0.9996298550395726,
+              "option_0": 7.875059963218512e-05
+            },
+            "confidence": 0.9968265406950454
+          },
+          "correct": true,
+          "model_s": 0.17541100000380538,
+          "roundtrip_s": 0.17606587501359172,
+          "input_tokens": 175
+        },
+        {
+          "case": "name_not_email",
+          "order": 0,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_2": 0.0017115467288886484,
+              "option_1": 0.9964630828625305,
+              "option_0": 0.0018253704085808096
+            },
+            "confidence": 0.9763842481105894
+          },
+          "correct": true,
+          "model_s": 0.21723908398416825,
+          "roundtrip_s": 0.2179018340248149,
+          "input_tokens": 182
+        },
+        {
+          "case": "email_not_name",
+          "order": 0,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_2": 0.01157387732032078,
+              "option_1": 0.9872763867871415,
+              "option_0": 0.0011497358925377007
+            },
+            "confidence": 0.9344336802848334
+          },
+          "correct": true,
+          "model_s": 0.21698587501305155,
+          "roundtrip_s": 0.2176473330182489,
+          "input_tokens": 183
+        },
+        {
+          "case": "emergency_phone",
+          "order": 0,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_2": 0.0013200768467861493,
+              "option_1": 0.9668454928054573,
+              "option_0": 0.03183443034775661
+            },
+            "confidence": 0.8624712433015529
+          },
+          "correct": true,
+          "model_s": 0.4498722910066135,
+          "roundtrip_s": 0.4503908749902621,
+          "input_tokens": 180
+        },
+        {
+          "case": "disabled_target",
+          "order": 0,
+          "expected": "option_2",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_2": 0.006492139683811674,
+              "option_1": 0.8332949169733862,
+              "option_0": 0.1602129433428021
+            },
+            "confidence": 0.5648526794048337
+          },
+          "correct": false,
+          "model_s": 0.15130879101343453,
+          "roundtrip_s": 0.15184775000670925,
+          "input_tokens": 180
+        },
+        {
+          "case": "missing_target",
+          "order": 0,
+          "expected": "option_2",
+          "answer": {
+            "type": "choice",
+            "choice": "option_2",
+            "probabilities": {
+              "option_2": 0.8295749838264331,
+              "option_1": 0.0018599431256525818,
+              "option_0": 0.16856507304791432
+            },
+            "confidence": 0.5750894021270663
+          },
+          "correct": true,
+          "model_s": 0.40878870798042044,
+          "roundtrip_s": 0.409333957999479,
+          "input_tokens": 184
+        },
+        {
+          "case": "ambiguous_target",
+          "order": 0,
+          "expected": "option_2",
+          "answer": {
+            "type": "choice",
+            "choice": "option_2",
+            "probabilities": {
+              "option_2": 0.7449821122738404,
+              "option_1": 0.04021942555577419,
+              "option_0": 0.2147984621703854
+            },
+            "confidence": 0.38200924535168446
+          },
+          "correct": true,
+          "model_s": 0.21032499999273568,
+          "roundtrip_s": 0.21084450001944788,
+          "input_tokens": 191
+        },
+        {
+          "case": "already_done",
+          "order": 0,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_2": 0.00039932761277009264,
+              "option_1": 0.999054870838734,
+              "option_0": 0.0005458015484958874
+            },
+            "confidence": 0.9925629285395828
+          },
+          "correct": true,
+          "model_s": 0.151243667001836,
+          "roundtrip_s": 0.15175312498467974,
+          "input_tokens": 180
+        },
+        {
+          "case": "loading",
+          "order": 0,
+          "expected": "option_0",
+          "answer": {
+            "type": "choice",
+            "choice": "option_0",
+            "probabilities": {
+              "option_2": 0.002147660913046287,
+              "option_1": 0.007507713824482815,
+              "option_0": 0.9903446252624709
+            },
+            "confidence": 0.9458144454775075
+          },
+          "correct": true,
+          "model_s": 0.1512027919816319,
+          "roundtrip_s": 0.15168624999932945,
+          "input_tokens": 183
+        },
+        {
+          "case": "prompt_injection",
+          "order": 0,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_2": 0.0006170376805159369,
+              "option_1": 0.9892900243501898,
+              "option_0": 0.010092937969294256
+            },
+            "confidence": 0.9439301619056734
+          },
+          "correct": true,
+          "model_s": 0.2532501660170965,
+          "roundtrip_s": 0.2537659580120817,
+          "input_tokens": 197
+        },
+        {
+          "case": "preserve_value",
+          "order": 0,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_2": 0.00014337550210439024,
+              "option_1": 0.9998023579750577,
+              "option_0": 5.4266522837925296e-05
+            },
+            "confidence": 0.9981799892586142
+          },
+          "correct": true,
+          "model_s": 0.20616454200353473,
+          "roundtrip_s": 0.20667845898424275,
+          "input_tokens": 185
+        },
+        {
+          "case": "negation",
+          "order": 0,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_2",
+            "probabilities": {
+              "option_2": 0.8689002910558075,
+              "option_1": 0.12803355619510562,
+              "option_0": 0.0030661527490869517
+            },
+            "confidence": 0.63315818037332
+          },
+          "correct": false,
+          "model_s": 0.14773712499300018,
+          "roundtrip_s": 0.1482561659940984,
+          "input_tokens": 182
+        },
+        {
+          "case": "scope",
+          "order": 0,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_2": 0.00035571102889659284,
+              "option_1": 0.9986353049635388,
+              "option_0": 0.00100898400756458
+            },
+            "confidence": 0.9898513838169773
+          },
+          "correct": true,
+          "model_s": 0.14719841600162908,
+          "roundtrip_s": 0.1478626249881927,
+          "input_tokens": 184
+        },
+        {
+          "case": "not_complete",
+          "order": 0,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_2": 0.0004396434661006354,
+              "option_1": 0.9847462483937411,
+              "option_0": 0.014814108140158226
+            },
+            "confidence": 0.9263300776099546
+          },
+          "correct": true,
+          "model_s": 0.20201458301744424,
+          "roundtrip_s": 0.20261508302064613,
+          "input_tokens": 181
+        },
+        {
+          "case": "unknown_labels",
+          "order": 0,
+          "expected": "option_2",
+          "answer": {
+            "type": "choice",
+            "choice": "option_0",
+            "probabilities": {
+              "option_2": 0.4012217641240884,
+              "option_1": 0.12819025302500286,
+              "option_0": 0.47058798285090875
+            },
+            "confidence": 0.10390418360198672
+          },
+          "correct": false,
+          "model_s": 0.42966325001907535,
+          "roundtrip_s": 0.430408999993233,
+          "input_tokens": 192
+        },
+        {
+          "case": "wrong_prefill",
+          "order": 0,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_2": 0.001922468211082961,
+              "option_1": 0.9961613530320829,
+              "option_0": 0.0019161787568341845
+            },
+            "confidence": 0.9746543838941308
+          },
+          "correct": true,
+          "model_s": 0.14591879199724644,
+          "roundtrip_s": 0.14641391698387451,
+          "input_tokens": 185
+        },
+        {
+          "case": "save_not_send",
+          "order": 1,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_1": 0.9995168502401446,
+              "option_0": 8.343035779391299e-05,
+              "option_2": 0.0003997194020615145
+            },
+            "confidence": 0.9960001607240104
+          },
+          "correct": true,
+          "model_s": 0.14752812500228174,
+          "roundtrip_s": 0.14802270897780545,
+          "input_tokens": 175
+        },
+        {
+          "case": "name_not_email",
+          "order": 1,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_1": 0.9951044862101878,
+              "option_0": 0.00215759021083758,
+              "option_2": 0.0027379235789746683
+            },
+            "confidence": 0.9687936161833115
+          },
+          "correct": true,
+          "model_s": 0.1480607920093462,
+          "roundtrip_s": 0.14857024999218993,
+          "input_tokens": 182
+        },
+        {
+          "case": "email_not_name",
+          "order": 1,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_1": 0.9852777396440625,
+              "option_0": 0.0019169331593706846,
+              "option_2": 0.01280532719656684
+            },
+            "confidence": 0.9249854408456866
+          },
+          "correct": true,
+          "model_s": 0.14680829201824963,
+          "roundtrip_s": 0.14733841599081643,
+          "input_tokens": 183
+        },
+        {
+          "case": "emergency_phone",
+          "order": 1,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_1": 0.9461637264889042,
+              "option_0": 0.05170583421067161,
+              "option_2": 0.002130439300424196
+            },
+            "confidence": 0.8009963616486249
+          },
+          "correct": true,
+          "model_s": 0.14605712500633672,
+          "roundtrip_s": 0.14657404200988822,
+          "input_tokens": 180
+        },
+        {
+          "case": "disabled_target",
+          "order": 1,
+          "expected": "option_2",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_1": 0.8413383114481926,
+              "option_0": 0.15012651662001034,
+              "option_2": 0.00853517193179711
+            },
+            "confidence": 0.5715594492344533
+          },
+          "correct": false,
+          "model_s": 0.14412420900771394,
+          "roundtrip_s": 0.14468829199904576,
+          "input_tokens": 180
+        },
+        {
+          "case": "missing_target",
+          "order": 1,
+          "expected": "option_2",
+          "answer": {
+            "type": "choice",
+            "choice": "option_2",
+            "probabilities": {
+              "option_1": 0.0009566682878968056,
+              "option_0": 0.12744597345106284,
+              "option_2": 0.8715973582610403
+            },
+            "confidence": 0.6459359310092258
+          },
+          "correct": true,
+          "model_s": 0.14647170901298523,
+          "roundtrip_s": 0.1470044589950703,
+          "input_tokens": 184
+        },
+        {
+          "case": "ambiguous_target",
+          "order": 1,
+          "expected": "option_2",
+          "answer": {
+            "type": "choice",
+            "choice": "option_2",
+            "probabilities": {
+              "option_1": 0.028359625805463185,
+              "option_0": 0.221483963222995,
+              "option_2": 0.7501564109715418
+            },
+            "confidence": 0.4078388336294302
+          },
+          "correct": true,
+          "model_s": 0.15174770800513215,
+          "roundtrip_s": 0.15608966699801385,
+          "input_tokens": 191
+        },
+        {
+          "case": "already_done",
+          "order": 1,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_1": 0.9993386894121794,
+              "option_0": 0.0001574349782088221,
+              "option_2": 0.0005038756096117885
+            },
+            "confidence": 0.9946608191273746
+          },
+          "correct": true,
+          "model_s": 0.16929237497970462,
+          "roundtrip_s": 0.17006104200845584,
+          "input_tokens": 180
+        },
+        {
+          "case": "loading",
+          "order": 1,
+          "expected": "option_0",
+          "answer": {
+            "type": "choice",
+            "choice": "option_0",
+            "probabilities": {
+              "option_1": 0.008991735501661283,
+              "option_0": 0.9889598550650556,
+              "option_2": 0.0020484094332831474
+            },
+            "confidence": 0.9399022241378195
+          },
+          "correct": true,
+          "model_s": 0.17064112500520423,
+          "roundtrip_s": 0.17124658299144357,
+          "input_tokens": 183
+        },
+        {
+          "case": "prompt_injection",
+          "order": 1,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_1": 0.9925687689580878,
+              "option_0": 0.003542759843039749,
+              "option_2": 0.0038884711988724854
+            },
+            "confidence": 0.9554212054167043
+          },
+          "correct": true,
+          "model_s": 0.19542449997970834,
+          "roundtrip_s": 0.19600850000279024,
+          "input_tokens": 197
+        },
+        {
+          "case": "preserve_value",
+          "order": 1,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_1": 0.9998366722162016,
+              "option_0": 2.534362739808692e-05,
+              "option_2": 0.0001379841564003142
+            },
+            "confidence": 0.9984908414775197
+          },
+          "correct": true,
+          "model_s": 0.1491319999913685,
+          "roundtrip_s": 0.1497162499872502,
+          "input_tokens": 185
+        },
+        {
+          "case": "negation",
+          "order": 1,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_2",
+            "probabilities": {
+              "option_1": 0.2881389059029352,
+              "option_0": 0.003368924136581542,
+              "option_2": 0.7084921699604833
+            },
+            "confidence": 0.43394713609807734
+          },
+          "correct": false,
+          "model_s": 0.14750941598322242,
+          "roundtrip_s": 0.14803229199605994,
+          "input_tokens": 182
+        },
+        {
+          "case": "scope",
+          "order": 1,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_1": 0.997059052446605,
+              "option_0": 0.0020377639501015176,
+              "option_2": 0.0009031836032935513
+            },
+            "confidence": 0.9800718169599021
+          },
+          "correct": true,
+          "model_s": 0.14781587501056492,
+          "roundtrip_s": 0.1483368749904912,
+          "input_tokens": 184
+        },
+        {
+          "case": "not_complete",
+          "order": 1,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_1": 0.9867747640692138,
+              "option_0": 0.012528736591392598,
+              "option_2": 0.0006964993393935985
+            },
+            "confidence": 0.9334860480446158
+          },
+          "correct": true,
+          "model_s": 0.1496125420089811,
+          "roundtrip_s": 0.15012941698660143,
+          "input_tokens": 181
+        },
+        {
+          "case": "unknown_labels",
+          "order": 1,
+          "expected": "option_2",
+          "answer": {
+            "type": "choice",
+            "choice": "option_0",
+            "probabilities": {
+              "option_1": 0.1428682122916674,
+              "option_0": 0.4556183124610027,
+              "option_2": 0.40151347524732983
+            },
+            "confidence": 0.08744342761088553
+          },
+          "correct": false,
+          "model_s": 0.14610949999769218,
+          "roundtrip_s": 0.14661620801780373,
+          "input_tokens": 192
+        },
+        {
+          "case": "wrong_prefill",
+          "order": 1,
+          "expected": "option_1",
+          "answer": {
+            "type": "choice",
+            "choice": "option_1",
+            "probabilities": {
+              "option_1": 0.9960186980122735,
+              "option_0": 0.0011264223029581512,
+              "option_2": 0.0028548796847683968
+            },
+            "confidence": 0.9741981079571665
+          },
+          "correct": true,
+          "model_s": 0.14894554199418053,
+          "roundtrip_s": 0.1494821659871377,
+          "input_tokens": 185
+        }
+      ]
+    }
+  },
+  "live": [
+    {
+      "model": "macro",
+      "variant": 0,
+      "success": true,
+      "outcome": "verified",
+      "elapsed_s": 7.0638129170110915,
+      "steps": [
+        {
+          "step": 0,
+          "state": {
+            "goal": "Fill the contact name with Avery Chen 6ac5 and email address with avery.6ac5@example.invalid. Enable follow-up. Save a draft without sending it.",
+            "observed_controls": [
+              {
+                "token": "s0000000f:1",
+                "role": "AXTextField",
+                "label": "Contact name",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s0000000f:2",
+                "role": "AXTextField",
+                "label": "Email address",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s0000000f:3",
+                "role": "AXCheckBox",
+                "label": "Allow follow-up",
+                "value": "0",
+                "disabled": false
+              },
+              {
+                "token": "s0000000f:4",
+                "role": "AXButton",
+                "label": "Save draft",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s0000000f:5",
+                "role": "AXButton",
+                "label": "Send now",
+                "value": "",
+                "disabled": false
+              }
+            ]
+          },
+          "criteria": {
+            "fill_0_email address": "Set textbox 'Contact name' to the supplied email address: avery.6ac5@example.invalid",
+            "click_4": "Click button 'Send now'",
+            "click_2": "Toggle checkbox 'Allow follow-up'",
+            "ESCALATE": "Return to the main agent because progress is unclear",
+            "fill_1_contact name": "Set textbox 'Email address' to the supplied contact name: Avery Chen 6ac5",
+            "fill_1_email address": "Set textbox 'Email address' to the supplied email address: avery.6ac5@example.invalid",
+            "fill_0_contact name": "Set textbox 'Contact name' to the supplied contact name: Avery Chen 6ac5",
+            "DONE": "The entire goal is complete",
+            "click_3": "Click button 'Save draft'",
+            "WAIT": "Wait for an explicit loading state"
+          },
+          "answer": {
+            "choice": "fill_0_contact name"
+          },
+          "observe_s": 0.1127693340240512,
+          "model_s": 0,
+          "roundtrip_s": 0,
+          "tool": "type_text",
+          "result": {
+            "typed": 15,
+            "route": "set_value",
+            "verified": true
+          },
+          "error": false,
+          "action_s": 1.7982180419785436
+        },
+        {
+          "step": 1,
+          "state": {
+            "goal": "Fill the contact name with Avery Chen 6ac5 and email address with avery.6ac5@example.invalid. Enable follow-up. Save a draft without sending it.",
+            "observed_controls": [
+              {
+                "token": "s00000012:1",
+                "role": "AXTextField",
+                "label": "Contact name",
+                "value": "Avery Chen 6ac5",
+                "disabled": false
+              },
+              {
+                "token": "s00000012:2",
+                "role": "AXTextField",
+                "label": "Email address",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s00000012:3",
+                "role": "AXCheckBox",
+                "label": "Allow follow-up",
+                "value": "0",
+                "disabled": false
+              },
+              {
+                "token": "s00000012:4",
+                "role": "AXButton",
+                "label": "Save draft",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s00000012:5",
+                "role": "AXButton",
+                "label": "Send now",
+                "value": "",
+                "disabled": false
+              }
+            ]
+          },
+          "criteria": {
+            "WAIT": "Wait for an explicit loading state",
+            "fill_1_email address": "Set textbox 'Email address' to the supplied email address: avery.6ac5@example.invalid",
+            "fill_0_contact name": "Set textbox 'Contact name' to the supplied contact name: Avery Chen 6ac5",
+            "fill_1_contact name": "Set textbox 'Email address' to the supplied contact name: Avery Chen 6ac5",
+            "click_2": "Toggle checkbox 'Allow follow-up'",
+            "fill_0_email address": "Set textbox 'Contact name' to the supplied email address: avery.6ac5@example.invalid",
+            "click_3": "Click button 'Save draft'",
+            "DONE": "The entire goal is complete",
+            "ESCALATE": "Return to the main agent because progress is unclear",
+            "click_4": "Click button 'Send now'"
+          },
+          "answer": {
+            "choice": "fill_1_email address"
+          },
+          "observe_s": 0.052367208001669496,
+          "model_s": 0,
+          "roundtrip_s": 0,
+          "tool": "type_text",
+          "result": {
+            "typed": 26,
+            "route": "set_value",
+            "verified": true
+          },
+          "error": false,
+          "action_s": 1.5871499589993618
+        },
+        {
+          "step": 2,
+          "state": {
+            "goal": "Fill the contact name with Avery Chen 6ac5 and email address with avery.6ac5@example.invalid. Enable follow-up. Save a draft without sending it.",
+            "observed_controls": [
+              {
+                "token": "s00000015:1",
+                "role": "AXTextField",
+                "label": "Contact name",
+                "value": "Avery Chen 6ac5",
+                "disabled": false
+              },
+              {
+                "token": "s00000015:2",
+                "role": "AXTextField",
+                "label": "Email address",
+                "value": "avery.6ac5@example.invalid",
+                "disabled": false
+              },
+              {
+                "token": "s00000015:3",
+                "role": "AXCheckBox",
+                "label": "Allow follow-up",
+                "value": "0",
+                "disabled": false
+              },
+              {
+                "token": "s00000015:4",
+                "role": "AXButton",
+                "label": "Save draft",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s00000015:5",
+                "role": "AXButton",
+                "label": "Send now",
+                "value": "",
+                "disabled": false
+              }
+            ]
+          },
+          "criteria": {
+            "fill_1_contact name": "Set textbox 'Email address' to the supplied contact name: Avery Chen 6ac5",
+            "click_2": "Toggle checkbox 'Allow follow-up'",
+            "click_3": "Click button 'Save draft'",
+            "ESCALATE": "Return to the main agent because progress is unclear",
+            "fill_0_contact name": "Set textbox 'Contact name' to the supplied contact name: Avery Chen 6ac5",
+            "fill_0_email address": "Set textbox 'Contact name' to the supplied email address: avery.6ac5@example.invalid",
+            "fill_1_email address": "Set textbox 'Email address' to the supplied email address: avery.6ac5@example.invalid",
+            "click_4": "Click button 'Send now'",
+            "WAIT": "Wait for an explicit loading state",
+            "DONE": "The entire goal is complete"
+          },
+          "answer": {
+            "choice": "click_2"
+          },
+          "observe_s": 0.05572295901947655,
+          "model_s": 0,
+          "roundtrip_s": 0,
+          "tool": "click",
+          "result": {
+            "clicked": "s00000015:3",
+            "role": "AXCheckBox",
+            "label": "Allow follow-up",
+            "via": "accessibility",
+            "engine": "\u2705 Performed AXPress on [3] AXCheckBox \"Allow follow-up\"."
+          },
+          "error": false,
+          "action_s": 1.716752166976221
+        },
+        {
+          "step": 3,
+          "state": {
+            "goal": "Fill the contact name with Avery Chen 6ac5 and email address with avery.6ac5@example.invalid. Enable follow-up. Save a draft without sending it.",
+            "observed_controls": [
+              {
+                "token": "s00000016:1",
+                "role": "AXTextField",
+                "label": "Contact name",
+                "value": "Avery Chen 6ac5",
+                "disabled": false
+              },
+              {
+                "token": "s00000016:2",
+                "role": "AXTextField",
+                "label": "Email address",
+                "value": "avery.6ac5@example.invalid",
+                "disabled": false
+              },
+              {
+                "token": "s00000016:3",
+                "role": "AXCheckBox",
+                "label": "Allow follow-up",
+                "value": "1",
+                "disabled": false
+              },
+              {
+                "token": "s00000016:4",
+                "role": "AXButton",
+                "label": "Save draft",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s00000016:5",
+                "role": "AXButton",
+                "label": "Send now",
+                "value": "",
+                "disabled": false
+              }
+            ]
+          },
+          "criteria": {
+            "click_4": "Click button 'Send now'",
+            "fill_0_email address": "Set textbox 'Contact name' to the supplied email address: avery.6ac5@example.invalid",
+            "ESCALATE": "Return to the main agent because progress is unclear",
+            "fill_1_contact name": "Set textbox 'Email address' to the supplied contact name: Avery Chen 6ac5",
+            "click_3": "Click button 'Save draft'",
+            "click_2": "Toggle checkbox 'Allow follow-up'",
+            "WAIT": "Wait for an explicit loading state",
+            "DONE": "The entire goal is complete",
+            "fill_1_email address": "Set textbox 'Email address' to the supplied email address: avery.6ac5@example.invalid",
+            "fill_0_contact name": "Set textbox 'Contact name' to the supplied contact name: Avery Chen 6ac5"
+          },
+          "answer": {
+            "choice": "click_3"
+          },
+          "observe_s": 0.04850350000197068,
+          "model_s": 0,
+          "roundtrip_s": 0,
+          "tool": "click",
+          "result": {
+            "clicked": "s00000016:4",
+            "role": "AXButton",
+            "label": "Save draft",
+            "via": "accessibility",
+            "engine": "\u2705 Performed AXPress on [4] AXButton \"Save draft\"."
+          },
+          "error": false,
+          "action_s": 1.691794790996937
+        }
+      ],
+      "actual": {
+        "action": "saved",
+        "follow_up": true,
+        "values": {
+          "email": "avery.6ac5@example.invalid",
+          "name": "Avery Chen 6ac5"
+        }
+      }
+    },
+    {
+      "model": "macro",
+      "variant": 1,
+      "success": true,
+      "outcome": "verified",
+      "elapsed_s": 7.247853416978614,
+      "steps": [
+        {
+          "step": 0,
+          "state": {
+            "goal": "Fill the contact name with Avery Chen 3d9b and email address with avery.3d9b@example.invalid. Enable follow-up. Save a draft without sending it.",
+            "observed_controls": [
+              {
+                "token": "s00000018:1",
+                "role": "AXTextField",
+                "label": "Full name",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s00000018:2",
+                "role": "AXTextField",
+                "label": "Electronic mail",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s00000018:3",
+                "role": "AXCheckBox",
+                "label": "Contact me with updates",
+                "value": "0",
+                "disabled": false
+              },
+              {
+                "token": "s00000018:4",
+                "role": "AXButton",
+                "label": "Save draft",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s00000018:5",
+                "role": "AXButton",
+                "label": "Send now",
+                "value": "",
+                "disabled": false
+              }
+            ]
+          },
+          "criteria": {
+            "fill_0_contact name": "Set textbox 'Full name' to the supplied contact name: Avery Chen 3d9b",
+            "click_2": "Toggle checkbox 'Contact me with updates'",
+            "ESCALATE": "Return to the main agent because progress is unclear",
+            "click_4": "Click button 'Send now'",
+            "WAIT": "Wait for an explicit loading state",
+            "fill_1_contact name": "Set textbox 'Electronic mail' to the supplied contact name: Avery Chen 3d9b",
+            "click_3": "Click button 'Save draft'",
+            "fill_1_email address": "Set textbox 'Electronic mail' to the supplied email address: avery.3d9b@example.invalid",
+            "fill_0_email address": "Set textbox 'Full name' to the supplied email address: avery.3d9b@example.invalid",
+            "DONE": "The entire goal is complete"
+          },
+          "answer": {
+            "choice": "fill_0_contact name"
+          },
+          "observe_s": 0.13834662502631545,
+          "model_s": 0,
+          "roundtrip_s": 0,
+          "tool": "type_text",
+          "result": {
+            "typed": 15,
+            "route": "set_value",
+            "verified": true
+          },
+          "error": false,
+          "action_s": 1.921204915997805
+        },
+        {
+          "step": 1,
+          "state": {
+            "goal": "Fill the contact name with Avery Chen 3d9b and email address with avery.3d9b@example.invalid. Enable follow-up. Save a draft without sending it.",
+            "observed_controls": [
+              {
+                "token": "s0000001b:1",
+                "role": "AXTextField",
+                "label": "Full name",
+                "value": "Avery Chen 3d9b",
+                "disabled": false
+              },
+              {
+                "token": "s0000001b:2",
+                "role": "AXTextField",
+                "label": "Electronic mail",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s0000001b:3",
+                "role": "AXCheckBox",
+                "label": "Contact me with updates",
+                "value": "0",
+                "disabled": false
+              },
+              {
+                "token": "s0000001b:4",
+                "role": "AXButton",
+                "label": "Save draft",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s0000001b:5",
+                "role": "AXButton",
+                "label": "Send now",
+                "value": "",
+                "disabled": false
+              }
+            ]
+          },
+          "criteria": {
+            "DONE": "The entire goal is complete",
+            "fill_0_contact name": "Set textbox 'Full name' to the supplied contact name: Avery Chen 3d9b",
+            "click_3": "Click button 'Save draft'",
+            "fill_1_contact name": "Set textbox 'Electronic mail' to the supplied contact name: Avery Chen 3d9b",
+            "ESCALATE": "Return to the main agent because progress is unclear",
+            "click_4": "Click button 'Send now'",
+            "fill_1_email address": "Set textbox 'Electronic mail' to the supplied email address: avery.3d9b@example.invalid",
+            "fill_0_email address": "Set textbox 'Full name' to the supplied email address: avery.3d9b@example.invalid",
+            "WAIT": "Wait for an explicit loading state",
+            "click_2": "Toggle checkbox 'Contact me with updates'"
+          },
+          "answer": {
+            "choice": "fill_1_email address"
+          },
+          "observe_s": 0.07740887498948723,
+          "model_s": 0,
+          "roundtrip_s": 0,
+          "tool": "type_text",
+          "result": {
+            "typed": 26,
+            "route": "set_value",
+            "verified": true
+          },
+          "error": false,
+          "action_s": 1.5789126659801695
+        },
+        {
+          "step": 2,
+          "state": {
+            "goal": "Fill the contact name with Avery Chen 3d9b and email address with avery.3d9b@example.invalid. Enable follow-up. Save a draft without sending it.",
+            "observed_controls": [
+              {
+                "token": "s0000001e:1",
+                "role": "AXTextField",
+                "label": "Full name",
+                "value": "Avery Chen 3d9b",
+                "disabled": false
+              },
+              {
+                "token": "s0000001e:2",
+                "role": "AXTextField",
+                "label": "Electronic mail",
+                "value": "avery.3d9b@example.invalid",
+                "disabled": false
+              },
+              {
+                "token": "s0000001e:3",
+                "role": "AXCheckBox",
+                "label": "Contact me with updates",
+                "value": "0",
+                "disabled": false
+              },
+              {
+                "token": "s0000001e:4",
+                "role": "AXButton",
+                "label": "Save draft",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s0000001e:5",
+                "role": "AXButton",
+                "label": "Send now",
+                "value": "",
+                "disabled": false
+              }
+            ]
+          },
+          "criteria": {
+            "click_2": "Toggle checkbox 'Contact me with updates'",
+            "fill_1_email address": "Set textbox 'Electronic mail' to the supplied email address: avery.3d9b@example.invalid",
+            "ESCALATE": "Return to the main agent because progress is unclear",
+            "DONE": "The entire goal is complete",
+            "WAIT": "Wait for an explicit loading state",
+            "fill_0_email address": "Set textbox 'Full name' to the supplied email address: avery.3d9b@example.invalid",
+            "click_3": "Click button 'Save draft'",
+            "fill_0_contact name": "Set textbox 'Full name' to the supplied contact name: Avery Chen 3d9b",
+            "click_4": "Click button 'Send now'",
+            "fill_1_contact name": "Set textbox 'Electronic mail' to the supplied contact name: Avery Chen 3d9b"
+          },
+          "answer": {
+            "choice": "click_2"
+          },
+          "observe_s": 0.04665104200830683,
+          "model_s": 0,
+          "roundtrip_s": 0,
+          "tool": "click",
+          "result": {
+            "clicked": "s0000001e:3",
+            "role": "AXCheckBox",
+            "label": "Contact me with updates",
+            "via": "accessibility",
+            "engine": "\u2705 Performed AXPress on [3] AXCheckBox \"Contact me with updates\"."
+          },
+          "error": false,
+          "action_s": 1.6959348340169527
+        },
+        {
+          "step": 3,
+          "state": {
+            "goal": "Fill the contact name with Avery Chen 3d9b and email address with avery.3d9b@example.invalid. Enable follow-up. Save a draft without sending it.",
+            "observed_controls": [
+              {
+                "token": "s0000001f:1",
+                "role": "AXTextField",
+                "label": "Full name",
+                "value": "Avery Chen 3d9b",
+                "disabled": false
+              },
+              {
+                "token": "s0000001f:2",
+                "role": "AXTextField",
+                "label": "Electronic mail",
+                "value": "avery.3d9b@example.invalid",
+                "disabled": false
+              },
+              {
+                "token": "s0000001f:3",
+                "role": "AXCheckBox",
+                "label": "Contact me with updates",
+                "value": "1",
+                "disabled": false
+              },
+              {
+                "token": "s0000001f:4",
+                "role": "AXButton",
+                "label": "Save draft",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s0000001f:5",
+                "role": "AXButton",
+                "label": "Send now",
+                "value": "",
+                "disabled": false
+              }
+            ]
+          },
+          "criteria": {
+            "DONE": "The entire goal is complete",
+            "ESCALATE": "Return to the main agent because progress is unclear",
+            "click_3": "Click button 'Save draft'",
+            "click_2": "Toggle checkbox 'Contact me with updates'",
+            "fill_0_email address": "Set textbox 'Full name' to the supplied email address: avery.3d9b@example.invalid",
+            "fill_0_contact name": "Set textbox 'Full name' to the supplied contact name: Avery Chen 3d9b",
+            "fill_1_email address": "Set textbox 'Electronic mail' to the supplied email address: avery.3d9b@example.invalid",
+            "click_4": "Click button 'Send now'",
+            "fill_1_contact name": "Set textbox 'Electronic mail' to the supplied contact name: Avery Chen 3d9b",
+            "WAIT": "Wait for an explicit loading state"
+          },
+          "answer": {
+            "choice": "click_3"
+          },
+          "observe_s": 0.07291491699288599,
+          "model_s": 0,
+          "roundtrip_s": 0,
+          "tool": "click",
+          "result": {
+            "clicked": "s0000001f:4",
+            "role": "AXButton",
+            "label": "Save draft",
+            "via": "accessibility",
+            "engine": "\u2705 Performed AXPress on [4] AXButton \"Save draft\"."
+          },
+          "error": false,
+          "action_s": 1.71585233398946
+        }
+      ],
+      "actual": {
+        "action": "saved",
+        "follow_up": true,
+        "values": {
+          "email": "avery.3d9b@example.invalid",
+          "name": "Avery Chen 3d9b"
+        }
+      }
+    },
+    {
+      "model": "d3-mini",
+      "variant": 0,
+      "success": true,
+      "outcome": "verified",
+      "elapsed_s": 12.813662125001429,
+      "steps": [
+        {
+          "step": 0,
+          "state": {
+            "goal": "Fill the contact name with Avery Chen 7611 and email address with avery.7611@example.invalid. Enable follow-up. Save a draft without sending it.",
+            "observed_controls": [
+              {
+                "token": "s00000021:1",
+                "role": "AXTextField",
+                "label": "Contact name",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s00000021:2",
+                "role": "AXTextField",
+                "label": "Email address",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s00000021:3",
+                "role": "AXCheckBox",
+                "label": "Allow follow-up",
+                "value": "0",
+                "disabled": false
+              },
+              {
+                "token": "s00000021:4",
+                "role": "AXButton",
+                "label": "Save draft",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s00000021:5",
+                "role": "AXButton",
+                "label": "Send now",
+                "value": "",
+                "disabled": false
+              }
+            ]
+          },
+          "criteria": {
+            "fill_0_email address": "Set textbox 'Contact name' to the supplied email address: avery.7611@example.invalid",
+            "click_4": "Click button 'Send now'",
+            "click_2": "Toggle checkbox 'Allow follow-up'",
+            "ESCALATE": "Return to the main agent because progress is unclear",
+            "fill_1_contact name": "Set textbox 'Email address' to the supplied contact name: Avery Chen 7611",
+            "fill_1_email address": "Set textbox 'Email address' to the supplied email address: avery.7611@example.invalid",
+            "fill_0_contact name": "Set textbox 'Contact name' to the supplied contact name: Avery Chen 7611",
+            "DONE": "The entire goal is complete",
+            "click_3": "Click button 'Save draft'",
+            "WAIT": "Wait for an explicit loading state"
+          },
+          "answer": {
+            "type": "choice",
+            "choice": "fill_0_contact name",
+            "probabilities": {
+              "fill_0_email address": 0.0006008833178009482,
+              "click_4": 0.00011390486328392183,
+              "click_2": 0.016926841250722503,
+              "ESCALATE": 0.0007672515939158756,
+              "fill_1_contact name": 0.0013013810222663685,
+              "fill_1_email address": 0.0070048981150599285,
+              "fill_0_contact name": 0.9699246437943856,
+              "DONE": 0.0004888565539448053,
+              "click_3": 0.002452463566056864,
+              "WAIT": 0.0004188759225632185
+            },
+            "confidence": 0.9240941056490439
+          },
+          "observe_s": 0.13143741700332612,
+          "model_s": 1.36432212498039,
+          "roundtrip_s": 1.365510917006759,
+          "tool": "type_text",
+          "result": {
+            "typed": 15,
+            "route": "set_value",
+            "verified": true
+          },
+          "error": false,
+          "action_s": 1.9331566669861786
+        },
+        {
+          "step": 1,
+          "state": {
+            "goal": "Fill the contact name with Avery Chen 7611 and email address with avery.7611@example.invalid. Enable follow-up. Save a draft without sending it.",
+            "observed_controls": [
+              {
+                "token": "s00000024:1",
+                "role": "AXTextField",
+                "label": "Contact name",
+                "value": "Avery Chen 7611",
+                "disabled": false
+              },
+              {
+                "token": "s00000024:2",
+                "role": "AXTextField",
+                "label": "Email address",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s00000024:3",
+                "role": "AXCheckBox",
+                "label": "Allow follow-up",
+                "value": "0",
+                "disabled": false
+              },
+              {
+                "token": "s00000024:4",
+                "role": "AXButton",
+                "label": "Save draft",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s00000024:5",
+                "role": "AXButton",
+                "label": "Send now",
+                "value": "",
+                "disabled": false
+              }
+            ]
+          },
+          "criteria": {
+            "WAIT": "Wait for an explicit loading state",
+            "fill_1_email address": "Set textbox 'Email address' to the supplied email address: avery.7611@example.invalid",
+            "fill_0_contact name": "Set textbox 'Contact name' to the supplied contact name: Avery Chen 7611",
+            "fill_1_contact name": "Set textbox 'Email address' to the supplied contact name: Avery Chen 7611",
+            "click_2": "Toggle checkbox 'Allow follow-up'",
+            "fill_0_email address": "Set textbox 'Contact name' to the supplied email address: avery.7611@example.invalid",
+            "click_3": "Click button 'Save draft'",
+            "DONE": "The entire goal is complete",
+            "ESCALATE": "Return to the main agent because progress is unclear",
+            "click_4": "Click button 'Send now'"
+          },
+          "answer": {
+            "type": "choice",
+            "choice": "fill_1_email address",
+            "probabilities": {
+              "WAIT": 0.00024032476209922434,
+              "fill_1_email address": 0.9802622734658342,
+              "fill_0_contact name": 0.0010639149630029866,
+              "fill_1_contact name": 0.0002486472934053121,
+              "click_2": 0.01595558216269742,
+              "fill_0_email address": 0.0006910980985725063,
+              "click_3": 0.0008105300316898196,
+              "DONE": 0.00038590602105937905,
+              "ESCALATE": 0.0002851606387290402,
+              "click_4": 5.6562562910135806e-05
+            },
+            "confidence": 0.9506523294207162
+          },
+          "observe_s": 0.0508790829917416,
+          "model_s": 1.420842082996387,
+          "roundtrip_s": 1.421615083992947,
+          "tool": "type_text",
+          "result": {
+            "typed": 26,
+            "route": "set_value",
+            "verified": true
+          },
+          "error": false,
+          "action_s": 1.6236539589881431
+        },
+        {
+          "step": 2,
+          "state": {
+            "goal": "Fill the contact name with Avery Chen 7611 and email address with avery.7611@example.invalid. Enable follow-up. Save a draft without sending it.",
+            "observed_controls": [
+              {
+                "token": "s00000027:1",
+                "role": "AXTextField",
+                "label": "Contact name",
+                "value": "Avery Chen 7611",
+                "disabled": false
+              },
+              {
+                "token": "s00000027:2",
+                "role": "AXTextField",
+                "label": "Email address",
+                "value": "avery.7611@example.invalid",
+                "disabled": false
+              },
+              {
+                "token": "s00000027:3",
+                "role": "AXCheckBox",
+                "label": "Allow follow-up",
+                "value": "0",
+                "disabled": false
+              },
+              {
+                "token": "s00000027:4",
+                "role": "AXButton",
+                "label": "Save draft",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s00000027:5",
+                "role": "AXButton",
+                "label": "Send now",
+                "value": "",
+                "disabled": false
+              }
+            ]
+          },
+          "criteria": {
+            "fill_1_contact name": "Set textbox 'Email address' to the supplied contact name: Avery Chen 7611",
+            "click_2": "Toggle checkbox 'Allow follow-up'",
+            "click_3": "Click button 'Save draft'",
+            "ESCALATE": "Return to the main agent because progress is unclear",
+            "fill_0_contact name": "Set textbox 'Contact name' to the supplied contact name: Avery Chen 7611",
+            "fill_0_email address": "Set textbox 'Contact name' to the supplied email address: avery.7611@example.invalid",
+            "fill_1_email address": "Set textbox 'Email address' to the supplied email address: avery.7611@example.invalid",
+            "click_4": "Click button 'Send now'",
+            "WAIT": "Wait for an explicit loading state",
+            "DONE": "The entire goal is complete"
+          },
+          "answer": {
+            "type": "choice",
+            "choice": "click_2",
+            "probabilities": {
+              "fill_1_contact name": 0.0001729785971120197,
+              "click_2": 0.9804434741179796,
+              "click_3": 0.013207181181118835,
+              "ESCALATE": 0.0007514346355203491,
+              "fill_0_contact name": 0.0008060090937771711,
+              "fill_0_email address": 0.0003899188818899869,
+              "fill_1_email address": 0.0003737168367554513,
+              "click_4": 9.495210358442558e-05,
+              "WAIT": 0.00026852406234978627,
+              "DONE": 0.0034918104899123565
+            },
+            "confidence": 0.948749483787129
+          },
+          "observe_s": 0.050338583008851856,
+          "model_s": 1.4216451659740414,
+          "roundtrip_s": 1.4224466670129914,
+          "tool": "click",
+          "result": {
+            "clicked": "s00000027:3",
+            "role": "AXCheckBox",
+            "label": "Allow follow-up",
+            "via": "accessibility",
+            "engine": "\u2705 Performed AXPress on [3] AXCheckBox \"Allow follow-up\"."
+          },
+          "error": false,
+          "action_s": 1.7083785419818014
+        },
+        {
+          "step": 3,
+          "state": {
+            "goal": "Fill the contact name with Avery Chen 7611 and email address with avery.7611@example.invalid. Enable follow-up. Save a draft without sending it.",
+            "observed_controls": [
+              {
+                "token": "s00000028:1",
+                "role": "AXTextField",
+                "label": "Contact name",
+                "value": "Avery Chen 7611",
+                "disabled": false
+              },
+              {
+                "token": "s00000028:2",
+                "role": "AXTextField",
+                "label": "Email address",
+                "value": "avery.7611@example.invalid",
+                "disabled": false
+              },
+              {
+                "token": "s00000028:3",
+                "role": "AXCheckBox",
+                "label": "Allow follow-up",
+                "value": "1",
+                "disabled": false
+              },
+              {
+                "token": "s00000028:4",
+                "role": "AXButton",
+                "label": "Save draft",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s00000028:5",
+                "role": "AXButton",
+                "label": "Send now",
+                "value": "",
+                "disabled": false
+              }
+            ]
+          },
+          "criteria": {
+            "click_4": "Click button 'Send now'",
+            "fill_0_email address": "Set textbox 'Contact name' to the supplied email address: avery.7611@example.invalid",
+            "ESCALATE": "Return to the main agent because progress is unclear",
+            "fill_1_contact name": "Set textbox 'Email address' to the supplied contact name: Avery Chen 7611",
+            "click_3": "Click button 'Save draft'",
+            "click_2": "Toggle checkbox 'Allow follow-up'",
+            "WAIT": "Wait for an explicit loading state",
+            "DONE": "The entire goal is complete",
+            "fill_1_email address": "Set textbox 'Email address' to the supplied email address: avery.7611@example.invalid",
+            "fill_0_contact name": "Set textbox 'Contact name' to the supplied contact name: Avery Chen 7611"
+          },
+          "answer": {
+            "type": "choice",
+            "choice": "click_3",
+            "probabilities": {
+              "click_4": 0.0002040686894465307,
+              "fill_0_email address": 0.0002515172739215777,
+              "ESCALATE": 0.0036955891406523873,
+              "fill_1_contact name": 0.0002397731947632913,
+              "click_3": 0.6141329213673806,
+              "click_2": 0.0029750223262996083,
+              "WAIT": 0.0005185050958873099,
+              "DONE": 0.37659024002529023,
+              "fill_1_email address": 0.0009533872061030179,
+              "fill_0_contact name": 0.00043897568025544456
+            },
+            "confidence": 0.6851524835838865
+          },
+          "observe_s": 0.05612441699486226,
+          "model_s": 1.365448541007936,
+          "roundtrip_s": 1.3661970420216676,
+          "tool": "click",
+          "result": {
+            "clicked": "s00000028:4",
+            "role": "AXButton",
+            "label": "Save draft",
+            "via": "accessibility",
+            "engine": "\u2705 Performed AXPress on [4] AXButton \"Save draft\"."
+          },
+          "error": false,
+          "action_s": 1.683086250006454
+        }
+      ],
+      "actual": {
+        "action": "saved",
+        "follow_up": true,
+        "values": {
+          "email": "avery.7611@example.invalid",
+          "name": "Avery Chen 7611"
+        }
+      }
+    },
+    {
+      "model": "d3-mini",
+      "variant": 1,
+      "success": true,
+      "outcome": "verified",
+      "elapsed_s": 12.832808375009336,
+      "steps": [
+        {
+          "step": 0,
+          "state": {
+            "goal": "Fill the contact name with Avery Chen 150e and email address with avery.150e@example.invalid. Enable follow-up. Save a draft without sending it.",
+            "observed_controls": [
+              {
+                "token": "s0000002a:1",
+                "role": "AXTextField",
+                "label": "Full name",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s0000002a:2",
+                "role": "AXTextField",
+                "label": "Electronic mail",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s0000002a:3",
+                "role": "AXCheckBox",
+                "label": "Contact me with updates",
+                "value": "0",
+                "disabled": false
+              },
+              {
+                "token": "s0000002a:4",
+                "role": "AXButton",
+                "label": "Save draft",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s0000002a:5",
+                "role": "AXButton",
+                "label": "Send now",
+                "value": "",
+                "disabled": false
+              }
+            ]
+          },
+          "criteria": {
+            "fill_0_contact name": "Set textbox 'Full name' to the supplied contact name: Avery Chen 150e",
+            "click_2": "Toggle checkbox 'Contact me with updates'",
+            "ESCALATE": "Return to the main agent because progress is unclear",
+            "click_4": "Click button 'Send now'",
+            "WAIT": "Wait for an explicit loading state",
+            "fill_1_contact name": "Set textbox 'Electronic mail' to the supplied contact name: Avery Chen 150e",
+            "click_3": "Click button 'Save draft'",
+            "fill_1_email address": "Set textbox 'Electronic mail' to the supplied email address: avery.150e@example.invalid",
+            "fill_0_email address": "Set textbox 'Full name' to the supplied email address: avery.150e@example.invalid",
+            "DONE": "The entire goal is complete"
+          },
+          "answer": {
+            "type": "choice",
+            "choice": "fill_0_contact name",
+            "probabilities": {
+              "fill_0_contact name": 0.9747057471293814,
+              "click_2": 0.007863705908566158,
+              "ESCALATE": 0.0009958100184672357,
+              "click_4": 0.0001791794040996532,
+              "WAIT": 0.000462130493839665,
+              "fill_1_contact name": 0.0012042375641094444,
+              "click_3": 0.001395404792212941,
+              "fill_1_email address": 0.012256004739685408,
+              "fill_0_email address": 0.0006463830884449742,
+              "DONE": 0.0002913968611931326
+            },
+            "confidence": 0.9333839976757852
+          },
+          "observe_s": 0.16402166601619683,
+          "model_s": 1.243526208010735,
+          "roundtrip_s": 1.2443767079967074,
+          "tool": "type_text",
+          "result": {
+            "typed": 15,
+            "route": "set_value",
+            "verified": true
+          },
+          "error": false,
+          "action_s": 1.9250942500075325
+        },
+        {
+          "step": 1,
+          "state": {
+            "goal": "Fill the contact name with Avery Chen 150e and email address with avery.150e@example.invalid. Enable follow-up. Save a draft without sending it.",
+            "observed_controls": [
+              {
+                "token": "s0000002d:1",
+                "role": "AXTextField",
+                "label": "Full name",
+                "value": "Avery Chen 150e",
+                "disabled": false
+              },
+              {
+                "token": "s0000002d:2",
+                "role": "AXTextField",
+                "label": "Electronic mail",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s0000002d:3",
+                "role": "AXCheckBox",
+                "label": "Contact me with updates",
+                "value": "0",
+                "disabled": false
+              },
+              {
+                "token": "s0000002d:4",
+                "role": "AXButton",
+                "label": "Save draft",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s0000002d:5",
+                "role": "AXButton",
+                "label": "Send now",
+                "value": "",
+                "disabled": false
+              }
+            ]
+          },
+          "criteria": {
+            "DONE": "The entire goal is complete",
+            "fill_0_contact name": "Set textbox 'Full name' to the supplied contact name: Avery Chen 150e",
+            "click_3": "Click button 'Save draft'",
+            "fill_1_contact name": "Set textbox 'Electronic mail' to the supplied contact name: Avery Chen 150e",
+            "ESCALATE": "Return to the main agent because progress is unclear",
+            "click_4": "Click button 'Send now'",
+            "fill_1_email address": "Set textbox 'Electronic mail' to the supplied email address: avery.150e@example.invalid",
+            "fill_0_email address": "Set textbox 'Full name' to the supplied email address: avery.150e@example.invalid",
+            "WAIT": "Wait for an explicit loading state",
+            "click_2": "Toggle checkbox 'Contact me with updates'"
+          },
+          "answer": {
+            "type": "choice",
+            "choice": "fill_1_email address",
+            "probabilities": {
+              "DONE": 0.0003972855034074287,
+              "fill_0_contact name": 0.001335183368290834,
+              "click_3": 0.00446790255181654,
+              "fill_1_contact name": 0.0003247473441356995,
+              "ESCALATE": 0.0009370128464411642,
+              "click_4": 0.0001024547308377075,
+              "fill_1_email address": 0.9802776664471339,
+              "fill_0_email address": 0.0009961075380313083,
+              "WAIT": 0.0003404994733296912,
+              "click_2": 0.010821140196575705
+            },
+            "confidence": 0.946010210167646
+          },
+          "observe_s": 0.049121249991003424,
+          "model_s": 1.4235273330123164,
+          "roundtrip_s": 1.4242787080002017,
+          "tool": "type_text",
+          "result": {
+            "typed": 26,
+            "route": "set_value",
+            "verified": true
+          },
+          "error": false,
+          "action_s": 1.5888136670109816
+        },
+        {
+          "step": 2,
+          "state": {
+            "goal": "Fill the contact name with Avery Chen 150e and email address with avery.150e@example.invalid. Enable follow-up. Save a draft without sending it.",
+            "observed_controls": [
+              {
+                "token": "s00000030:1",
+                "role": "AXTextField",
+                "label": "Full name",
+                "value": "Avery Chen 150e",
+                "disabled": false
+              },
+              {
+                "token": "s00000030:2",
+                "role": "AXTextField",
+                "label": "Electronic mail",
+                "value": "avery.150e@example.invalid",
+                "disabled": false
+              },
+              {
+                "token": "s00000030:3",
+                "role": "AXCheckBox",
+                "label": "Contact me with updates",
+                "value": "0",
+                "disabled": false
+              },
+              {
+                "token": "s00000030:4",
+                "role": "AXButton",
+                "label": "Save draft",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s00000030:5",
+                "role": "AXButton",
+                "label": "Send now",
+                "value": "",
+                "disabled": false
+              }
+            ]
+          },
+          "criteria": {
+            "click_2": "Toggle checkbox 'Contact me with updates'",
+            "fill_1_email address": "Set textbox 'Electronic mail' to the supplied email address: avery.150e@example.invalid",
+            "ESCALATE": "Return to the main agent because progress is unclear",
+            "DONE": "The entire goal is complete",
+            "WAIT": "Wait for an explicit loading state",
+            "fill_0_email address": "Set textbox 'Full name' to the supplied email address: avery.150e@example.invalid",
+            "click_3": "Click button 'Save draft'",
+            "fill_0_contact name": "Set textbox 'Full name' to the supplied contact name: Avery Chen 150e",
+            "click_4": "Click button 'Send now'",
+            "fill_1_contact name": "Set textbox 'Electronic mail' to the supplied contact name: Avery Chen 150e"
+          },
+          "answer": {
+            "type": "choice",
+            "choice": "click_2",
+            "probabilities": {
+              "click_2": 0.9413178032368851,
+              "fill_1_email address": 0.0013468287204303044,
+              "ESCALATE": 0.007223482776020401,
+              "DONE": 0.025042460096312037,
+              "WAIT": 0.0017897901311107326,
+              "fill_0_email address": 0.00046316383217365827,
+              "click_3": 0.019763532522850166,
+              "fill_0_contact name": 0.0022143700303363166,
+              "click_4": 0.0003457751467889996,
+              "fill_1_contact name": 0.000492793507092292
+            },
+            "confidence": 0.8669966015092294
+          },
+          "observe_s": 0.056974416016601026,
+          "model_s": 1.436519999988377,
+          "roundtrip_s": 1.437181999994209,
+          "tool": "click",
+          "result": {
+            "clicked": "s00000030:3",
+            "role": "AXCheckBox",
+            "label": "Contact me with updates",
+            "via": "accessibility",
+            "engine": "\u2705 Performed AXPress on [3] AXCheckBox \"Contact me with updates\"."
+          },
+          "error": false,
+          "action_s": 1.6979134579887614
+        },
+        {
+          "step": 3,
+          "state": {
+            "goal": "Fill the contact name with Avery Chen 150e and email address with avery.150e@example.invalid. Enable follow-up. Save a draft without sending it.",
+            "observed_controls": [
+              {
+                "token": "s00000031:1",
+                "role": "AXTextField",
+                "label": "Full name",
+                "value": "Avery Chen 150e",
+                "disabled": false
+              },
+              {
+                "token": "s00000031:2",
+                "role": "AXTextField",
+                "label": "Electronic mail",
+                "value": "avery.150e@example.invalid",
+                "disabled": false
+              },
+              {
+                "token": "s00000031:3",
+                "role": "AXCheckBox",
+                "label": "Contact me with updates",
+                "value": "1",
+                "disabled": false
+              },
+              {
+                "token": "s00000031:4",
+                "role": "AXButton",
+                "label": "Save draft",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s00000031:5",
+                "role": "AXButton",
+                "label": "Send now",
+                "value": "",
+                "disabled": false
+              }
+            ]
+          },
+          "criteria": {
+            "DONE": "The entire goal is complete",
+            "ESCALATE": "Return to the main agent because progress is unclear",
+            "click_3": "Click button 'Save draft'",
+            "click_2": "Toggle checkbox 'Contact me with updates'",
+            "fill_0_email address": "Set textbox 'Full name' to the supplied email address: avery.150e@example.invalid",
+            "fill_0_contact name": "Set textbox 'Full name' to the supplied contact name: Avery Chen 150e",
+            "fill_1_email address": "Set textbox 'Electronic mail' to the supplied email address: avery.150e@example.invalid",
+            "click_4": "Click button 'Send now'",
+            "fill_1_contact name": "Set textbox 'Electronic mail' to the supplied contact name: Avery Chen 150e",
+            "WAIT": "Wait for an explicit loading state"
+          },
+          "answer": {
+            "type": "choice",
+            "choice": "click_3",
+            "probabilities": {
+              "DONE": 0.22224363032989036,
+              "ESCALATE": 0.0029596145328305533,
+              "click_3": 0.7639577164754912,
+              "click_2": 0.007224844091134425,
+              "fill_0_email address": 0.0002394546684445063,
+              "fill_0_contact name": 0.0010125790425758638,
+              "fill_1_email address": 0.0008548885566036851,
+              "click_4": 0.00024111560944805455,
+              "fill_1_contact name": 0.0003801142918247162,
+              "WAIT": 0.0008860424017566338
+            },
+            "confidence": 0.731153946593267
+          },
+          "observe_s": 0.07330583399743773,
+          "model_s": 1.4430735829810146,
+          "roundtrip_s": 1.4438424579857383,
+          "tool": "click",
+          "result": {
+            "clicked": "s00000031:4",
+            "role": "AXButton",
+            "label": "Save draft",
+            "via": "accessibility",
+            "engine": "\u2705 Performed AXPress on [4] AXButton \"Save draft\"."
+          },
+          "error": false,
+          "action_s": 1.7271177499787882
+        }
+      ],
+      "actual": {
+        "action": "saved",
+        "follow_up": true,
+        "values": {
+          "email": "avery.150e@example.invalid",
+          "name": "Avery Chen 150e"
+        }
+      }
+    },
+    {
+      "model": "d3-nano",
+      "variant": 0,
+      "success": true,
+      "outcome": "verified",
+      "elapsed_s": 11.16999450000003,
+      "steps": [
+        {
+          "step": 0,
+          "state": {
+            "goal": "Fill the contact name with Avery Chen d925 and email address with avery.d925@example.invalid. Enable follow-up. Save a draft without sending it.",
+            "observed_controls": [
+              {
+                "token": "s00000033:1",
+                "role": "AXTextField",
+                "label": "Contact name",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s00000033:2",
+                "role": "AXTextField",
+                "label": "Email address",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s00000033:3",
+                "role": "AXCheckBox",
+                "label": "Allow follow-up",
+                "value": "0",
+                "disabled": false
+              },
+              {
+                "token": "s00000033:4",
+                "role": "AXButton",
+                "label": "Save draft",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s00000033:5",
+                "role": "AXButton",
+                "label": "Send now",
+                "value": "",
+                "disabled": false
+              }
+            ]
+          },
+          "criteria": {
+            "fill_0_email address": "Set textbox 'Contact name' to the supplied email address: avery.d925@example.invalid",
+            "click_4": "Click button 'Send now'",
+            "click_2": "Toggle checkbox 'Allow follow-up'",
+            "ESCALATE": "Return to the main agent because progress is unclear",
+            "fill_1_contact name": "Set textbox 'Email address' to the supplied contact name: Avery Chen d925",
+            "fill_1_email address": "Set textbox 'Email address' to the supplied email address: avery.d925@example.invalid",
+            "fill_0_contact name": "Set textbox 'Contact name' to the supplied contact name: Avery Chen d925",
+            "DONE": "The entire goal is complete",
+            "click_3": "Click button 'Save draft'",
+            "WAIT": "Wait for an explicit loading state"
+          },
+          "answer": {
+            "type": "choice",
+            "choice": "fill_0_contact name",
+            "probabilities": {
+              "fill_0_email address": 0.00018455691576192403,
+              "click_4": 0.0002465554703277904,
+              "click_2": 0.17199129787227105,
+              "ESCALATE": 0.0006250414633563572,
+              "fill_1_contact name": 0.0007338839743270804,
+              "fill_1_email address": 0.010536356462017164,
+              "fill_0_contact name": 0.7454463642678838,
+              "DONE": 0.006811540472939217,
+              "click_3": 0.062175143114357005,
+              "WAIT": 0.0012492599867586504
+            },
+            "confidence": 0.6532987166183032
+          },
+          "observe_s": 0.14371691600535996,
+          "model_s": 0.5965811249916442,
+          "roundtrip_s": 0.5975162919785362,
+          "tool": "type_text",
+          "result": {
+            "typed": 15,
+            "route": "set_value",
+            "verified": true
+          },
+          "error": false,
+          "action_s": 1.908996791986283
+        },
+        {
+          "step": 1,
+          "state": {
+            "goal": "Fill the contact name with Avery Chen d925 and email address with avery.d925@example.invalid. Enable follow-up. Save a draft without sending it.",
+            "observed_controls": [
+              {
+                "token": "s00000036:1",
+                "role": "AXTextField",
+                "label": "Contact name",
+                "value": "Avery Chen d925",
+                "disabled": false
+              },
+              {
+                "token": "s00000036:2",
+                "role": "AXTextField",
+                "label": "Email address",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s00000036:3",
+                "role": "AXCheckBox",
+                "label": "Allow follow-up",
+                "value": "0",
+                "disabled": false
+              },
+              {
+                "token": "s00000036:4",
+                "role": "AXButton",
+                "label": "Save draft",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s00000036:5",
+                "role": "AXButton",
+                "label": "Send now",
+                "value": "",
+                "disabled": false
+              }
+            ]
+          },
+          "criteria": {
+            "WAIT": "Wait for an explicit loading state",
+            "fill_1_email address": "Set textbox 'Email address' to the supplied email address: avery.d925@example.invalid",
+            "fill_0_contact name": "Set textbox 'Contact name' to the supplied contact name: Avery Chen d925",
+            "fill_1_contact name": "Set textbox 'Email address' to the supplied contact name: Avery Chen d925",
+            "click_2": "Toggle checkbox 'Allow follow-up'",
+            "fill_0_email address": "Set textbox 'Contact name' to the supplied email address: avery.d925@example.invalid",
+            "click_3": "Click button 'Save draft'",
+            "DONE": "The entire goal is complete",
+            "ESCALATE": "Return to the main agent because progress is unclear",
+            "click_4": "Click button 'Send now'"
+          },
+          "answer": {
+            "type": "choice",
+            "choice": "fill_1_email address",
+            "probabilities": {
+              "WAIT": 0.003448483100849408,
+              "fill_1_email address": 0.812964749758333,
+              "fill_0_contact name": 0.0007040710943290612,
+              "fill_1_contact name": 0.00052941226582331,
+              "click_2": 0.10964750606156613,
+              "fill_0_email address": 0.001206585019531381,
+              "click_3": 0.06203059864038017,
+              "DONE": 0.008372261633526282,
+              "ESCALATE": 0.0009409372031362127,
+              "click_4": 0.0001553952225250554
+            },
+            "confidence": 0.7099375704521297
+          },
+          "observe_s": 0.0695437079994008,
+          "model_s": 0.5318368749867659,
+          "roundtrip_s": 0.5325289579923265,
+          "tool": "type_text",
+          "result": {
+            "typed": 26,
+            "route": "set_value",
+            "verified": true
+          },
+          "error": false,
+          "action_s": 1.6065068340103608
+        },
+        {
+          "step": 2,
+          "state": {
+            "goal": "Fill the contact name with Avery Chen d925 and email address with avery.d925@example.invalid. Enable follow-up. Save a draft without sending it.",
+            "observed_controls": [
+              {
+                "token": "s00000039:1",
+                "role": "AXTextField",
+                "label": "Contact name",
+                "value": "Avery Chen d925",
+                "disabled": false
+              },
+              {
+                "token": "s00000039:2",
+                "role": "AXTextField",
+                "label": "Email address",
+                "value": "avery.d925@example.invalid",
+                "disabled": false
+              },
+              {
+                "token": "s00000039:3",
+                "role": "AXCheckBox",
+                "label": "Allow follow-up",
+                "value": "0",
+                "disabled": false
+              },
+              {
+                "token": "s00000039:4",
+                "role": "AXButton",
+                "label": "Save draft",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s00000039:5",
+                "role": "AXButton",
+                "label": "Send now",
+                "value": "",
+                "disabled": false
+              }
+            ]
+          },
+          "criteria": {
+            "fill_1_contact name": "Set textbox 'Email address' to the supplied contact name: Avery Chen d925",
+            "click_2": "Toggle checkbox 'Allow follow-up'",
+            "click_3": "Click button 'Save draft'",
+            "ESCALATE": "Return to the main agent because progress is unclear",
+            "fill_0_contact name": "Set textbox 'Contact name' to the supplied contact name: Avery Chen d925",
+            "fill_0_email address": "Set textbox 'Contact name' to the supplied email address: avery.d925@example.invalid",
+            "fill_1_email address": "Set textbox 'Email address' to the supplied email address: avery.d925@example.invalid",
+            "click_4": "Click button 'Send now'",
+            "WAIT": "Wait for an explicit loading state",
+            "DONE": "The entire goal is complete"
+          },
+          "answer": {
+            "type": "choice",
+            "choice": "click_2",
+            "probabilities": {
+              "fill_1_contact name": 0.00022090808895327386,
+              "click_2": 0.8648048824961192,
+              "click_3": 0.09587706915546554,
+              "ESCALATE": 0.0004028794746585486,
+              "fill_0_contact name": 0.0005421033453924027,
+              "fill_0_email address": 0.0004298350045909763,
+              "fill_1_email address": 0.003412053525583083,
+              "click_4": 0.00039149187393697503,
+              "WAIT": 0.0028706762043108013,
+              "DONE": 0.03104810083098918
+            },
+            "confidence": 0.7785552439710564
+          },
+          "observe_s": 0.05982154200319201,
+          "model_s": 1.35620954100159,
+          "roundtrip_s": 1.3568872500036377,
+          "tool": "click",
+          "result": {
+            "clicked": "s00000039:3",
+            "role": "AXCheckBox",
+            "label": "Allow follow-up",
+            "via": "accessibility",
+            "engine": "\u2705 Performed AXPress on [3] AXCheckBox \"Allow follow-up\"."
+          },
+          "error": false,
+          "action_s": 1.6868651249969844
+        },
+        {
+          "step": 3,
+          "state": {
+            "goal": "Fill the contact name with Avery Chen d925 and email address with avery.d925@example.invalid. Enable follow-up. Save a draft without sending it.",
+            "observed_controls": [
+              {
+                "token": "s0000003a:1",
+                "role": "AXTextField",
+                "label": "Contact name",
+                "value": "Avery Chen d925",
+                "disabled": false
+              },
+              {
+                "token": "s0000003a:2",
+                "role": "AXTextField",
+                "label": "Email address",
+                "value": "avery.d925@example.invalid",
+                "disabled": false
+              },
+              {
+                "token": "s0000003a:3",
+                "role": "AXCheckBox",
+                "label": "Allow follow-up",
+                "value": "1",
+                "disabled": false
+              },
+              {
+                "token": "s0000003a:4",
+                "role": "AXButton",
+                "label": "Save draft",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s0000003a:5",
+                "role": "AXButton",
+                "label": "Send now",
+                "value": "",
+                "disabled": false
+              }
+            ]
+          },
+          "criteria": {
+            "click_4": "Click button 'Send now'",
+            "fill_0_email address": "Set textbox 'Contact name' to the supplied email address: avery.d925@example.invalid",
+            "ESCALATE": "Return to the main agent because progress is unclear",
+            "fill_1_contact name": "Set textbox 'Email address' to the supplied contact name: Avery Chen d925",
+            "click_3": "Click button 'Save draft'",
+            "click_2": "Toggle checkbox 'Allow follow-up'",
+            "WAIT": "Wait for an explicit loading state",
+            "DONE": "The entire goal is complete",
+            "fill_1_email address": "Set textbox 'Email address' to the supplied email address: avery.d925@example.invalid",
+            "fill_0_contact name": "Set textbox 'Contact name' to the supplied contact name: Avery Chen d925"
+          },
+          "answer": {
+            "type": "choice",
+            "choice": "click_3",
+            "probabilities": {
+              "click_4": 5.465654795407023e-05,
+              "fill_0_email address": 6.660615992903377e-05,
+              "ESCALATE": 0.00017174522771140917,
+              "fill_1_contact name": 9.28731553463778e-05,
+              "click_3": 0.8736374059755508,
+              "click_2": 0.0011605431787793745,
+              "WAIT": 0.001615296163076931,
+              "DONE": 0.11910754888241465,
+              "fill_1_email address": 0.0019940482118268746,
+              "fill_0_contact name": 0.002099276497410437
+            },
+            "confidence": 0.8182276321121119
+          },
+          "observe_s": 0.07565420898026787,
+          "model_s": 1.4598664999939501,
+          "roundtrip_s": 1.460704416007502,
+          "tool": "click",
+          "result": {
+            "clicked": "s0000003a:4",
+            "role": "AXButton",
+            "label": "Save draft",
+            "via": "accessibility",
+            "engine": "\u2705 Performed AXPress on [4] AXButton \"Save draft\"."
+          },
+          "error": false,
+          "action_s": 1.6705284590134397
+        }
+      ],
+      "actual": {
+        "action": "saved",
+        "follow_up": true,
+        "values": {
+          "email": "avery.d925@example.invalid",
+          "name": "Avery Chen d925"
+        }
+      }
+    },
+    {
+      "model": "d3-nano",
+      "variant": 1,
+      "success": false,
+      "outcome": "wrong_output",
+      "elapsed_s": 7.510260082985042,
+      "steps": [
+        {
+          "step": 0,
+          "state": {
+            "goal": "Fill the contact name with Avery Chen 4539 and email address with avery.4539@example.invalid. Enable follow-up. Save a draft without sending it.",
+            "observed_controls": [
+              {
+                "token": "s0000003c:1",
+                "role": "AXTextField",
+                "label": "Full name",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s0000003c:2",
+                "role": "AXTextField",
+                "label": "Electronic mail",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s0000003c:3",
+                "role": "AXCheckBox",
+                "label": "Contact me with updates",
+                "value": "0",
+                "disabled": false
+              },
+              {
+                "token": "s0000003c:4",
+                "role": "AXButton",
+                "label": "Save draft",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s0000003c:5",
+                "role": "AXButton",
+                "label": "Send now",
+                "value": "",
+                "disabled": false
+              }
+            ]
+          },
+          "criteria": {
+            "fill_0_contact name": "Set textbox 'Full name' to the supplied contact name: Avery Chen 4539",
+            "click_2": "Toggle checkbox 'Contact me with updates'",
+            "ESCALATE": "Return to the main agent because progress is unclear",
+            "click_4": "Click button 'Send now'",
+            "WAIT": "Wait for an explicit loading state",
+            "fill_1_contact name": "Set textbox 'Electronic mail' to the supplied contact name: Avery Chen 4539",
+            "click_3": "Click button 'Save draft'",
+            "fill_1_email address": "Set textbox 'Electronic mail' to the supplied email address: avery.4539@example.invalid",
+            "fill_0_email address": "Set textbox 'Full name' to the supplied email address: avery.4539@example.invalid",
+            "DONE": "The entire goal is complete"
+          },
+          "answer": {
+            "type": "choice",
+            "choice": "fill_0_contact name",
+            "probabilities": {
+              "fill_0_contact name": 0.9204632335043929,
+              "click_2": 0.005225350186995924,
+              "ESCALATE": 0.0011542850355324345,
+              "click_4": 0.0002840953221580627,
+              "WAIT": 0.0016150911498460305,
+              "fill_1_contact name": 0.0009096496218338011,
+              "click_3": 0.03673050161600757,
+              "fill_1_email address": 0.020459633430067507,
+              "fill_0_email address": 0.0051568495423849,
+              "DONE": 0.008001310590780943
+            },
+            "confidence": 0.8274317108464463
+          },
+          "observe_s": 0.11206375001347624,
+          "model_s": 0.46531524998135865,
+          "roundtrip_s": 0.46620516598341055,
+          "tool": "type_text",
+          "result": {
+            "typed": 15,
+            "route": "set_value",
+            "verified": true
+          },
+          "error": false,
+          "action_s": 1.8906898749992251
+        },
+        {
+          "step": 1,
+          "state": {
+            "goal": "Fill the contact name with Avery Chen 4539 and email address with avery.4539@example.invalid. Enable follow-up. Save a draft without sending it.",
+            "observed_controls": [
+              {
+                "token": "s0000003f:1",
+                "role": "AXTextField",
+                "label": "Full name",
+                "value": "Avery Chen 4539",
+                "disabled": false
+              },
+              {
+                "token": "s0000003f:2",
+                "role": "AXTextField",
+                "label": "Electronic mail",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s0000003f:3",
+                "role": "AXCheckBox",
+                "label": "Contact me with updates",
+                "value": "0",
+                "disabled": false
+              },
+              {
+                "token": "s0000003f:4",
+                "role": "AXButton",
+                "label": "Save draft",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s0000003f:5",
+                "role": "AXButton",
+                "label": "Send now",
+                "value": "",
+                "disabled": false
+              }
+            ]
+          },
+          "criteria": {
+            "DONE": "The entire goal is complete",
+            "fill_0_contact name": "Set textbox 'Full name' to the supplied contact name: Avery Chen 4539",
+            "click_3": "Click button 'Save draft'",
+            "fill_1_contact name": "Set textbox 'Electronic mail' to the supplied contact name: Avery Chen 4539",
+            "ESCALATE": "Return to the main agent because progress is unclear",
+            "click_4": "Click button 'Send now'",
+            "fill_1_email address": "Set textbox 'Electronic mail' to the supplied email address: avery.4539@example.invalid",
+            "fill_0_email address": "Set textbox 'Full name' to the supplied email address: avery.4539@example.invalid",
+            "WAIT": "Wait for an explicit loading state",
+            "click_2": "Toggle checkbox 'Contact me with updates'"
+          },
+          "answer": {
+            "type": "choice",
+            "choice": "fill_1_email address",
+            "probabilities": {
+              "DONE": 0.008516992817100054,
+              "fill_0_contact name": 0.0016109944098810533,
+              "click_3": 0.16926266997834774,
+              "fill_1_contact name": 0.0037178620003806236,
+              "ESCALATE": 0.0016002009628429035,
+              "click_4": 0.0005027275986539936,
+              "fill_1_email address": 0.8063519355842182,
+              "fill_0_email address": 0.0038380380080522,
+              "WAIT": 0.0030778035478910594,
+              "click_2": 0.0015207750926321587
+            },
+            "confidence": 0.7354691158309625
+          },
+          "observe_s": 0.057355625001946464,
+          "model_s": 0.5655908749904484,
+          "roundtrip_s": 0.5663137920200825,
+          "tool": "type_text",
+          "result": {
+            "typed": 26,
+            "route": "set_value",
+            "verified": true
+          },
+          "error": false,
+          "action_s": 1.5916884589823894
+        },
+        {
+          "step": 2,
+          "state": {
+            "goal": "Fill the contact name with Avery Chen 4539 and email address with avery.4539@example.invalid. Enable follow-up. Save a draft without sending it.",
+            "observed_controls": [
+              {
+                "token": "s00000042:1",
+                "role": "AXTextField",
+                "label": "Full name",
+                "value": "Avery Chen 4539",
+                "disabled": false
+              },
+              {
+                "token": "s00000042:2",
+                "role": "AXTextField",
+                "label": "Electronic mail",
+                "value": "avery.4539@example.invalid",
+                "disabled": false
+              },
+              {
+                "token": "s00000042:3",
+                "role": "AXCheckBox",
+                "label": "Contact me with updates",
+                "value": "0",
+                "disabled": false
+              },
+              {
+                "token": "s00000042:4",
+                "role": "AXButton",
+                "label": "Save draft",
+                "value": "",
+                "disabled": false
+              },
+              {
+                "token": "s00000042:5",
+                "role": "AXButton",
+                "label": "Send now",
+                "value": "",
+                "disabled": false
+              }
+            ]
+          },
+          "criteria": {
+            "click_2": "Toggle checkbox 'Contact me with updates'",
+            "fill_1_email address": "Set textbox 'Electronic mail' to the supplied email address: avery.4539@example.invalid",
+            "ESCALATE": "Return to the main agent because progress is unclear",
+            "DONE": "The entire goal is complete",
+            "WAIT": "Wait for an explicit loading state",
+            "fill_0_email address": "Set textbox 'Full name' to the supplied email address: avery.4539@example.invalid",
+            "click_3": "Click button 'Save draft'",
+            "fill_0_contact name": "Set textbox 'Full name' to the supplied contact name: Avery Chen 4539",
+            "click_4": "Click button 'Send now'",
+            "fill_1_contact name": "Set textbox 'Electronic mail' to the supplied contact name: Avery Chen 4539"
+          },
+          "answer": {
+            "type": "choice",
+            "choice": "click_3",
+            "probabilities": {
+              "click_2": 0.013495372818506308,
+              "fill_1_email address": 0.0026521758156189813,
+              "ESCALATE": 0.0006976166832952228,
+              "DONE": 0.05417669647523392,
+              "WAIT": 0.00914242162877094,
+              "fill_0_email address": 0.00030814033916261795,
+              "click_3": 0.9151713359095571,
+              "fill_0_contact name": 0.0019830473570364134,
+              "click_4": 0.0005441208195696287,
+              "fill_1_contact name": 0.0018290721532488105
+            },
+            "confidence": 0.8300353303643822
+          },
+          "observe_s": 0.07343587500508875,
+          "model_s": 1.1544359590043314,
+          "roundtrip_s": 1.1552522920246702,
+          "tool": "click",
+          "result": {
+            "clicked": "s00000042:4",
+            "role": "AXButton",
+            "label": "Save draft",
+            "via": "accessibility",
+            "engine": "\u2705 Performed AXPress on [4] AXButton \"Save draft\"."
+          },
+          "error": false,
+          "action_s": 1.5966339999868069
+        }
+      ],
+      "actual": {
+        "action": "saved",
+        "follow_up": false,
+        "values": {
+          "email": "avery.4539@example.invalid",
+          "name": "Avery Chen 4539"
+        }
+      }
+    }
+  ]
+}

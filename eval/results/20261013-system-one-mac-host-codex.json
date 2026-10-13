@@ -1,0 +1,95 @@
+{
+  "harness": "codex",
+  "elapsed_s": 30.356700250005815,
+  "exit_code": 0,
+  "success": true,
+  "actual": {
+    "action": "saved",
+    "follow_up": true,
+    "values": {
+      "email": "avery.1a56@example.invalid",
+      "name": "Avery Chen 1a56"
+    }
+  },
+  "events": [
+    {
+      "ts": 1791915413.998425,
+      "run": "20261013-141645-7dcc",
+      "tool": "observe",
+      "args": {
+        "window": 11759,
+        "windows": false,
+        "max_elements": 8
+      },
+      "ok": true,
+      "ms": 133
+    },
+    {
+      "ts": 1791915421.6640809,
+      "run": "20261013-141645-7dcc",
+      "tool": "type_text",
+      "args": {
+        "element": "s00000045:1",
+        "mode": "set_value",
+        "text": "Avery Chen 1a56"
+      },
+      "ok": true,
+      "ms": 1865
+    },
+    {
+      "ts": 1791915424.556132,
+      "run": "20261013-141645-7dcc",
+      "tool": "type_text",
+      "args": {
+        "element": "s00000045:2",
+        "mode": "set_value",
+        "text": "avery.1a56@example.invalid"
+      },
+      "ok": true,
+      "ms": 1626
+    },
+    {
+      "ts": 1791915427.431985,
+      "run": "20261013-141645-7dcc",
+      "tool": "click",
+      "args": {
+        "element": "s00000045:3"
+      },
+      "ok": true,
+      "ms": 1792
+    },
+    {
+      "ts": 1791915430.450051,
+      "run": "20261013-141645-7dcc",
+      "tool": "click",
+      "args": {
+        "element": "s00000045:4"
+      },
+      "ok": true,
+      "ms": 1781
+    },
+    {
+      "ts": 1791915432.359871,
+      "run": "20261013-141645-7dcc",
+      "tool": "observe",
+      "args": {
+        "window": 11759,
+        "windows": false,
+        "max_elements": 8
+      },
+      "ok": true,
+      "ms": 58
+    }
+  ],
+  "time_utc": "2026-10-13T18:17:15Z",
+  "tool_calls": [
+    "observe",
+    "type_text",
+    "type_text",
+    "click",
+    "click",
+    "observe"
+  ],
+  "trace_source": "events matched by unique trial input",
+  "verification_note": "First grader missed events because CLI did not inherit CCTL_RUN_TAG. Matched exact random trial inputs to the event run; no GUI rerun."
+}

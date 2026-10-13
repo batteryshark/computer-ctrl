@@ -79,6 +79,7 @@ class Engine:
         self.run_id = time.strftime("%Y%m%d-%H%M%S-") + uuid.uuid4().hex[:4]
         self.artifacts = cfg.artifacts / self.run_id
         self._start_lock = asyncio.Lock()
+        self._delegate_lock = asyncio.Lock()
         self.browser = BrowserTools(self)
         self.recordings: dict[str, media.Recording] = {}
         self._rec_ids = 0
@@ -141,6 +142,8 @@ class Engine:
                 raise ToolError("unknown_tool", f"no tool named {name!r}", hint=f"tools: {contract.tool_names()}")
             if name == "run" and not self.cfg.shell_enabled:
                 raise ToolError("disabled", "run is disabled in the personal profile")
+            if name == "delegate" and not self.cfg.executor_enabled:
+                raise ToolError("disabled", "delegate is experimental and disabled; set executor_enabled=true")
             await self.start()
             then = args.pop("then", None) if name in FOLLOW_UP_TOOLS else None
             result = await getattr(self, f"tool_{name}")(**args)
@@ -160,7 +163,8 @@ class Engine:
     def _log(self, name: str, args: dict, result: ToolResult, seconds: float) -> None:
         try:
             self.cfg.state_dir.mkdir(parents=True, exist_ok=True)
-            safe = {k: (v[:200] if isinstance(v, str) else v) for k, v in args.items() if k != "actions"}
+            safe = {k: (v[:200] if isinstance(v, str) else v) for k, v in args.items()
+                    if k != "actions" and not (name == "delegate" and k in ("stages", "success", "task", "intent"))}
             entry = {"ts": time.time(), "run": self.run_id, "tool": name, "args": safe,
                      "ok": not result.is_error, "ms": round(seconds * 1000)}
             if os.environ.get("CCTL_RUN_TAG"):  # set by eval runners to attribute calls exactly
@@ -266,6 +270,24 @@ class Engine:
         return ToolResult(data=payload, image=imaging.png_bytes(sent))
 
     # ------------------------------------------------------------------ tools
+    async def tool_delegate(self, task: str, window: int, stages: list[dict], success: list[dict],
+                            intent: str, max_steps: int = 32, timeout_ms: int = 30000) -> ToolResult:
+        """Experimental bounded execution; the caller supplies all permitted targets and values."""
+        if not self.cfg.executor_enabled:
+            raise ToolError("disabled", "delegate is experimental and disabled; set executor_enabled=true")
+        from .decision import DecisionClient
+        from .executor import Executor
+        chooser = None
+        if self.cfg.decision_url:
+            chooser = DecisionClient(self.cfg.decision_url, self.cfg.decision_model, self.cfg.decision_protocol,
+                                     os.environ.get(self.cfg.decision_api_key_env, "")
+                                     if self.cfg.decision_api_key_env else "")
+        if self._delegate_lock.locked():
+            raise ToolError("executor_busy", "a delegate call is already controlling this engine")
+        async with self._delegate_lock:
+            return await Executor(self, chooser).run(task=task, window=window, stages=stages, success=success,
+                                                     intent=intent, max_steps=max_steps, timeout_ms=timeout_ms)
+
     async def tool_doctor(self) -> ToolResult:
         problems: list[str] = []
         display = self.session_env.get("DISPLAY")

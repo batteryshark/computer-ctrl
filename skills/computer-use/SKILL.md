@@ -1,6 +1,6 @@
 ---
 name: computer-use
-description: Operate a desktop computer (Linux X11 today; Windows/macOS planned) with screenshots, zoom, accessibility trees, mouse, keyboard, windows, apps, processes and the clipboard, through the cctl toolkit. Use when a task needs a GUI app, needs to see what is on screen, or must be checked visually, on this machine or a remote one.
+description: Operate Linux, macOS and Windows desktops through cctl. Use when a task needs a GUI app, screen inspection, or visual verification on this machine or a remote one.
 ---
 
 # Computer use with cctl
@@ -20,6 +20,10 @@ Run `cctl tools` for the list. Every tool takes the same arguments over both MCP
 4. **Zoom instead of guessing.** For small text or icons, call `zoom --region [x0,y0,x1,y1]` on the image you have. It returns an enlarged native-resolution view with its own frame id (`z4`), and you can click directly in its coordinates.
 5. **Verify.** After anything that matters, `observe` or `screenshot` again, or add `--then screenshot|observe|wait_stable` to the action itself (`click`, `type_text`, `key`, `scroll`, `drag`, `browser_act`), which returns the after-state in the same call. Use `wait_for --stable_ms 500` (or `--window_title`, or `--query`) after actions that load or animate, rather than sleeping.
 6. **Ask the grounder if it is there.** When a `locate` tool exists, it finds hard targets from a description: `locate --target "the gear icon in the toolbar"`. It returns a point on the latest image, plus the image marked at that point. Check the mark before clicking.
+
+## Bounded native workflows
+
+When `delegate` is available and a native form or wizard has exact accessibility labels, read [executor setup](../../docs/executor-setup.md) for its call shape. Observe the explicit target window, supply complete field values, desired checkbox states, permitted stage buttons, and a success check that proves the final result. `completed` means fresh checks passed. On `escalated`, inspect the returned progress and window before resuming, because partial changes may have occurred. Keep pixel-only tasks, browser workflows and unexpected dialogs in the normal observation/action loop.
 
 ## Browser
 

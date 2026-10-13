@@ -1,13 +1,13 @@
 # Project Tracker: computer-ctrl: harness-agnostic computer-use toolkit
 
-Updated: 2026-10-08
+Updated: 2026-10-13
 
 ## Current state
 
 - Objective: Build a harness-agnostic computer-use toolkit (MCP + CLI + Agent Skill) that lets Claude Code, Codex CLI, opencode, pi (and Gemini/Antigravity) control Windows, macOS and Linux desktops: screenshots + zoom, mouse/keyboard, windows, processes, browser, a11y, OCR, audio and short video clips for capable models.
 - Status (2026-10-08):
   - Phases 0, 1, 1b and 2 are done. Phase 3 (eval, `locate`) and Phase 4 (macOS/Windows, `--host`) are functionally done.
-  - `cctl` serves the 27-tool contract over MCP and the CLI on Linux X11, macOS and Windows.
+  - `cctl` serves the 28-tool contract over MCP and the CLI. The existing 27 tools cover Linux X11, macOS and Windows; experimental `delegate` is opt-in and initially validated on macOS.
   - Verified per platform:
     - Linux: phase1 14/14, 1b 10/10, phase2 19/19 including the virtual mic, clip audio 7/7. Eval: Codex 16/16; GLM-5.3 + locate 14/17, where the failures are slow-model timeouts.
     - macOS: smoke 11/11, clips, clip audio 7/7, system and mic audio, hover, menu.
@@ -32,6 +32,9 @@ Updated: 2026-10-08
   - Keep it that way: committed files use placeholders (`user@windows-pc`, `user@linux-vm`, `<tailnet-ip>`, `~/.ssh/id_ed25519`).
   - Real hosts stay in local `~/.config/cctl/config.toml` and the `WIN_HOST`/`WIN_KEY` env vars. Each clone commits as the GitHub noreply address.
 - Next action: run the eval on macOS/Windows, cover the browser tool there, and add harder tasks.
+- Fast-model Mac test (2026-10-13): d3-mini/d3-nano run locally on MPS; text probe 28/32 vs 26/32, screenshot probe 8/8 each, native forms 2/2 vs 1/2. Mini completed the synonym form in 12.83 s; Codex CLI baseline 30.36 s (startup included). See `eval/results/20261013-system-one-mac.md`. Experimental scripts only; production contract/config unchanged.
+- Fast-executor follow-up (2026-10-13): d3-mini raw 6/8 expected workflow outcomes; guarded 8/8 (six completed, two correct handoffs). TextEdit own-document tests 2/2 in ~4 s; OpenCode replay 29/29 choices matched. Progress memory and own-window visual fallback repaired two observation/context failures; predicates and freshness checks prevented two incorrect commits. See `eval/results/20261013-system-one-mac-followup.md`. This exploratory probe preceded the bounded implementation below.
+- Bounded executor implementation (2026-10-13): user authorized parallel build, testing, commit and push. `delegate` accepts one explicit window, exact labeled targets/values, staged buttons, fresh success predicates and budgets. Disabled by default; D3 and OpenAI-compatible choice adapters stay outside model runtimes. Model selects among prevalidated pending actions; one eligible action is deterministic. Unit regression 118/118; live native acceptance Codex 8/8 and OpenCode 8/8 (fresh GUI runs, no replay). Setup: `docs/executor-setup.md`; evidence: `eval/results/20261013-delegate.md`. Next: frozen longer existing-app workflows, parent recovery, and native Linux/Windows executor acceptance alongside the existing cross-platform eval.
 
 ## Active workstreams
 
@@ -216,6 +219,40 @@ Updated: 2026-10-08
 - VM: Cua Driver 0.34.0 at `~/opt/cua-0.34.0/`, symlinked to `~/.local/bin/cua-driver`. Daemon started with `serve --no-overlay`; log at `~/.cache/cua-driver/serve.log`. Telemetry disabled.
 
 ## Recent attempts and results
+
+### 2026-10-13 — Optional bounded executor build and acceptance
+
+- User authorized parallel implementation, testing, a new commit and push. Added `delegate` to the contract, opt-in configuration/MCP visibility, a native accessibility executor, D3/OpenAI-compatible choice adapters, setup/skill guidance and an isolated native acceptance fixture. No model runtime dependency or persistent service setting was added.
+- Verification: 118/118 unit tests; public MCP native acceptance in actual Codex CLI and OpenCode, 8/8 each. Five drafts completed with exact independently checked values/settings plus a fresh confirmation; missing/ambiguous controls and model outage returned control with zero input attempts. Reflow during real inference rejected one stale choice in each run. Completed calls 4.25–11.73 s (warm sidecar; excludes harness/fixture/model startup); preservation used no inference. Wheel/archive build passed and packaged runtime/contract exactly matched tested source. Evidence: `eval/results/20261013-delegate.md` and two result JSONs.
+- Repairs: action attempts remain visible after timeout; private intent/value logging removed; final budgeted action may complete; empty/truncated observations rejected. Mac Cua falsely reports incompleteness despite finished traversal: positive checks require no pending nodes, no truncation and matching returned/total/actual row counts; absence still requires explicit completeness. Choice prompt now explains code-validated pending actions and program-owned values. Initial Codex shell sandbox could not compile Swift; automatic approval review ran the native suite. First full functional runs passed, but cleanup used an unsupported argument: closed the leftover test windows, fixed the runner to fail on cleanup errors and require fresh-list disappearance, and repeated both full suites. Independent review found no remaining runtime blockers.
+- Decision/limits: adopt disabled-by-default experimental execution for exact labeled forms/wizards. Model chooses order only; caller stages authorize actions. No goal-only planner, unlabeled editor, browser/pixel/menu execution or parent recovery. Observation/dispatch is not atomic; timeout cannot undo native input. Native platform validation is Mac only. Tests are iterative implementation acceptance, not blind benchmarks or general speedup evidence.
+- Cleanup: all test-owned acceptance windows closed; temporary d3-mini service stopped, pinned cached weights retained. Next: frozen longer existing-app workflows and parent recovery, then native Linux/Windows acceptance; retain cross-platform eval/browser priorities. Prior desktop-isolation research stays local outside this feature commit.
+
+### 2026-10-13 — d3-mini workflow continuation
+
+- User requested continuation; broadened local testing to prefilled/protected values, negation, a wizard, a notice, loading, missing/ambiguous fields, a mid-inference position swap and existing TextEdit documents.
+- Evidence: `eval/results/20261013-system-one-mac-followup.md`, initial/final native result JSONs, OpenCode replay JSON, TextEdit JSON and own-window loading images. Scripts remain in `eval/system_one_mac/`; same pinned mini/MPS runtime, no training or production changes.
+- Initial outcomes: raw 4/8, guarded 6/8. Runner omitted verified previous-page values and accessibility omitted a disabled loading indicator. Preserved those results, added observed progress memory and an own-window screenshot fallback to both modes, then reran the unchanged eight definitions.
+- Final: raw 6/8 expected outcomes (5/6 completable + 1/2 blocked); guarded 8/8 (6/6 completed + 2/2 handoffs), 6.52–15.78 s for completed tasks. Unguarded ambiguity committed incomplete data; a stale reference placed the name in the email field and the model still saved. Guard rejected one stale choice and filtered final actions using explicit caller predicates. Own-file TextEdit Unicode/prefix-preservation 2/2, 4.29/4.06 s. OpenCode replay matched 29/29 decisions; native actions ran in Codex desktop only.
+- Limits/decision: controlled fixtures and short TextEdit tasks; iterative controller repairs are not blind held-out evaluation. Caller-supplied predicates do much of the work, and one eligible action should use deterministic automation. Fresh observe/dispatch is not atomic; core same-bounds element refresh remains unchanged. Keep an optional bounded executor experimental, with parent handoff and stronger identity; no goal-only `delegate` adopted. No new comparative host speed baseline.
+- Cleanup: test windows/documents closed and temporary model server stopped; cached weights remain for reuse. Next follow-up: longer frozen tasks across existing apps plus actual parent-agent recovery before contract addition. Cross-platform eval priority unchanged.
+
+### 2026-10-13 — Open-weight System One test on this Mac
+
+- User authorized a local test using open-weight alternatives from the supplied Decision Index charts.
+- Evidence: `eval/results/20261013-system-one-mac.md`, four result JSON files, own-window screenshot and `eval/system_one_mac/` scripts. M5 Max/128 GB/macOS 27.0.1; pinned d3-mini and d3-nano BF16 weights, PyTorch 2.14.1/Transformers 5.17.0 on MPS, full manifests verified. Temporary runtime/weights in `/tmp/cctl-s1-test`; model servers and test windows stopped/closed.
+- Results: 16 text situations × two option orders: mini 28/32, nano 26/32, identical choices in Codex desktop and OpenCode acceptance runs. Warm repeat median 319 / 131 ms. Four screenshot questions × two orders on one own-window image: 8/8 each; warm medians 800 / 343 ms. Native forms: mini 2/2 in 12.81/12.83 s; nano 1/2, skipping required follow-up on synonym labels with confidence 0.830. Scripted macro 7.06/7.25 s. Codex CLI/gpt-6.1-sol (no reasoning) passed the synonym form in 30.36 s with six verified GUI calls; its timer includes CLI/MCP startup. Small probes, not general desktop accuracy or speedup claims.
+- Harness issues resolved: Claude at session limit; OpenCode default provider had billing configuration error, so its available free Ling model executed the identical acceptance command. Codex exec first refused MCP calls; `--approve-for-me` enabled the authorized GUI baseline. Explicit MCP env is needed for run tags; baseline events were recovered via its unique randomized input values. No credentials or account settings changed.
+- Decision: retain d3-mini as an experimental candidate; no `delegate` added or core model dependency adopted. Known steps remain faster with deterministic automation; ambiguous/disabled controls and final action preconditions require code checks and escalation. Confidence alone missed the live failure.
+- Next follow-up if requested: larger held-out native/browser workflows and recovery, then decide whether bounded delegation earns a public contract tool. Existing cross-platform eval priority remains.
+
+### 2026-10-13 — System One models for faster computer use
+
+- Intent: assess whether Jev or alternatives could reduce computer-use latency and belong in this toolkit; no implementation requested.
+- Evidence: `research_notes/Harness agnostic computer use toolkit/system_one_computer_use.md`; primary model/API docs, existing Browser Use/Cua prototypes and the Jev-Mobile preprint. No model installs, runtime benchmarks or contract changes.
+- Findings: Jev is text-only and selects caller-defined choices; fresh a11y/DOM action candidates can support repeated local execution. Screenshot-based execution needs visual candidates/grounding or a visual policy. Jev-Mobile reports faster successful Android trajectories with a task-success tradeoff; this does not establish desktop performance. Cua-S1 provides directly relevant specialists but published generalization and abstention failures require task-specific validation. OpenAI now documents an image-capable Decisions API, superseding the linked October 4 article's missing-schema claim.
+- Scope recommendation (not an adopted implementation decision): evaluate an optional `delegate`/bounded fast executor over the existing contract, with provider adapters, fresh references, step/time budgets, deterministic checks and return to the main agent on ambiguity or lack of progress. Reuse existing models first; training a new model is separate research. A chooser called before every main-model turn can add latency without saving those turns.
+- Next follow-up if requested: compare existing batching/`then=` against a text decision executor and a visual controller on the same tasks; measure whole-task success, time, fallback/recovery and cost through at least two harnesses. Keep only on demonstrated benefit. Existing platform/eval next action remains unchanged.
 
 ### 2026-10-07 — VM probe (`ssh user@linux-vm`)
 

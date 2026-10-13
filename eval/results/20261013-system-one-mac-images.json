@@ -1,0 +1,369 @@
+{
+  "scope": "one own-window 650x432 screenshot; bounded selection, not arbitrary coordinate grounding",
+  "models": {
+    "d3-mini": {
+      "correct": 8,
+      "total": 8,
+      "first_image_s": 2.1466201249859296,
+      "warm_median_s": 0.800481749989558,
+      "rows": [
+        {
+          "case": "save_without_send",
+          "order": 0,
+          "expected": "right",
+          "answer": {
+            "type": "choice",
+            "choice": "right",
+            "probabilities": {
+              "right": 0.9983408499312524,
+              "left": 0.0005931634833822358,
+              "none": 0.001065986585365427
+            },
+            "confidence": 0.9878387863545042
+          },
+          "correct": true,
+          "roundtrip_s": 2.1466201249859296,
+          "model_s": 2.138332000002265,
+          "usage": {
+            "input_tokens": 415,
+            "output_tokens": 0
+          }
+        },
+        {
+          "case": "email_field",
+          "order": 0,
+          "expected": "lower",
+          "answer": {
+            "type": "choice",
+            "choice": "lower",
+            "probabilities": {
+              "lower": 0.9976913134694653,
+              "upper": 0.0019157791575596622,
+              "none": 0.0003929073729751137
+            },
+            "confidence": 0.984184217519275
+          },
+          "correct": true,
+          "roundtrip_s": 0.878663957992103,
+          "model_s": 0.8780677090107929,
+          "usage": {
+            "input_tokens": 405,
+            "output_tokens": 0
+          }
+        },
+        {
+          "case": "checkbox_state",
+          "order": 0,
+          "expected": "unchecked",
+          "answer": {
+            "type": "choice",
+            "choice": "unchecked",
+            "probabilities": {
+              "unchecked": 0.998081008129681,
+              "checked": 0.001918991870318918
+            },
+            "confidence": 0.9799144003241529
+          },
+          "correct": true,
+          "roundtrip_s": 0.8087878749938682,
+          "model_s": 0.8082413749943953,
+          "usage": {
+            "input_tokens": 390,
+            "output_tokens": 0
+          }
+        },
+        {
+          "case": "missing_export",
+          "order": 0,
+          "expected": "none",
+          "answer": {
+            "type": "choice",
+            "choice": "none",
+            "probabilities": {
+              "right": 0.002596415418124578,
+              "left": 0.001306767262251098,
+              "none": 0.9960968173196243
+            },
+            "confidence": 0.9744852392681186
+          },
+          "correct": true,
+          "roundtrip_s": 0.8568673339905217,
+          "model_s": 0.8563237090129405,
+          "usage": {
+            "input_tokens": 412,
+            "output_tokens": 0
+          }
+        },
+        {
+          "case": "save_without_send",
+          "order": 1,
+          "expected": "right",
+          "answer": {
+            "type": "choice",
+            "choice": "right",
+            "probabilities": {
+              "left": 0.0010647225324870962,
+              "none": 0.0012108135154369859,
+              "right": 0.9977244639520759
+            },
+            "confidence": 0.9838947746835495
+          },
+          "correct": true,
+          "roundtrip_s": 0.7942619579844177,
+          "model_s": 0.7937348339764867,
+          "usage": {
+            "input_tokens": 415,
+            "output_tokens": 0
+          }
+        },
+        {
+          "case": "email_field",
+          "order": 1,
+          "expected": "lower",
+          "answer": {
+            "type": "choice",
+            "choice": "lower",
+            "probabilities": {
+              "upper": 0.002026883867213431,
+              "none": 0.00032113078928476833,
+              "lower": 0.9976519853435017
+            },
+            "confidence": 0.9840730448872487
+          },
+          "correct": true,
+          "roundtrip_s": 0.8002283340028953,
+          "model_s": 0.7995799999916926,
+          "usage": {
+            "input_tokens": 405,
+            "output_tokens": 0
+          }
+        },
+        {
+          "case": "checkbox_state",
+          "order": 1,
+          "expected": "unchecked",
+          "answer": {
+            "type": "choice",
+            "choice": "unchecked",
+            "probabilities": {
+              "checked": 0.0018971169679430932,
+              "unchecked": 0.9981028830320569
+            },
+            "confidence": 0.980111951134631
+          },
+          "correct": true,
+          "roundtrip_s": 0.7977474159852136,
+          "model_s": 0.7971428750024643,
+          "usage": {
+            "input_tokens": 390,
+            "output_tokens": 0
+          }
+        },
+        {
+          "case": "missing_export",
+          "order": 1,
+          "expected": "none",
+          "answer": {
+            "type": "choice",
+            "choice": "none",
+            "probabilities": {
+              "left": 0.0034386705154932852,
+              "none": 0.9928625498800029,
+              "right": 0.0036987796045038833
+            },
+            "confidence": 0.9569178205184963
+          },
+          "correct": true,
+          "roundtrip_s": 0.800481749989558,
+          "model_s": 0.7999527500069235,
+          "usage": {
+            "input_tokens": 412,
+            "output_tokens": 0
+          }
+        }
+      ]
+    },
+    "d3-nano": {
+      "correct": 8,
+      "total": 8,
+      "first_image_s": 1.6170747079886496,
+      "warm_median_s": 0.3426858340098988,
+      "rows": [
+        {
+          "case": "save_without_send",
+          "order": 0,
+          "expected": "right",
+          "answer": {
+            "type": "choice",
+            "choice": "right",
+            "probabilities": {
+              "right": 0.9941570085241251,
+              "left": 0.00524045351776947,
+              "none": 0.0006025379581054333
+            },
+            "confidence": 0.9655813405609444
+          },
+          "correct": true,
+          "roundtrip_s": 1.6170747079886496,
+          "model_s": 1.6164930000086315,
+          "usage": {
+            "input_tokens": 415,
+            "output_tokens": 0
+          }
+        },
+        {
+          "case": "email_field",
+          "order": 0,
+          "expected": "lower",
+          "answer": {
+            "type": "choice",
+            "choice": "lower",
+            "probabilities": {
+              "lower": 0.8036614299911686,
+              "upper": 0.1797392123859886,
+              "none": 0.016599357622842717
+            },
+            "confidence": 0.4973933431811719
+          },
+          "correct": true,
+          "roundtrip_s": 0.4317535839800257,
+          "model_s": 0.4312139169778675,
+          "usage": {
+            "input_tokens": 405,
+            "output_tokens": 0
+          }
+        },
+        {
+          "case": "checkbox_state",
+          "order": 0,
+          "expected": "unchecked",
+          "answer": {
+            "type": "choice",
+            "choice": "unchecked",
+            "probabilities": {
+              "unchecked": 0.999104730738201,
+              "checked": 0.0008952692617988946
+            },
+            "confidence": 0.9896440267328295
+          },
+          "correct": true,
+          "roundtrip_s": 0.40067466700566,
+          "model_s": 0.40017979199183173,
+          "usage": {
+            "input_tokens": 390,
+            "output_tokens": 0
+          }
+        },
+        {
+          "case": "missing_export",
+          "order": 0,
+          "expected": "none",
+          "answer": {
+            "type": "choice",
+            "choice": "none",
+            "probabilities": {
+              "right": 0.0013768500024451,
+              "left": 0.0016717692561664431,
+              "none": 0.9969513807413884
+            },
+            "confidence": 0.979243199562389
+          },
+          "correct": true,
+          "roundtrip_s": 0.4022313340101391,
+          "model_s": 0.40168874998926185,
+          "usage": {
+            "input_tokens": 412,
+            "output_tokens": 0
+          }
+        },
+        {
+          "case": "save_without_send",
+          "order": 1,
+          "expected": "right",
+          "answer": {
+            "type": "choice",
+            "choice": "right",
+            "probabilities": {
+              "left": 0.011952016873903713,
+              "none": 0.0009381298583935402,
+              "right": 0.9871098532677027
+            },
+            "confidence": 0.9342289853362294
+          },
+          "correct": true,
+          "roundtrip_s": 0.3426858340098988,
+          "model_s": 0.3421628329961095,
+          "usage": {
+            "input_tokens": 415,
+            "output_tokens": 0
+          }
+        },
+        {
+          "case": "email_field",
+          "order": 1,
+          "expected": "lower",
+          "answer": {
+            "type": "choice",
+            "choice": "lower",
+            "probabilities": {
+              "upper": 0.02135661164832817,
+              "none": 0.005726523484046627,
+              "lower": 0.9729168648676252
+            },
+            "confidence": 0.8740019657240692
+          },
+          "correct": true,
+          "roundtrip_s": 0.3409512919897679,
+          "model_s": 0.3404606669791974,
+          "usage": {
+            "input_tokens": 405,
+            "output_tokens": 0
+          }
+        },
+        {
+          "case": "checkbox_state",
+          "order": 1,
+          "expected": "unchecked",
+          "answer": {
+            "type": "choice",
+            "choice": "unchecked",
+            "probabilities": {
+              "checked": 0.0008210618915231655,
+              "unchecked": 0.9991789381084768
+            },
+            "confidence": 0.9903998783311644
+          },
+          "correct": true,
+          "roundtrip_s": 0.3390289999952074,
+          "model_s": 0.33845383301377296,
+          "usage": {
+            "input_tokens": 390,
+            "output_tokens": 0
+          }
+        },
+        {
+          "case": "missing_export",
+          "order": 1,
+          "expected": "none",
+          "answer": {
+            "type": "choice",
+            "choice": "none",
+            "probabilities": {
+              "left": 0.0009298670117635198,
+              "none": 0.9982104064390386,
+              "right": 0.0008597265491978945
+            },
+            "confidence": 0.9869402338567153
+          },
+          "correct": true,
+          "roundtrip_s": 0.33973912498913705,
+          "model_s": 0.33902712501003407,
+          "usage": {
+            "input_tokens": 412,
+            "output_tokens": 0
+          }
+        }
+      ]
+    }
+  }
+}

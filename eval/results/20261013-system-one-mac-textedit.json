@@ -1,0 +1,219 @@
+{
+  "scope": "two short own-document tasks in existing TextEdit; caller supplies exact data/predicates",
+  "trials": [
+    {
+      "prefix": "",
+      "payload": "Local model test \u2014 caf\u00e9 \u65e5\u672c\u8a9e \u2713",
+      "success": true,
+      "outcome": "verified",
+      "elapsed_s": 4.293970750004519,
+      "file_content": "Local model test \u2014 caf\u00e9 \u65e5\u672c\u8a9e \u2713",
+      "steps": [
+        {
+          "request": {
+            "state": {
+              "goal": "Keep the existing document prefix, append the supplied text exactly, and save this test document.",
+              "original_prefix": "",
+              "append_text": "Local model test \u2014 caf\u00e9 \u65e5\u672c\u8a9e \u2713",
+              "observed_editor": {
+                "token": "s00000169:1",
+                "role": "AXTextArea",
+                "label": "First Text View",
+                "value": "",
+                "disabled": false,
+                "bounds": [
+                  692.0,
+                  135.0,
+                  1348.0,
+                  519.0
+                ]
+              },
+              "recent_actions": [
+                "Replace the observed document contents with the original prefix plus the supplied appended text",
+                "Save the current test document using its File > Save menu"
+              ]
+            },
+            "criteria": {
+              "write": "Replace the observed document contents with the original prefix plus the supplied appended text",
+              "ESCALATE": "Return to the main agent if the document or progress is unclear"
+            }
+          },
+          "answer": {
+            "type": "choice",
+            "choice": "write",
+            "probabilities": {
+              "write": 0.9862843963173601,
+              "ESCALATE": 0.013715603682639901
+            },
+            "confidence": 0.8954762118662897
+          },
+          "roundtrip_s": 0.6149943750060629,
+          "tool": "type_text",
+          "result": {
+            "typed": 29,
+            "route": "set_value",
+            "verified": true
+          },
+          "error": false
+        },
+        {
+          "request": {
+            "state": {
+              "goal": "Keep the existing document prefix, append the supplied text exactly, and save this test document.",
+              "original_prefix": "",
+              "append_text": "Local model test \u2014 caf\u00e9 \u65e5\u672c\u8a9e \u2713",
+              "observed_editor": {
+                "token": "s0000016d:1",
+                "role": "AXTextArea",
+                "label": "Local model test \u2014 caf\u00e9 \u65e5\u672c\u8a9e \u2713",
+                "value": "Local model test \u2014 caf\u00e9 \u65e5\u672c\u8a9e \u2713",
+                "disabled": false,
+                "bounds": [
+                  692.0,
+                  135.0,
+                  1348.0,
+                  519.0
+                ]
+              },
+              "recent_actions": [
+                "Replace the observed document contents with the original prefix plus the supplied appended text",
+                "Save the current test document using its File > Save menu"
+              ]
+            },
+            "criteria": {
+              "save": "Save the current test document using its File > Save menu",
+              "ESCALATE": "Return to the main agent if the document or progress is unclear"
+            }
+          },
+          "answer": {
+            "type": "choice",
+            "choice": "save",
+            "probabilities": {
+              "save": 0.9901545739374991,
+              "ESCALATE": 0.009845426062500993
+            },
+            "confidence": 0.9202333397410246
+          },
+          "roundtrip_s": 0.7702670829894487,
+          "tool": "menu",
+          "result": {
+            "invoked": [
+              "File",
+              "Save"
+            ],
+            "window": 12303,
+            "engine": "Resolved the live native menu path and dispatched its final accessibility action; verify the command's semantic effect from fresh state."
+          },
+          "error": false
+        }
+      ]
+    },
+    {
+      "prefix": "Keep this prefix. ",
+      "payload": "Append: Morgan Lee \u2713",
+      "success": true,
+      "outcome": "verified",
+      "elapsed_s": 4.064576083008433,
+      "file_content": "Keep this prefix. Append: Morgan Lee \u2713",
+      "steps": [
+        {
+          "request": {
+            "state": {
+              "goal": "Keep the existing document prefix, append the supplied text exactly, and save this test document.",
+              "original_prefix": "Keep this prefix. ",
+              "append_text": "Append: Morgan Lee \u2713",
+              "observed_editor": {
+                "token": "s00000170:1",
+                "role": "AXTextArea",
+                "label": "Keep this prefix.",
+                "value": "Keep this prefix.",
+                "disabled": false,
+                "bounds": [
+                  692.0,
+                  135.0,
+                  1348.0,
+                  519.0
+                ]
+              },
+              "recent_actions": [
+                "Replace the observed document contents with the original prefix plus the supplied appended text",
+                "Save the current test document using its File > Save menu"
+              ]
+            },
+            "criteria": {
+              "write": "Replace the observed document contents with the original prefix plus the supplied appended text",
+              "ESCALATE": "Return to the main agent if the document or progress is unclear"
+            }
+          },
+          "answer": {
+            "type": "choice",
+            "choice": "write",
+            "probabilities": {
+              "write": 0.9789506385007454,
+              "ESCALATE": 0.021049361499254675
+            },
+            "confidence": 0.8527074469345869
+          },
+          "roundtrip_s": 0.6251725420006551,
+          "tool": "type_text",
+          "result": {
+            "typed": 38,
+            "route": "set_value",
+            "verified": true
+          },
+          "error": false
+        },
+        {
+          "request": {
+            "state": {
+              "goal": "Keep the existing document prefix, append the supplied text exactly, and save this test document.",
+              "original_prefix": "Keep this prefix. ",
+              "append_text": "Append: Morgan Lee \u2713",
+              "observed_editor": {
+                "token": "s00000174:1",
+                "role": "AXTextArea",
+                "label": "Keep this prefix. Append: Morgan Lee \u2713",
+                "value": "Keep this prefix. Append: Morgan Lee \u2713",
+                "disabled": false,
+                "bounds": [
+                  692.0,
+                  135.0,
+                  1348.0,
+                  519.0
+                ]
+              },
+              "recent_actions": [
+                "Replace the observed document contents with the original prefix plus the supplied appended text",
+                "Save the current test document using its File > Save menu"
+              ]
+            },
+            "criteria": {
+              "save": "Save the current test document using its File > Save menu",
+              "ESCALATE": "Return to the main agent if the document or progress is unclear"
+            }
+          },
+          "answer": {
+            "type": "choice",
+            "choice": "save",
+            "probabilities": {
+              "save": 0.9925772538477767,
+              "ESCALATE": 0.007422746152223324
+            },
+            "confidence": 0.9368238301241238
+          },
+          "roundtrip_s": 0.7229921249963809,
+          "tool": "menu",
+          "result": {
+            "invoked": [
+              "File",
+              "Save"
+            ],
+            "window": 12314,
+            "engine": "Resolved the live native menu path and dispatched its final accessibility action; verify the command's semantic effect from fresh state."
+          },
+          "error": false
+        }
+      ]
+    }
+  ]
+}

@@ -31,6 +31,11 @@ class Config:
     grounder_model: str = ""
     grounder_api_key_env: str = ""
     grounder_image_max: int = 1280
+    executor_enabled: bool = False  # opt-in experimental native form/wizard executor
+    decision_url: str = ""         # optional choice-model endpoint; no model dependencies in cctl
+    decision_model: str = ""
+    decision_protocol: str = "openai"  # openai chat/completions | d3 system_one sidecar
+    decision_api_key_env: str = ""
     # Remote targets for `cctl --host`: {"user@host": {"ssh_args": [...], "remote_bin": "...", "os": "windows"}}
     hosts: dict = field(default_factory=dict)
     state_dir: Path = field(default_factory=lambda: Path.home() / ".local" / "state" / "cctl")
@@ -60,11 +65,23 @@ def load() -> Config:
         "stt_url": "CCTL_STT_URL", "stt_model": "CCTL_STT_MODEL", "stt_api_key_env": "CCTL_STT_API_KEY_ENV",
         "grounder_url": "CCTL_GROUNDER_URL", "grounder_model": "CCTL_GROUNDER_MODEL",
         "grounder_api_key_env": "CCTL_GROUNDER_API_KEY_ENV", "grounder_image_max": "CCTL_GROUNDER_IMAGE_MAX",
+        "executor_enabled": "CCTL_EXECUTOR_ENABLED", "decision_url": "CCTL_DECISION_URL",
+        "decision_model": "CCTL_DECISION_MODEL", "decision_protocol": "CCTL_DECISION_PROTOCOL",
+        "decision_api_key_env": "CCTL_DECISION_API_KEY_ENV",
     }
     for key, var in env.items():
         if var in os.environ:
             value = os.environ[var]
+            if key == "executor_enabled":
+                if value.lower() not in ("true", "false", "1", "0"):
+                    raise ValueError("CCTL_EXECUTOR_ENABLED must be true, false, 1 or 0")
+                cfg.executor_enabled = value.lower() in ("true", "1")
+                continue
             setattr(cfg, key, int(value) if key in ("max_dim", "zoom_dim", "grounder_image_max") else value)
+    if not isinstance(cfg.executor_enabled, bool):
+        raise ValueError("executor_enabled must be a boolean")
+    if cfg.decision_protocol not in ("openai", "d3"):
+        raise ValueError("decision_protocol must be openai or d3")
     if cfg.profile not in PROFILES:
         raise ValueError(f"profile must be one of {PROFILES}, got {cfg.profile!r}")
     if not cfg.cua_bin:

@@ -6,6 +6,9 @@ import os
 import shutil
 import sys
 import tomllib
+import hashlib
+import json
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -38,6 +41,8 @@ class Config:
     decision_api_key_env: str = ""
     # Remote targets for `cctl --host`: {"user@host": {"ssh_args": [...], "remote_bin": "...", "os": "windows"}}
     hosts: dict = field(default_factory=dict)
+    session: str = ""              # optional named isolated target; empty preserves host control
+    sessions: dict = field(default_factory=dict)
     state_dir: Path = field(default_factory=lambda: Path.home() / ".local" / "state" / "cctl")
     cache_dir: Path = field(default_factory=lambda: Path.home() / ".cache" / "cctl")
 
@@ -49,8 +54,40 @@ class Config:
     def shell_enabled(self) -> bool:
         return self.profile == "sandbox"
 
+    @property
+    def session_options(self) -> dict:
+        if not self.session or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}", self.session):
+            raise ValueError("session must be a configured name containing letters, digits, - or _")
+        entry = self.sessions.get(self.session)
+        if not isinstance(entry, dict):
+            raise ValueError(f"isolated session {self.session!r} is not configured; no host fallback")
+        command = entry.get("command", ["deskhelper"])
+        if not isinstance(command, list) or not command or not all(isinstance(x, str) and x for x in command):
+            raise ValueError("session command must be a nonempty argument array")
+        name = entry.get("id", self.session)
+        if not isinstance(name, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}", name):
+            raise ValueError("invalid companion session id")
+        acquire = entry.get("acquire", "start")
+        if acquire not in ("start", "attach"):
+            raise ValueError("session acquire must be start or attach")
+        env = entry.get("env", {})
+        if not isinstance(env, dict) or not all(isinstance(k, str) and isinstance(v, str) for k, v in env.items()):
+            raise ValueError("session env must contain string values")
+        extra = entry.get("acquire_args", [])
+        if not isinstance(extra, list) or not all(isinstance(x, str) for x in extra):
+            raise ValueError("session acquire_args must be an argument array")
+        return dict(entry, command=command, id=name, acquire=acquire, env=env, acquire_args=extra)
 
-def load() -> Config:
+    def isolate_paths(self) -> None:
+        """A configured target cannot reuse the host's daemon, frames or profiles."""
+        entry = self.session_options
+        identity = json.dumps([self.session, entry], sort_keys=True).encode()
+        suffix = hashlib.sha256(identity).hexdigest()[:16]
+        self.state_dir = self.state_dir / "sessions" / suffix
+        self.cache_dir = self.cache_dir / "sessions" / suffix
+
+
+def load(*, select_session: bool = True) -> Config:
     cfg = Config()
     path = Path(os.environ.get("CCTL_CONFIG", Path.home() / ".config" / "cctl" / "config.toml"))
     if path.is_file():
@@ -68,6 +105,7 @@ def load() -> Config:
         "executor_enabled": "CCTL_EXECUTOR_ENABLED", "decision_url": "CCTL_DECISION_URL",
         "decision_model": "CCTL_DECISION_MODEL", "decision_protocol": "CCTL_DECISION_PROTOCOL",
         "decision_api_key_env": "CCTL_DECISION_API_KEY_ENV",
+        "session": "CCTL_SESSION",
     }
     for key, var in env.items():
         if var in os.environ:
@@ -92,4 +130,6 @@ def load() -> Config:
                 cfg.cua_bin = str(found[-1])
     if not cfg.cua_socket:
         cfg.cua_socket = str(Path.home() / ".cache" / "cua-driver" / "cua-driver.sock")
+    if cfg.session and select_session:
+        cfg.isolate_paths()
     return cfg

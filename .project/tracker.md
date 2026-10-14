@@ -4,6 +4,8 @@ Updated: 2026-10-13
 
 ## Current state
 
+- Isolated-session integration (2026-10-13, complete): independent `../desktop-session-helper` repository/package 0.2.0 and descriptor v1; optional `cctl --session NAME` selects generation-pinned controllers/artifacts/profiles with no host fallback. Installed-wheel/native app, capture, input, reconnect/resume, stale refusal and cleanup passed on Linux/Mac/Windows. Real Codex + OpenCode passed on each platform, verified by exact saved Unicode, actual tools, captures and host metadata. Regression: 141 passed; companion contract: 11 passed. OpenCode v2 acceptance uses a private runtime-registered server with actual tool-catalog readiness; zero-tool/provider-failure attempts remain recorded. Windows authentication and Mac saved state were retained; owned test resources cleaned. Final wheel SHA256 `19f7497ada868ad2dad34cab40767ff5faf667fad9f3edc0edc7acef05e877fb`. Setup/capability limits: `docs/isolated-sessions.md`, companion `VALIDATION.md`. No browser/a11y/audio-video/game parity implied. Next: use explicit isolated targets; expand capabilities only as separate measured work.
+
 - Objective: Build a harness-agnostic computer-use toolkit (MCP + CLI + Agent Skill) that lets Claude Code, Codex CLI, opencode, pi (and Gemini/Antigravity) control Windows, macOS and Linux desktops: screenshots + zoom, mouse/keyboard, windows, processes, browser, a11y, OCR, audio and short video clips for capable models.
 - Status (2026-10-08):
   - Phases 0, 1, 1b and 2 are done. Phase 3 (eval, `locate`) and Phase 4 (macOS/Windows, `--host`) are functionally done.

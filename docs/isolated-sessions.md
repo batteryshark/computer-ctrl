@@ -7,7 +7,7 @@ With no default session configured, omitting `--session` keeps existing host
 control. A config-level `session` or `CCTL_SESSION` selects an isolated default;
 use separate configs when switching between host and isolated work.
 
-Install QuietWing 0.3 separately on the machine being controlled. Its sole command
+Install QuietWing 0.3.1 separately on the machine being controlled. Its sole command
 is `quietwing`; computer-ctrl defaults to that executable when `command` is omitted.
 There is no `deskhelper` alias. Update existing 0.2 target command arrays explicitly.
 Native state/cache paths and `DESKHELPER_*` adapter environment names retain their
@@ -112,7 +112,7 @@ timed-out mutation: completion may be unknown, and commands are never replayed
 automatically.
 
 Mac stop saves the guest and releases RAM; start restores it without login.
-Windows stop removes owned workers/apps and restores the viewer, retaining the
+Windows stop removes owned workers/apps and preserves viewer visibility, retaining the
 external authenticated child. Linux stop releases only its owned session.
 Crashes and cold boots have different recovery requirements; consult the
 companion's platform documentation rather than changing host login policies.
@@ -167,8 +167,10 @@ lifecycle/reconnect checks and fresh actual Codex/OpenCode editor workflows pass
 Exact saved Unicode, tools, child identity, captures and cleanup were independently
 verified; 1,849 parent samples had unchanged pointer/focus and a hidden connected
 viewer. This closes the initial Windows live-acceptance deferral. The original
-reported main-desktop obstruction remains unidentified. Windows stop still
-restores original viewer visibility, which can cover another window.
+reported main-desktop obstruction remains unidentified. Version 0.3.0 restored
+viewer visibility at stop; 0.3.1 preserves current visibility so a hidden viewer
+stays hidden. The 0.3.1 change has static/simulated CI coverage only; the Windows
+machine was unavailable for a new native/two-harness rerun.
 
 The Codex acceptance runner marks its isolated MCP server required and allows
 60 seconds for startup. This waits for SSH/tool discovery before the first turn;

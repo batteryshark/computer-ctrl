@@ -14,6 +14,7 @@
 - system/mic audio capture with levels and a local Whisper transcript
 - OCR with clickable line and word boxes (Phase 2)
 - an opt-in experimental [native workflow executor](docs/executor-setup.md), with optional fast-model choices
+- optional [isolated desktops](docs/isolated-sessions.md) through the separately installed QuietWing companion
 
 Status and decisions: [`.project/tracker.md`](.project/tracker.md). Research and plan: [`reports/`](reports/). Install per harness: [`packaging/README.md`](packaging/README.md).
 

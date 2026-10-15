@@ -17,6 +17,7 @@ from mcp.server.stdio import stdio_server
 from . import __version__, contract
 from .config import load
 from .engine import Engine
+from .providers import create_engine
 from .results import ToolResult
 
 
@@ -39,7 +40,8 @@ def build(engine: Engine) -> Server:
         hidden.add("locate")
     if not engine.cfg.executor_enabled:
         hidden.add("delegate")
-    visible = [t for t in contract.tools() if t["name"] not in hidden]
+    supported = getattr(engine, "supported_tools", contract.tool_names())
+    visible = [t for t in contract.tools() if t["name"] not in hidden and t["name"] in supported]
 
     async def list_tools(ctx, params) -> types.ListToolsResult:
         return types.ListToolsResult(tools=[
@@ -50,6 +52,12 @@ def build(engine: Engine) -> Server:
 
     conventions = contract.load()["conventions"]
     instructions = "Computer-use tools for one desktop. " + " ".join(conventions.values())
+    if engine.cfg.session:
+        instructions += (" This server targets one isolated session only. Accessibility, browser/CDP, "
+                         "audio/video, window targeting and shell execution are unavailable. "
+                         "Use screenshot, pixel coordinates and apps(action=launch). "
+                         "Input mode auto uses the provider's native text route; guest clipboard "
+                         "restoration is not guaranteed. No host-desktop fallback exists.")
     return Server("cctl", version=__version__, instructions=instructions,
                   on_list_tools=list_tools, on_call_tool=call_tool)
 
@@ -60,7 +68,7 @@ async def serve_stdio(via_daemon: bool = False) -> None:
         from .daemon import RemoteEngine
         engine = RemoteEngine(cfg)
     else:
-        engine = Engine(cfg)
+        engine = create_engine(cfg)
     server = build(engine)
     try:
         async with stdio_server() as (r, w):

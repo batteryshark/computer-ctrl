@@ -2,6 +2,7 @@
   "contract": "computer-ctrl",
   "version": "0.1.0",
   "conventions": {
+    "isolated_sessions": "An optional configured isolated target may expose a supported subset of these tools. Unsupported tools/options fail without falling back to the host desktop. Results identify the session generation; image frames and actions stay bound to that generation. Consult doctor for current capabilities.",
     "frames": "Every image a tool returns has a frame id (e.g. \"c3\" for a screenshot, \"z4\" for a zoom). Pixel coordinates you pass back (x, y, region, from, to) are read off that image. Omit `frame` to use the most recent image; pass frame \"screen\" for logical screen pixels.",
     "elements": "observe lists accessibility elements with tokens like s0000000a:17. Pass a token as `element` to act on it without pixel coordinates. Tokens go stale after the next observe of the same window.",
     "results": "Each result is one JSON text block, plus at most one image. Images are also saved on the target machine; `path` in the JSON points to them.",

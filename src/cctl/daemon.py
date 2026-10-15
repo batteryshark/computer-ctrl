@@ -16,7 +16,7 @@ import time
 from pathlib import Path
 
 from .config import Config, load
-from .engine import Engine
+from .providers import create_engine
 
 IDLE_EXIT_S = 30 * 60
 
@@ -30,9 +30,9 @@ def socket_path(cfg: Config) -> Path:
 
 async def serve(cfg: Config | None = None) -> None:
     cfg = cfg or load()
-    engine = Engine(cfg)
+    engine = create_engine(cfg)
     path = socket_path(cfg)
-    path.parent.mkdir(parents=True, exist_ok=True)
+    path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
     if path.exists():
         path.unlink()
     last = time.monotonic()
@@ -99,6 +99,9 @@ class RemoteEngine:
 
     def __init__(self, cfg: Config):
         self.cfg = cfg
+        if cfg.session:
+            from .isolated import IsolatedEngine
+            self.supported_tools = IsolatedEngine.supported_tools
 
     async def dispatch(self, name: str, args: dict | None):
         import base64

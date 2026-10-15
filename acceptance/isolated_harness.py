@@ -196,6 +196,8 @@ Reply DONE only after completing these operations. If a tool fails or you cannot
         argv = [a.executable or "codex", "exec", "--ephemeral", "--skip-git-repo-check", "--sandbox", "read-only",
                 "-c", "mcp_servers.isolated.command=" + json.dumps(command[0]),
                 "-c", "mcp_servers.isolated.args=" + json.dumps(command[1:]),
+                "-c", "mcp_servers.isolated.required=true",
+                "-c", "mcp_servers.isolated.startup_timeout_sec=60",
                 "-c", "mcp_servers.isolated.tool_timeout_sec=120"]
     elif a.harness == "opencode":
         config = opencode_config(command, a.opencode_mode)

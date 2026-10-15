@@ -161,3 +161,15 @@ tool catalog, and removes its owned server afterward. This workaround changes no
 global harness configuration. Model/provider flags apply only to that run. See the
 companion's `VALIDATION.md` and platform reports for repeatable preparation and
 independent verification, including unsuccessful zero-tool attempts.
+
+Windows follow-up on 2026-10-15 used the published QuietWing 0.3 wheel: native
+lifecycle/reconnect checks and fresh actual Codex/OpenCode editor workflows passed.
+Exact saved Unicode, tools, child identity, captures and cleanup were independently
+verified; 1,849 parent samples had unchanged pointer/focus and a hidden connected
+viewer. This closes the initial Windows live-acceptance deferral. The original
+reported main-desktop obstruction remains unidentified. Windows stop still
+restores original viewer visibility, which can cover another window.
+
+The Codex acceptance runner marks its isolated MCP server required and allows
+60 seconds for startup. This waits for SSH/tool discovery before the first turn;
+a successful model exit alone remains insufficient acceptance evidence.

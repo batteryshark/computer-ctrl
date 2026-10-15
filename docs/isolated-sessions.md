@@ -125,9 +125,21 @@ existing signed-in, connected viewer; Linux creates or adopts its private displa
 Closing MCP alone preserves the work instance, subject to the backend lifetime.
 
 Ask the agent for a fresh screenshot, or run `cctl --session work screenshot`
-and open its returned image path. There is no unified live viewer/takeover control
-yet. The Mac view stays offscreen, Linux has no viewer by default, and Windows
-must keep its ParaDesk viewer connected and unminimized.
+and open its returned image path.
+
+QuietWing's 0.4 development build adds a Mac-only read-only preview. Using the
+same QuietWing environment configured for your isolated target, build it once
+with `quietwing build --viewer`, then run `quietwing view --id minimal` while the
+guest runs. Use the companion ID from configuration; it can differ from the
+cctl session name. The preview opens without taking keyboard focus and never
+forwards input. Close its window or use `quietwing view --id minimal --close`;
+the guest and agent keep running. Viewing never resumes a saved guest or follows
+a replacement generation. See the companion's
+[viewer guide](https://github.com/batteryshark/quietwing/blob/main/docs/viewer.md).
+The published 0.3.1 release does not include this development feature.
+
+There is no unified takeover control. Linux has no viewer by default, and
+Windows must keep its ParaDesk viewer connected and unminimized.
 
 Linux defaults to a fixed 30-minute TTL from creation, even while active. A target
 can set `acquire_args = ["--ttl", "14400", "--replace-stopped"]` for a bounded

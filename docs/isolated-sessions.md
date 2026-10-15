@@ -135,7 +135,7 @@ cctl session name. The preview opens without taking keyboard focus and never
 forwards input. Close its window or use `quietwing view --id minimal --close`;
 the guest and agent keep running. Viewing never resumes a saved guest or follows
 a replacement generation. See the companion's
-[viewer guide](https://github.com/batteryshark/quietwing/blob/main/docs/viewer.md).
+[viewer guide](https://github.com/batteryshark/quietwing/blob/45f59a5a40ec5e8db996579c1a029e335043a7f2/docs/viewer.md).
 The published 0.3.1 release does not include this development feature.
 
 There is no unified takeover control. Linux has no viewer by default, and

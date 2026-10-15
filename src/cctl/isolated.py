@@ -57,7 +57,7 @@ class IsolatedEngine:
                 await proc.communicate()
                 raise ToolError("provider_timeout", "Companion outcome is unknown; inspect session status before retrying.")
         except OSError as exc:
-            raise ToolError("provider_unavailable", str(exc), hint="Install/configure desktop-session-helper for this target.") from None
+            raise ToolError("provider_unavailable", str(exc), hint="Install/configure QuietWing for this target.") from None
         try:
             value = json.loads(out)
         except (ValueError, UnicodeDecodeError):
@@ -222,7 +222,7 @@ class IsolatedEngine:
 
     async def tool_doctor(self):
         value = await self._call("describe")
-        return ToolResult(data={"session": value.get("descriptor"), "provider": "desktop-session-helper",
+        return ToolResult(data={"session": value.get("descriptor"), "provider": "quietwing",
                                 "supported_tools": sorted(self.supported_tools), "host_fallback": False,
                                 "limitations": ["No accessibility/window targeting, browser/CDP, audio/video, drag/scroll or shell output.",
                                                 "Native text entry mode is auto; guest clipboard may be changed."]})

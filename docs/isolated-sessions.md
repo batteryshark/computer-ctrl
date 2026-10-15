@@ -1,14 +1,18 @@
 # Optional isolated desktops
 
-`desktop-session-helper` is an independent companion. It owns the OS session,
+[QuietWing](https://github.com/batteryshark/quietwing) is an independent companion. It owns the OS session,
 native input/capture transport and lifecycle. Computer-ctrl selects that session
 through a versioned local CLI interface; it never falls back to the host desktop.
 With no default session configured, omitting `--session` keeps existing host
 control. A config-level `session` or `CCTL_SESSION` selects an isolated default;
 use separate configs when switching between host and isolated work.
 
-Install the companion separately on the machine being controlled. Python 3.11+
-is required for its package. Native prerequisites remain platform-specific:
+Install QuietWing 0.3 separately on the machine being controlled. Its sole command
+is `quietwing`; computer-ctrl defaults to that executable when `command` is omitted.
+There is no `deskhelper` alias. Update existing 0.2 target command arrays explicitly.
+Native state/cache paths and `DESKHELPER_*` adapter environment names retain their
+existing identities so saved guests and authenticated children remain usable.
+Python 3.11+ is required. Native prerequisites remain platform-specific:
 authenticated ParaDesk child on Windows, Xvfb/X11/PulseAudio tools on Linux, and
 an explicitly provisioned Apple Silicon macOS VM. Installing the Python wheel
 does not change host settings or provision a guest.
@@ -18,7 +22,7 @@ Add a named target to a private cctl config (or a separate file selected by
 
 ```toml
 [sessions.work]
-command = ["/absolute/path/to/deskhelper"]
+command = ["/absolute/path/to/quietwing"]
 id = "minimal"
 acquire = "start"
 ```
@@ -30,7 +34,7 @@ Windows uses an existing authenticated child:
 
 ```toml
 [sessions.work]
-command = ["C:\\absolute\\path\\deskhelper.exe"]
+command = ["C:\\absolute\\path\\quietwing.exe"]
 id = "agent-work"
 acquire = "attach"
 acquire_args = ["--hide-viewer"]
@@ -112,6 +116,24 @@ Windows stop removes owned workers/apps and restores the viewer, retaining the
 external authenticated child. Linux stop releases only its owned session.
 Crashes and cold boots have different recovery requirements; consult the
 companion's platform documentation rather than changing host login policies.
+
+## Daily use and viewing
+
+First ordinary control use acquires the configured target; status and doctor do
+not start it. A clean Mac save/resume needs no new login. Windows requires an
+existing signed-in, connected viewer; Linux creates or adopts its private display.
+Closing MCP alone preserves the work instance, subject to the backend lifetime.
+
+Ask the agent for a fresh screenshot, or run `cctl --session work screenshot`
+and open its returned image path. There is no unified live viewer/takeover control
+yet. The Mac view stays offscreen, Linux has no viewer by default, and Windows
+must keep its ParaDesk viewer connected and unminimized.
+
+Linux defaults to a fixed 30-minute TTL from creation, even while active. A target
+can set `acquire_args = ["--ttl", "14400", "--replace-stopped"]` for a bounded
+four-hour desktop and safe reuse of a fully stopped ID. Windows closes owned apps
+after 30 minutes without requests; this worker timeout is not configurable yet.
+Mac has no automatic idle save/stop. Save documents before Windows/Linux cleanup.
 
 ## Acceptance status
 

@@ -61,7 +61,7 @@ class Config:
         entry = self.sessions.get(self.session)
         if not isinstance(entry, dict):
             raise ValueError(f"isolated session {self.session!r} is not configured; no host fallback")
-        command = entry.get("command", ["deskhelper"])
+        command = entry.get("command", ["quietwing"])
         if not isinstance(command, list) or not command or not all(isinstance(x, str) and x for x in command):
             raise ValueError("session command must be a nonempty argument array")
         name = entry.get("id", self.session)

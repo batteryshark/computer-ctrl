@@ -1,8 +1,10 @@
 # Project Tracker: computer-ctrl: harness-agnostic computer-use toolkit
 
-Updated: 2026-10-13
+Updated: 2026-10-15
 
 ## Current state
+
+- QuietWing repository preparation (2026-10-15): user chose QuietWing and MIT, with no legacy command aliases. Companion moved to `../quietwing`, package/import/CLI `quietwing` 0.3.0; cctl defaults/provider label/docs and private Mac target updated directly. Native backend/state identities retained; 17 source files unchanged. Regression 141 passed; companion 34 portable checks, clean wheel/source rebuild/install and workflow lint passed. Updated cctl resumed/captured/saved the Mac guest with unchanged host pointer/focus. Windows was not contacted; new-command native rollout there/Linux remains pending. First GitHub publication and hosted CI remain separate from local readiness. Current scope/limits: companion `docs/status.md`.
 
 - Isolated-session integration (2026-10-13, complete): independent `../desktop-session-helper` repository/package 0.2.0 and descriptor v1; optional `cctl --session NAME` selects generation-pinned controllers/artifacts/profiles with no host fallback. Installed-wheel/native app, capture, input, reconnect/resume, stale refusal and cleanup passed on Linux/Mac/Windows. Real Codex + OpenCode passed on each platform, verified by exact saved Unicode, actual tools, captures and host metadata. Regression: 141 passed; companion contract: 11 passed. OpenCode v2 acceptance uses a private runtime-registered server with actual tool-catalog readiness; zero-tool/provider-failure attempts remain recorded. Windows authentication and Mac saved state were retained; owned test resources cleaned. Final wheel SHA256 `19f7497ada868ad2dad34cab40767ff5faf667fad9f3edc0edc7acef05e877fb`. Setup/capability limits: `docs/isolated-sessions.md`, companion `VALIDATION.md`. No browser/a11y/audio-video/game parity implied. Next: use explicit isolated targets; expand capabilities only as separate measured work.
 

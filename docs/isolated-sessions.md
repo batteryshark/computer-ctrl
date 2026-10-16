@@ -135,8 +135,8 @@ cctl session name. The preview opens without taking keyboard focus and never
 forwards input. Close its window or use `quietwing view --id minimal --close`;
 the guest and agent keep running. Viewing never resumes a saved guest or follows
 a replacement generation. See the companion's
-[viewer guide](https://github.com/batteryshark/quietwing/blob/v0.4.0/docs/viewer.md).
-The viewer is included in the [0.4.0 release](https://github.com/batteryshark/quietwing/releases/tag/v0.4.0).
+[viewer guide](https://github.com/batteryshark/quietwing/blob/v0.4.1/docs/viewer.md).
+The viewer is included in the [0.4.1 release](https://github.com/batteryshark/quietwing/releases/tag/v0.4.1).
 
 QuietWing 0.4.0 can also show an isolated Linux desktop in that Mac window
 over existing SSH. Use matching QuietWing builds on both ends, then on Mac:
@@ -151,7 +151,7 @@ uses a custom state root. Use the same target options with `--status` or `--clos
 The preview never starts a desktop, extends Linux TTL, forwards input or follows
 a replacement generation. A long agent action can temporarily pause capture;
 only read-only capture retries against the pinned generation. See the tested
-[Linux viewer guide](https://github.com/batteryshark/quietwing/blob/v0.4.0/docs/viewer.md)
+[Linux viewer guide](https://github.com/batteryshark/quietwing/blob/v0.4.1/docs/viewer.md)
 and [PR #2](https://github.com/batteryshark/quietwing/pull/2).
 
 QuietWing 0.4.0 adds the same Mac window for an already attached Windows
@@ -170,9 +170,15 @@ attaches, reconnects, reveals ParaDesk or forwards input/audio. Closing leaves
 Windows work running, and frames do not reset its 30-minute worker inactivity
 timer. Stop, lock, connection loss or generation replacement clears the image;
 explicitly reopen after recovery. See the tested
-[Windows viewer guide](https://github.com/batteryshark/quietwing/blob/v0.4.0/docs/viewer.md#windows-over-ssh)
+[Windows viewer guide](https://github.com/batteryshark/quietwing/blob/v0.4.1/docs/viewer.md#windows-over-ssh)
 and [PR #3](https://github.com/batteryshark/quietwing/pull/3). No computer-ctrl
 tool/configuration change is needed.
+
+QuietWing 0.4.1 fixes Windows readiness failures from ParaDesk's stale pre-login
+snapshot by verifying live provider status. Existing native, generation, desktop
+and audio guards remain. Upgrade after saving/stopping owned work and explicitly
+reattach so the worker loads the fix; keep the native child signed in. A preview
+requires a live attachment and never creates one when a worker is stopped.
 
 There is no unified takeover control. Linux has no local viewer window, and
 Windows must keep its ParaDesk viewer connected and unminimized.

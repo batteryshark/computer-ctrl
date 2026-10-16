@@ -185,6 +185,36 @@ Mac has no automatic idle save/stop. Save documents before Windows/Linux cleanup
 
 ## Acceptance status
 
+Official 0.4.0 rollout follow-up (2026-10-15): separate Windows and Linux
+QuietWing environments now use the checksum-verified public wheel; all 34 runtime
+resources match it. Linux passed fresh Codex and OpenCode editor workflows through
+the normal persistent MCP path, plus ordinary CLI automatic acquisition,
+stop/restart, stale-frame refusal and owned controller cleanup. Both agents saved
+exact Unicode through six verified tools each. Their editors used only the owned
+X display and private PulseAudio socket; 235 Mac preview observations stayed
+nonactivating. No Linux human-display capture, input or activity monitoring was used.
+
+Windows passed native installed input/capture and stop/crash/rollback checks, and
+a Codex direct-MCP editor workflow with ten verified calls, exact saved Unicode,
+744 hidden/unminimized ParaDesk observations and 281 nonactivating Mac preview
+samples. The normal OpenCode MCP startup exposed a separate cctl state-directory
+ACL bug on Windows Python 3.13: direct logging created a directory inaccessible to
+the same user's Limited controller. Logging now uses the existing private-directory
+factory, which grants only that user and SYSTEM on newly created directories.
+No existing ACL is repaired automatically. The native regression failed before
+the fix and passed after it; actual OpenCode catalog startup also passed after
+the fix without acquiring a desktop. Run that desktop-free native regression with:
+
+```powershell
+python acceptance/windows_isolated_startup.py --root C:\private\fresh-startup-check
+```
+
+Fresh Windows normal-MCP editor acceptance remains pending: ParaDesk subsequently
+reported its child signed out, and the operator's Parsec connection stopped
+sending video. The cause of that transition is unestablished. These failures are
+not counted as GUI passes, and QuietWing refuses capture/input without the child.
+The earlier development-build two-harness evidence below remains historical.
+
 The 141-test regression suite includes 23 isolated-provider cases covering exact
 argv/text preservation, session
 replacement refusal, frame invalidation, target path separation and unchanged

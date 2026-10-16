@@ -209,7 +209,7 @@ class IsolatedEngine:
 
     def _log(self, name, result, elapsed):
         # No text, command arguments, credentials, or screen content in the event log.
-        self.cfg.state_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
+        create_private_directory(self.cfg.state_dir)
         event = {"ts": time.time(), "run": self.run_id, "tool": name, "ok": not result.is_error,
                  "ms": round(elapsed * 1000), "target": self.cfg.session,
                  "generation": self.binding.get("generation") if self.binding else None}

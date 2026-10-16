@@ -170,6 +170,8 @@ def main():
     p.add_argument("--save-key", default="ctrl+s")
     p.add_argument("--replace-existing", action="store_true", help="Select all in the editor before typing")
     p.add_argument("--select-all-key", default="ctrl+a")
+    p.add_argument("--hold-ms", type=int, default=0, help="Optional bounded held-key acceptance before saving (1–5000 ms)")
+    p.add_argument("--hold-key", default="Left", help="Held key/chord; default Left leaves document text unchanged")
     p.add_argument("--output", required=True)
     p.add_argument("--executable", help="Installed harness executable; model settings are inherited")
     p.add_argument("--model", help="Optional per-run model selection; never changes user configuration")
@@ -178,6 +180,8 @@ def main():
     p.add_argument("--opencode-owned-server", action="store_true",
                    help="v2 only: own a loopback server and register isolated MCP through its runtime API")
     a = p.parse_args()
+    if not 0 <= a.hold_ms <= 5000:
+        p.error("--hold-ms must be 0–5000")
     if a.opencode_owned_server and (a.harness != "opencode" or a.opencode_mode != "standalone"):
         p.error("--opencode-owned-server requires opencode standalone mode")
     command, app = json.loads(a.command_json), json.loads(a.app_json)
@@ -185,11 +189,13 @@ def main():
     out.mkdir(parents=True, exist_ok=False)
     selection = (f"First use key keys={a.select_all_key} to select the prepared document contents. "
                  if a.replace_existing else "")
+    held = (f"Before saving, call key once with keys={a.hold_key} and hold_ms={a.hold_ms}; require released=true in its response. "
+            if a.hold_ms else "")
     prompt = f"""This is an authorized isolated-desktop acceptance test. Use ONLY the MCP tools from the server named isolated. Do not use shell, file-writing, other computer tools or other MCP servers. The isolated tools never target the human desktop.
 1. Launch the prepared ordinary text editor document with isolated apps using exactly these arguments: {json.dumps(app, ensure_ascii=False)}.
 2. Take an isolated screenshot. Click inside the editable document using coordinates from that screenshot (one left click; use its frame ID).
 3. {selection}Type exactly the following marker once using type_text mode=auto: {a.marker}
-4. Save with key keys={a.save_key}. Take another screenshot and verify the document displays the marker. OCR is available if images are inaccessible. Do not close the document or stop the session.
+4. {held}Save with key keys={a.save_key}. Take another screenshot and verify the document displays the marker. OCR is available if images are inaccessible. Do not close the document or stop the session.
 Reply DONE only after completing these operations. If a tool fails or you cannot identify the document, report the problem; do not bypass the isolated tools.
 """
     if a.harness == "codex":
@@ -220,6 +226,7 @@ Reply DONE only after completing these operations. If a tool fails or you cannot
     (out / "request.json").write_text(json.dumps({"harness": a.harness, "mcp_command": command,
         "app": app, "marker": a.marker, "model": a.model, "save_key": a.save_key,
         "replace_existing": a.replace_existing, "select_all_key": a.select_all_key,
+        "hold_ms": a.hold_ms, "hold_key": a.hold_key,
         "started_at": began}, indent=2))
     env = dict(os.environ, PWD=str(out))
     if a.harness == "opencode":

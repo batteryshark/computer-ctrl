@@ -80,7 +80,7 @@ it outside the SSH job; the task has no trigger and is removed after launch.
 | screenshot, zoom | Whole isolated desktop or region; fresh capture and generation-bound frames |
 | click, move | Pixel coordinates; single unmodified click only |
 | type_text | Focused field, mode=auto; provider's native Unicode route; guest clipboard may change |
-| key | Focused guest window; no window targeting |
+| key | Focused guest window; no window targeting. Optional `hold_ms` requires a capable isolated Windows worker; see below. |
 | batch | Supported actions, ordered, with ordinary failure semantics |
 | wait_for | Pixel stability only; no element/window predicates |
 | ocr | Reads an already captured isolated image, with boxes in its frame |
@@ -89,6 +89,19 @@ Accessibility/observe, window management, browser/CDP tools, shell-output `run`,
 clipboard tools, audio/video, scroll/drag, grounding and delegate are unavailable
 in this adapter. Unsupported tools are omitted from MCP and fail explicitly
 if called via CLI. This does not change their availability for host control.
+
+Development QuietWing 0.4.2.dev1 adds `key_hold` for Windows workers. For a bounded
+hold, call `key` with `{"keys":"Return","hold_ms":120}`, or
+`cctl --session work key --keys Return --hold-ms 120`. A positive integer duration
+is 1–5000 ms and requires `repeat=1`. The worker presses and releases the entire
+chord in the same request, retaining generation/session/audio checks; the consumer
+verifies its release receipt. Omitted/zero duration keeps taps unchanged. Direct
+host input and providers without `key_hold: true` refuse holds. Save owned apps
+and explicitly reattach an upgraded QuietWing worker before using this feature;
+updating files alone leaves an old worker running. No ParaDesk reconnect is needed.
+On `KEY_RELEASE_UNCONFIRMED` or an unknown outcome, inspect the original session
+before retrying; unsafe boundaries and forcibly killed workers can prevent release.
+See [QuietWing held keys](https://github.com/batteryshark/quietwing/blob/codex/held-keys/docs/held-keys.md).
 
 Each configured target has distinct daemon state, artifacts and browser-profile
 paths. Known Chromium/Firefox executables launched through `apps` on Windows

@@ -307,9 +307,23 @@ class IsolatedEngine:
             await self._input("--key", "Return")
         return ToolResult(data={"typed": len(text), "verified": False, "mode": "provider-native"})
 
-    async def tool_key(self, keys, repeat=1, window=None, intent=None):
+    async def tool_key(self, keys, repeat=1, window=None, intent=None, hold_ms=0):
         if window is not None:
             raise ToolError("unsupported_capability", "Window-targeted keys are unavailable.")
+        if type(hold_ms) is not int or not 0 <= hold_ms <= 5000:
+            raise ToolError("bad_arguments", "hold_ms must be an integer from 0 to 5000")
+        if hold_ms:
+            if type(repeat) is not int or repeat != 1:
+                raise ToolError("bad_arguments", "Held keys require repeat=1; each hold releases in the same request.")
+            if self.binding["capabilities"].get("key_hold") is not True:
+                raise ToolError("unsupported_capability", "This isolated worker does not advertise key_hold; update QuietWing and explicitly reattach after saving work.")
+            result = await self._input("--key", keys, "--hold-ms", hold_ms)
+            if (result.get("released") is not True or type(result.get("heldMs")) is not int
+                    or result["heldMs"] != hold_ms or type(result.get("elapsedMs")) is not int
+                    or result["elapsedMs"] < hold_ms):
+                raise ToolError("provider_protocol", "The hold outcome/release was not verified; inspect the session before retrying.")
+            return ToolResult(data={"keys": keys, "repeat": 1, "hold_ms": hold_ms,
+                                    "elapsed_ms": result.get("elapsedMs"), "released": True})
         if not 1 <= repeat <= 50:
             raise ToolError("bad_arguments", "repeat must be 1–50")
         for _ in range(repeat):

@@ -27,6 +27,7 @@ if '--expect-generation' in a and a[a.index('--expect-generation')+1]!=generatio
 if op=='start' and not generation:
  generation='gen-one';state.write_text(generation)
 caps={k:bool(generation) for k in ['capture','input','keyboard','pointer','exec']}
+caps['key_hold']=bool(generation) and (root/'supports-hold').exists()
 d=dict(schemaVersion=1,id=a[a.index('--id')+1],platform='linux',generation=generation,
  state='running' if generation else 'stopped',capabilities=caps,
  connection=dict(kind='local-cli',protocolVersion=1),lifecycle=dict(acquire='start',release='stop-owned'))
@@ -35,7 +36,10 @@ if op in ['capture','input','exec']:
 if op=='capture':
  path=a[a.index('--output')+1];Image.new('RGB',(800,600),'white').save(path)
 if op=='stop':state.unlink()
-reply(descriptor=d,result=dict(operation=op))
+result=dict(operation=op)
+if '--hold-ms' in a:
+ ms=int(a[a.index('--hold-ms')+1]);result.update(heldMs=ms,elapsedMs=ms,released=not (root/'bad-release').exists())
+reply(descriptor=d,result=result)
 ''')
     cfg = Config(session="work", sessions={"work": {"command": [sys.executable, str(helper)],
                   "env": {"FAKE_ROOT": str(tmp_path)}, "id": "owned"}},
@@ -251,3 +255,60 @@ def test_downloaded_remote_artifacts_are_target_scoped(tmp_path,monkeypatch,caps
         result=json.loads(capsys.readouterr().out)
         assert Path(result['path']).read_bytes()==b'isolated capture'
     assert destinations[0].parent!=destinations[1].parent
+
+
+def test_bounded_hold_requires_capability_and_uses_pinned_literal_request(target):
+    engine, root = target
+    (root/'supports-hold').touch()
+    result = call(engine, 'key', keys='CTRL+LEFT', hold_ms=120)
+    assert not result.is_error, result.data
+    assert result.data['released'] is True and result.data['hold_ms']==120
+    records=[json.loads(line) for line in (root/'calls').read_text().splitlines()]
+    assert len(records)==1
+    assert records[0][-4:]==['--key','CTRL+LEFT','--hold-ms','120']
+    assert '--expect-generation' in records[0]
+
+
+def test_old_helper_refuses_hold_without_silently_tapping(target):
+    engine, root=target
+    result=call(engine,'key',keys='Return',hold_ms=100)
+    assert result.is_error and result.data['error']=='unsupported_capability'
+    assert not (root/'calls').exists()
+    assert not call(engine,'key',keys='Return').is_error
+    assert '--hold-ms' not in (root/'calls').read_text()
+
+
+@pytest.mark.parametrize('args',[{'hold_ms':True},{'hold_ms':-1},{'hold_ms':5001},{'hold_ms':1.5},{'hold_ms':100,'repeat':2},{'hold_ms':100,'window':12}])
+def test_invalid_hold_never_sends_input(target,args):
+    engine,root=target
+    (root/'supports-hold').touch()
+    assert call(engine,'key',keys='A',**args).is_error
+    assert not (root/'calls').exists()
+
+
+def test_hold_cannot_follow_a_replaced_generation(target):
+    engine,root=target
+    (root/'supports-hold').touch()
+    assert not call(engine,'screenshot').is_error
+    before=(root/'calls').read_text()
+    (root/'generation').write_text('replacement')
+    result=call(engine,'key',keys='A',hold_ms=100)
+    assert result.is_error and result.data['error']=='generation_changed'
+    assert (root/'calls').read_text()==before
+
+
+def test_unconfirmed_release_is_an_error_without_replay(target):
+    engine,root=target
+    (root/'supports-hold').touch();(root/'bad-release').touch()
+    result=call(engine,'key',keys='Return',hold_ms=100)
+    assert result.is_error and result.data['error']=='provider_protocol'
+    assert len((root/'calls').read_text().splitlines())==1
+
+
+def test_direct_host_hold_refuses_before_focus_or_input():
+    from cctl.engine import Engine
+    from cctl.results import ToolError
+    engine=object.__new__(Engine)
+    with pytest.raises(ToolError) as error:
+        asyncio.run(engine.tool_key('A',hold_ms=100))
+    assert error.value.code=='unsupported_capability'

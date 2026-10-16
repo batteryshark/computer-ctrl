@@ -615,7 +615,11 @@ class Engine:
             await self.cua.call("clipboard_write", {"text": saved}, check=False)
 
     async def tool_key(self, keys: str, repeat: int = 1, window: int | None = None,
-                       intent: str | None = None) -> ToolResult:
+                       intent: str | None = None, hold_ms: int = 0) -> ToolResult:
+        if type(hold_ms) is not int or not 0 <= hold_ms <= 5000:
+            raise ToolError("bad_arguments", "hold_ms must be an integer from 0 to 5000")
+        if hold_ms:
+            raise ToolError("unsupported_capability", "Held keys require an isolated provider advertising key_hold; direct host input is unchanged.")
         if window is not None:
             w = await self._window(window)
             await self._need_x11("key presses").key(keys, repeat, target=(w["pid"], window))

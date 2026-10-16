@@ -90,7 +90,7 @@ clipboard tools, audio/video, scroll/drag, grounding and delegate are unavailabl
 in this adapter. Unsupported tools are omitted from MCP and fail explicitly
 if called via CLI. This does not change their availability for host control.
 
-Development QuietWing 0.4.2.dev1 adds `key_hold` for Windows workers. For a bounded
+QuietWing 0.4.2 adds `key_hold` for Windows workers. For a bounded
 hold, call `key` with `{"keys":"Return","hold_ms":120}`, or
 `cctl --session work key --keys Return --hold-ms 120`. A positive integer duration
 is 1–5000 ms and requires `repeat=1`. The worker presses and releases the entire
@@ -101,7 +101,7 @@ and explicitly reattach an upgraded QuietWing worker before using this feature;
 updating files alone leaves an old worker running. No ParaDesk reconnect is needed.
 On `KEY_RELEASE_UNCONFIRMED` or an unknown outcome, inspect the original session
 before retrying; unsafe boundaries and forcibly killed workers can prevent release.
-See [QuietWing held keys](https://github.com/batteryshark/quietwing/blob/codex/held-keys/docs/held-keys.md).
+See [QuietWing held keys](https://github.com/batteryshark/quietwing/blob/v0.4.2/docs/held-keys.md).
 
 Each configured target has distinct daemon state, artifacts and browser-profile
 paths. Known Chromium/Firefox executables launched through `apps` on Windows
@@ -148,8 +148,8 @@ cctl session name. The preview opens without taking keyboard focus and never
 forwards input. Close its window or use `quietwing view --id minimal --close`;
 the guest and agent keep running. Viewing never resumes a saved guest or follows
 a replacement generation. See the companion's
-[viewer guide](https://github.com/batteryshark/quietwing/blob/v0.4.1/docs/viewer.md).
-The viewer is included in the [0.4.1 release](https://github.com/batteryshark/quietwing/releases/tag/v0.4.1).
+[viewer guide](https://github.com/batteryshark/quietwing/blob/v0.4.2/docs/viewer.md).
+The viewer is included in the [0.4.2 release](https://github.com/batteryshark/quietwing/releases/tag/v0.4.2).
 
 QuietWing 0.4.0 can also show an isolated Linux desktop in that Mac window
 over existing SSH. Use matching QuietWing builds on both ends, then on Mac:
@@ -164,7 +164,7 @@ uses a custom state root. Use the same target options with `--status` or `--clos
 The preview never starts a desktop, extends Linux TTL, forwards input or follows
 a replacement generation. A long agent action can temporarily pause capture;
 only read-only capture retries against the pinned generation. See the tested
-[Linux viewer guide](https://github.com/batteryshark/quietwing/blob/v0.4.1/docs/viewer.md)
+[Linux viewer guide](https://github.com/batteryshark/quietwing/blob/v0.4.2/docs/viewer.md)
 and [PR #2](https://github.com/batteryshark/quietwing/pull/2).
 
 QuietWing 0.4.0 adds the same Mac window for an already attached Windows
@@ -183,7 +183,7 @@ attaches, reconnects, reveals ParaDesk or forwards input/audio. Closing leaves
 Windows work running, and frames do not reset its 30-minute worker inactivity
 timer. Stop, lock, connection loss or generation replacement clears the image;
 explicitly reopen after recovery. See the tested
-[Windows viewer guide](https://github.com/batteryshark/quietwing/blob/v0.4.1/docs/viewer.md#windows-over-ssh)
+[Windows viewer guide](https://github.com/batteryshark/quietwing/blob/v0.4.2/docs/viewer.md#windows-over-ssh)
 and [PR #3](https://github.com/batteryshark/quietwing/pull/3). No computer-ctrl
 tool/configuration change is needed.
 
@@ -192,6 +192,13 @@ snapshot by verifying live provider status. Existing native, generation, desktop
 and audio guards remain. Upgrade after saving/stopping owned work and explicitly
 reattach so the worker loads the fix; keep the native child signed in. A preview
 requires a live attachment and never creates one when a worker is stopped.
+
+QuietWing 0.4.2 optionally keeps the same Mac SSH preview open across verified
+Linux/Windows agent reattachments: add `--follow` when opening it. Default previews
+remain pinned as described above. A following preview clears old pixels while
+waiting and uses only status and generation-pinned frames; it never starts or
+reattaches a desktop or changes computer-ctrl's binding. Close it with the same
+target options and `--close`. See the [follow-mode guide](https://github.com/batteryshark/quietwing/blob/v0.4.2/docs/viewer.md#leave-an-ssh-preview-open-across-agent-attachments).
 
 There is no unified takeover control. Linux has no local viewer window, and
 Windows must keep its ParaDesk viewer connected and unminimized.

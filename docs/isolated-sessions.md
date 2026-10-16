@@ -155,13 +155,33 @@ only read-only capture retries against the pinned generation. See the tested
 and [PR #2](https://github.com/batteryshark/quietwing/pull/2). This development
 feature is separate from the published 0.3.1 release.
 
+Development 0.4.0.dev2 adds the same Mac window for an already attached Windows
+child. Keep ParaDesk connected, hidden and unminimized, then on Mac:
+
+```sh
+quietwing view --host user@windows-machine --remote-platform windows --id work \
+  --remote-command 'C:\private\venv\Scripts\quietwing.exe' \
+  --remote-state-root 'C:\private\helper-state'
+```
+
+If the existing Windows SSH login uses a nondefault key, also pass
+`--ssh-identity /absolute/path/to/existing/key`. Use the exact same target options
+with `--status` or `--close`; those act on the Mac preview only. Viewing never
+attaches, reconnects, reveals ParaDesk or forwards input/audio. Closing leaves
+Windows work running, and frames do not reset its 30-minute worker inactivity
+timer. Stop, lock, connection loss or generation replacement clears the image;
+explicitly reopen after recovery. See the tested
+[Windows viewer guide](https://github.com/batteryshark/quietwing/blob/1bc2107292aa7149b57649902447604f3d6d183a/docs/viewer.md#windows-over-ssh)
+and [PR #3](https://github.com/batteryshark/quietwing/pull/3). This feature remains
+separate from published 0.3.1; no computer-ctrl tool/configuration change is needed.
+
 There is no unified takeover control. Linux has no local viewer window, and
 Windows must keep its ParaDesk viewer connected and unminimized.
 
 Linux defaults to a fixed 30-minute TTL from creation, even while active. A target
 can set `acquire_args = ["--ttl", "14400", "--replace-stopped"]` for a bounded
 four-hour desktop and safe reuse of a fully stopped ID. Windows closes owned apps
-after 30 minutes without requests; this worker timeout is not configurable yet.
+after 30 minutes without activity other than preview frames; this worker timeout is not configurable yet.
 Mac has no automatic idle save/stop. Save documents before Windows/Linux cleanup.
 
 ## Acceptance status
@@ -198,8 +218,12 @@ verified; 1,849 parent samples had unchanged pointer/focus and a hidden connecte
 viewer. This closes the initial Windows live-acceptance deferral. The original
 reported main-desktop obstruction remains unidentified. Version 0.3.0 restored
 viewer visibility at stop; 0.3.1 preserves current visibility so a hidden viewer
-stays hidden. The 0.3.1 change has static/simulated CI coverage only; the Windows
-machine was unavailable for a new native/two-harness rerun.
+stays hidden. That patch initially had static/simulated coverage. A later
+2026-10-15 follow-up against the unchanged official 0.3.1 wheel passed native
+input/capture/stop/crash/rollback and actual Codex/OpenCode ISE workflows, with
+independently verified Unicode, tools, images and child identity; 1,708 parent
+samples kept ParaDesk hidden/unminimized. The same signed-in child was retained.
+This closes the 0.3.1 native deferral; release tags/assets were not replaced.
 
 The Codex acceptance runner marks its isolated MCP server required and allows
 60 seconds for startup. This waits for SSH/tool discovery before the first turn;

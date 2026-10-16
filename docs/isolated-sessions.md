@@ -185,35 +185,43 @@ Mac has no automatic idle save/stop. Save documents before Windows/Linux cleanup
 
 ## Acceptance status
 
-Official 0.4.0 rollout follow-up (2026-10-15): separate Windows and Linux
-QuietWing environments now use the checksum-verified public wheel; all 34 runtime
-resources match it. Linux passed fresh Codex and OpenCode editor workflows through
-the normal persistent MCP path, plus ordinary CLI automatic acquisition,
-stop/restart, stale-frame refusal and owned controller cleanup. Both agents saved
-exact Unicode through six verified tools each. Their editors used only the owned
-X display and private PulseAudio socket; 235 Mac preview observations stayed
-nonactivating. No Linux human-display capture, input or activity monitoring was used.
+Official 0.4.0 rollout follow-up (2026-10-15): dedicated Windows and Linux
+QuietWing environments use the checksum-verified public wheel; all 34 runtime
+resources match it. Fresh Codex and OpenCode ordinary-editor workflows passed
+through the normal persistent MCP controller on both platforms. Exact saved
+Unicode, actual tools, native editor/session identity and final captures were
+checked independently.
 
-Windows passed native installed input/capture and stop/crash/rollback checks, and
-a Codex direct-MCP editor workflow with ten verified calls, exact saved Unicode,
-744 hidden/unminimized ParaDesk observations and 281 nonactivating Mac preview
-samples. The normal OpenCode MCP startup exposed a separate cctl state-directory
-ACL bug on Windows Python 3.13: direct logging created a directory inaccessible to
-the same user's Limited controller. Logging now uses the existing private-directory
-factory, which grants only that user and SYSTEM on newly created directories.
-No existing ACL is repaired automatically. The native regression failed before
-the fix and passed after it; actual OpenCode catalog startup also passed after
-the fix without acquiring a desktop. Run that desktop-free native regression with:
+- Windows: seven and thirteen verified calls, 594 nonactivating Mac preview
+  samples, and 1,983 hidden/unminimized ParaDesk observations. Default CLI explicit
+  rebind, windowless controller startup, stop/stale refusal and owned cleanup
+  passed with 88 additional hidden-viewer observations. The same post-reboot
+  authenticated child stayed connected; test workers/editors/controller ended.
+- Linux: six calls each, 261 nonactivating preview samples, the same persistent
+  controller, and verified private X display/PulseAudio/editor routing. Ordinary
+  CLI automatic acquisition, stop/restart, stale refusal and controller cleanup
+  passed separately. No Linux human-display capture/input or activity monitor.
+  Earlier Linux agent evidence used direct MCP; these newer runs close the
+  default-MCP gap. The earlier wording calling those runs persistent was incorrect.
+
+The Windows normal-MCP startup had exposed a cctl Python 3.13 state-directory
+ACL bug after direct logging. Logging now uses the existing private-directory
+factory, granting only the same user and SYSTEM on newly created directories;
+no existing ACL is repaired automatically. The native regression failed before
+and passed after the fix; 141 portable tests and hosted CI passed. Run that
+native regression without desktop acquisition/capture/input:
 
 ```powershell
 python acceptance/windows_isolated_startup.py --root C:\private\fresh-startup-check
 ```
 
-Fresh Windows normal-MCP editor acceptance remains pending: ParaDesk subsequently
-reported its child signed out, and the operator's Parsec connection stopped
-sending video. The cause of that transition is unestablished. These failures are
-not counted as GUI passes, and QuietWing refuses capture/input without the child.
-The earlier development-build two-harness evidence below remains historical.
+Keep Unix `cache_dir` paths short: the appended `sessions/<target-hash>/cctl.sock`
+must fit the OS socket-path limit. One extra test failed before tools with a
+112-byte socket path; shortening only its private cache path to 89 bytes passed.
+There is no automatic alternate socket directory. On Windows, externally removing
+an attachment can currently return `ADAPTER_ERROR` with a missing-binding detail;
+explicit `session start` rebinds it. An explicit cctl stop returns `session_stopped`
+on further input. These errors never select the human desktop.
 
 The 141-test regression suite includes 23 isolated-provider cases covering exact
 argv/text preservation, session
@@ -223,9 +231,10 @@ launch/input/capture/lifecycle tests, including live installed-wheel use on all
 three platforms. Windows private-artifact ACL and
 SSH-controller-lifetime fixes have passed native verification.
 Real Codex and OpenCode ordinary-editor workflows passed on all three platforms.
-Exact saved Unicode, successful native calls, fresh captures and host cursor/focus
-metadata were verified independently. Native suites separately cover stale
-rejection, reconnect/resume and owned cleanup. Model completion
+Exact saved Unicode, successful native calls, fresh captures and native
+process/session identity were verified independently. Host-observation coverage
+varies by platform and run; consult the dated companion evidence. Native suites
+separately cover stale rejection, reconnect/resume and owned cleanup. Model completion
 messages do not count as proof: saved content, actual tool calls, fresh images,
 session identity and host observations must be checked independently.
 

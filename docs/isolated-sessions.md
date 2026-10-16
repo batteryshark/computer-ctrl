@@ -7,7 +7,7 @@ With no default session configured, omitting `--session` keeps existing host
 control. A config-level `session` or `CCTL_SESSION` selects an isolated default;
 use separate configs when switching between host and isolated work.
 
-Install QuietWing 0.3.1 separately on the machine being controlled. Its sole command
+Install QuietWing 0.4.0 separately on the machine being controlled. Its sole command
 is `quietwing`; computer-ctrl defaults to that executable when `command` is omitted.
 There is no `deskhelper` alias. Update existing 0.2 target command arrays explicitly.
 Native state/cache paths and `DESKHELPER_*` adapter environment names retain their
@@ -127,7 +127,7 @@ Closing MCP alone preserves the work instance, subject to the backend lifetime.
 Ask the agent for a fresh screenshot, or run `cctl --session work screenshot`
 and open its returned image path.
 
-QuietWing's 0.4 development build adds a read-only preview window on Mac. Using the
+QuietWing 0.4.0 adds a read-only preview window on Mac. Using the
 same QuietWing environment configured for your isolated target, build it once
 with `quietwing build --viewer`, then run `quietwing view --id minimal` while the
 guest runs. Use the companion ID from configuration; it can differ from the
@@ -135,10 +135,10 @@ cctl session name. The preview opens without taking keyboard focus and never
 forwards input. Close its window or use `quietwing view --id minimal --close`;
 the guest and agent keep running. Viewing never resumes a saved guest or follows
 a replacement generation. See the companion's
-[viewer guide](https://github.com/batteryshark/quietwing/blob/45f59a5a40ec5e8db996579c1a029e335043a7f2/docs/viewer.md).
-The published 0.3.1 release does not include this development feature.
+[viewer guide](https://github.com/batteryshark/quietwing/blob/v0.4.0/docs/viewer.md).
+The viewer is included in the [0.4.0 release](https://github.com/batteryshark/quietwing/releases/tag/v0.4.0).
 
-Development 0.4.0.dev1 can also show an isolated Linux desktop in that Mac window
+QuietWing 0.4.0 can also show an isolated Linux desktop in that Mac window
 over existing SSH. Use matching QuietWing builds on both ends, then on Mac:
 
 ```sh
@@ -151,11 +151,10 @@ uses a custom state root. Use the same target options with `--status` or `--clos
 The preview never starts a desktop, extends Linux TTL, forwards input or follows
 a replacement generation. A long agent action can temporarily pause capture;
 only read-only capture retries against the pinned generation. See the tested
-[Linux viewer guide](https://github.com/batteryshark/quietwing/blob/52063ff/docs/viewer.md)
-and [PR #2](https://github.com/batteryshark/quietwing/pull/2). This development
-feature is separate from the published 0.3.1 release.
+[Linux viewer guide](https://github.com/batteryshark/quietwing/blob/v0.4.0/docs/viewer.md)
+and [PR #2](https://github.com/batteryshark/quietwing/pull/2).
 
-Development 0.4.0.dev2 adds the same Mac window for an already attached Windows
+QuietWing 0.4.0 adds the same Mac window for an already attached Windows
 child. Keep ParaDesk connected, hidden and unminimized, then on Mac:
 
 ```sh
@@ -171,9 +170,9 @@ attaches, reconnects, reveals ParaDesk or forwards input/audio. Closing leaves
 Windows work running, and frames do not reset its 30-minute worker inactivity
 timer. Stop, lock, connection loss or generation replacement clears the image;
 explicitly reopen after recovery. See the tested
-[Windows viewer guide](https://github.com/batteryshark/quietwing/blob/1bc2107292aa7149b57649902447604f3d6d183a/docs/viewer.md#windows-over-ssh)
-and [PR #3](https://github.com/batteryshark/quietwing/pull/3). This feature remains
-separate from published 0.3.1; no computer-ctrl tool/configuration change is needed.
+[Windows viewer guide](https://github.com/batteryshark/quietwing/blob/v0.4.0/docs/viewer.md#windows-over-ssh)
+and [PR #3](https://github.com/batteryshark/quietwing/pull/3). No computer-ctrl
+tool/configuration change is needed.
 
 There is no unified takeover control. Linux has no local viewer window, and
 Windows must keep its ParaDesk viewer connected and unminimized.

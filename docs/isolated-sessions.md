@@ -127,7 +127,7 @@ Closing MCP alone preserves the work instance, subject to the backend lifetime.
 Ask the agent for a fresh screenshot, or run `cctl --session work screenshot`
 and open its returned image path.
 
-QuietWing's 0.4 development build adds a Mac-only read-only preview. Using the
+QuietWing's 0.4 development build adds a read-only preview window on Mac. Using the
 same QuietWing environment configured for your isolated target, build it once
 with `quietwing build --viewer`, then run `quietwing view --id minimal` while the
 guest runs. Use the companion ID from configuration; it can differ from the
@@ -138,7 +138,24 @@ a replacement generation. See the companion's
 [viewer guide](https://github.com/batteryshark/quietwing/blob/45f59a5a40ec5e8db996579c1a029e335043a7f2/docs/viewer.md).
 The published 0.3.1 release does not include this development feature.
 
-There is no unified takeover control. Linux has no viewer by default, and
+Development 0.4.0.dev1 can also show an isolated Linux desktop in that Mac window
+over existing SSH. Use matching QuietWing builds on both ends, then on Mac:
+
+```sh
+quietwing view --host user@linux-machine --id work \
+  --remote-command /home/user/quietwing/venv/bin/quietwing
+```
+
+Add `--remote-state-root /absolute/private/state` when the Linux agent target
+uses a custom state root. Use the same target options with `--status` or `--close`.
+The preview never starts a desktop, extends Linux TTL, forwards input or follows
+a replacement generation. A long agent action can temporarily pause capture;
+only read-only capture retries against the pinned generation. See the tested
+[Linux viewer guide](https://github.com/batteryshark/quietwing/blob/52063ff/docs/viewer.md)
+and [PR #2](https://github.com/batteryshark/quietwing/pull/2). This development
+feature is separate from the published 0.3.1 release.
+
+There is no unified takeover control. Linux has no local viewer window, and
 Windows must keep its ParaDesk viewer connected and unminimized.
 
 Linux defaults to a fixed 30-minute TTL from creation, even while active. A target

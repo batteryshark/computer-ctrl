@@ -457,7 +457,7 @@
     },
     {
       "name": "windows",
-      "description": "List, focus, move/resize, minimize, maximize or close windows.",
+      "description": "List, focus, move/resize, minimize, maximize or close windows. QuietWing guest_windows supports list/focus/close only, with expiring opaque IDs from a fresh guest list; no host fallback. Close is a request, not proof of completed closure.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -500,7 +500,7 @@
     },
     {
       "name": "apps",
-      "description": "List installed/running GUI apps, launch an app (by name, desktop entry or command) or URL/file, or quit an app gracefully.",
+      "description": "List installed/running GUI apps, launch an app (by name, desktop entry or command) or URL/file, or quit an app gracefully. QuietWing supports launch and, with guest_processes, exact-PID quit after processes list in the same controller; save dialogs may remain. Launch PID may identify a launcher, not the app.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -550,7 +550,7 @@
     },
     {
       "name": "processes",
-      "description": "List processes (pid, name, user, cpu %, memory, command) or send a signal to one.",
+      "description": "List processes (pid, name, user, cpu %, memory, command) or send a signal to one. QuietWing guest_processes lists guest-user PID/executable/argv only (sort pid/name, no CPU/memory sampling); kill supports TERM only after identifying a listed PID in this controller. Targets expire after 300 seconds. No host fallback or completion guarantee.",
       "inputSchema": {
         "type": "object",
         "properties": {

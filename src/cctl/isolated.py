@@ -25,7 +25,7 @@ from .private_paths import create_private_directory
 
 class IsolatedEngine:
     supported_tools = {"doctor", "screenshot", "zoom", "click", "type_text", "key", "move", "drag",
-                       "apps", "batch", "wait_for", "ocr"}
+                       "apps", "windows", "processes", "batch", "wait_for", "ocr"}
 
     def __init__(self, cfg: Config):
         self.cfg = cfg
@@ -36,6 +36,7 @@ class IsolatedEngine:
         self.artifacts = cfg.artifacts / self.run_id
         self.explicitly_stopped = False
         self.stop_completed = False
+        self.process_targets = {}
 
     async def close(self):
         # A controller ending is not permission to destroy its desktop.
@@ -142,6 +143,7 @@ class IsolatedEngine:
         if action == "start":
             # Explicit lifecycle selection can bind a replacement. Old frames never survive it.
             self.binding = None
+            self.process_targets = {}
             self.stop_completed = False
             self.frames = FrameStore()
             self.run_id = uuid.uuid4().hex[:12]
@@ -225,7 +227,8 @@ class IsolatedEngine:
         value = await self._call("describe")
         return ToolResult(data={"session": value.get("descriptor"), "provider": "quietwing",
                                 "supported_tools": sorted(self.supported_tools), "host_fallback": False,
-                                "limitations": ["No accessibility/window targeting, browser/CDP, audio/video, scroll or shell output.",
+                                "limitations": ["Guest windows/processes require advertised capabilities and recent listing; no host fallback.",
+                                                "No accessibility tree, browser/CDP, audio/video, scroll or shell output.",
                                                 "Drag requires a worker advertising pointer_drag (macOS VM); no persistent button state.",
                                                 "Native text entry mode is auto; guest clipboard may be changed."]})
 
@@ -353,7 +356,61 @@ class IsolatedEngine:
             await self._input("--key", keys)
         return ToolResult(data={"keys": keys, "repeat": repeat})
 
-    async def tool_apps(self, action, name=None, args=None, urls=None, a11y=False, **extra):
+    def _guest_targets(self, capability):
+        if self.binding["capabilities"].get(capability) is not True:
+            raise ToolError("unsupported_capability", "This guest does not advertise " + capability + "; update/authorize its guest bridge. No host fallback.")
+
+    async def tool_windows(self, action, window=None, all=False, **extra):
+        self._guest_targets("guest_windows")
+        if extra or action not in ("list", "focus", "close"):
+            raise ToolError("unsupported_capability", "Guest windows supports list, focus and close only.")
+        argv = ["--action", action]
+        if action != "list":
+            if type(window) is not int or window <= 0:
+                raise ToolError("bad_arguments", "Use the exact window id from a recent guest windows list.")
+            argv += ["--window-id", str(window)]
+        elif window is not None:
+            raise ToolError("bad_arguments", "Window list does not accept a target.")
+        return ToolResult(data=(await self._call("windows", *argv)).get("result", {}))
+
+    async def tool_processes(self, action, filter=None, sort="pid", limit=30, pid=None, signal="TERM"):
+        self._guest_targets("guest_processes")
+        if action == "list":
+            if sort not in ("pid", "name", "cpu", "mem") or type(limit) is not int or not 1 <= limit <= 1000 or pid is not None:
+                raise ToolError("bad_arguments", "Use a limit of 1–1000 and a supported sort.")
+            if sort in ("cpu", "mem"):
+                raise ToolError("unsupported_capability", "Guest process listing supports pid/name sort; CPU/memory sampling is unavailable.")
+            value = (await self._call("processes", "--action", "list")).get("result", {})
+            needle = (filter or "").casefold()
+            rows = [r for r in value.get("processes", []) if needle in (r.get("name", "") + " " + r.get("cmd", "")).casefold()]
+            rows.sort(key=lambda r: r["pid"] if sort == "pid" else r.get("name", "").casefold())
+            total = len(rows)
+            rows = rows[:limit]
+            # Only caller-visible rows authorize a later exact-PID mutation.
+            self.process_targets.update({r["pid"]: (r["target"], self.binding["generation"]) for r in rows})
+            return ToolResult(data={**value, "processes": rows, "total": total, "note": "Guest-user processes only; command text is untrusted data. Targets expire after 300 seconds."})
+        if action != "kill" or signal != "TERM" or filter is not None:
+            raise ToolError("unsupported_capability", "Guest processes supports list or exact-PID kill with signal=TERM only.")
+        return await self._process_action(pid, "terminate")
+
+    async def _process_action(self, pid, action):
+        self._guest_targets("guest_processes")
+        if type(pid) is not int or pid not in self.process_targets:
+            raise ToolError("bad_arguments", "List processes in this controller and identify the exact PID before acting.")
+        token, generation = self.process_targets[pid]
+        if generation != self.binding["generation"]:
+            raise ToolError("generation_changed", "Process target belongs to another generation; list again.")
+        # Consume before dispatch, including an unknown/timeout outcome. A caller
+        # must inspect/list again rather than replay a cached mutation target.
+        self.process_targets.pop(pid, None)
+        result = await self._call("processes", "--action", action, "--pid", str(pid), "--target", token)
+        return ToolResult(data=result.get("result", {}))
+
+    async def tool_apps(self, action, name=None, args=None, urls=None, a11y=False, pid=None, **extra):
+        if action == "quit" and not (name or args or urls or a11y or extra):
+            return await self._process_action(pid, "quit")
+        if pid is not None:
+            raise ToolError("bad_arguments", "pid is only supported for quit.")
         if action != "launch" or not name or urls or a11y or extra:
             raise ToolError("unsupported_capability", "apps supports launch by executable/app name and argument array only.")
         if not self.binding["capabilities"].get("exec"):

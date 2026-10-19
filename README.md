@@ -146,7 +146,12 @@ Bounded key holds need a QuietWing worker advertising `key_hold` (Windows 0.4.2
 or development macOS VM owners).
 Bounded drag needs `pointer_drag` (development macOS VM owners); screenshot/zoom
 coordinates map just like click. Older workers and other platforms refuse it.
-Accessibility, window management, browser/CDP, clipboard tools, scroll,
+Development Mac guest bridges also provide window list/focus/close and guest-user
+process listing, exact-PID SIGTERM and graceful app quit after a recent process
+list. These require `guest_windows`/`guest_processes`; the former requires an
+explicit guest-only Accessibility grant. Targets expire after 300 seconds and
+close/quit receipts do not prove completion. Never infer ownership from a title.
+Accessibility trees, general window geometry, browser/CDP, clipboard tools, scroll,
 audio/video and shell-output tools are unavailable in this adapter. Unsupported
 calls fail without falling back to the host. Text may change the guest clipboard
 and isn't read-back verified. Development Mac owners paste ASCII and Unicode

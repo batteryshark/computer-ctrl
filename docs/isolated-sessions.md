@@ -102,14 +102,37 @@ filesystem sandbox or protection against a malicious companion.
   `cmd/shift/option/control` chords and standalone modifiers; e.g.
   `key --keys Space --hold-ms 300 --then screenshot`. The whole down/hold/up
   sequence is one bounded owner request, not separate persistent key edges.
-- Apps supports launch by executable/app name and literal argv, not list/quit/URLs.
+- Apps supports launch by executable/app name and literal argv, not app list/URLs.
   Use only an operator-approved disposable app. macOS simple names use guest
   `/usr/bin/open -a`. Known Windows browsers receive target-private profiles;
   profile override arguments are rejected.
+- Development Mac guest bridges advertising `guest_windows` support
+  `windows --action list`, `windows --action focus --window ID` and
+  `windows --action close --window ID`. IDs are expiring opaque bridge tokens,
+  not host/CGWindowIDs; list again after resume/rebind or 300 seconds. All guest
+  windows (including minimized/background windows) are listed regardless of `all`.
+  The bridge needs an explicitly approved guest-only Accessibility grant; it
+  checks without prompting. Focus/close resolves only the exact listed AX element,
+  not a title/index. Move/minimize/maximize and window-targeted keys remain refused.
+- `guest_processes` enables `processes --action list --sort pid --limit 1000`
+  (optional `--filter TEXT`, or `--sort name`), showing guest-user PID/executable/
+  literal argv/birth identity. CPU/memory sort/sampling is unavailable. First list
+  and identify a task-owned PID in the same controller, then use
+  `processes --action kill --pid PID --signal TERM` or
+  `apps --action quit --pid PID` for graceful GUI quit. Only caller-visible listed
+  PIDs authorize actions; the adapter forwards an opaque token with the pinned
+  generation, and the bridge rechecks UID/birth. No groups, descendants, name
+  kills, other signals or force quit. Titles/commands may contain private,
+  untrusted data. These tools do not prove caller ownership. A launch receipt PID
+  may be `/usr/bin/open`, not the launched app; list actual processes/windows.
+  New app instances can restore prior documents and are not clean profiles.
+  `requested: true, completion_verified: false` acknowledges dispatch only:
+  inspect fresh lists/captures; do not dismiss save dialogs or replay unknown
+  outcomes automatically. Old bridges/other backends refuse without host fallback.
 - Batch executes supported actions in order. Wait supports pixel stability only.
   OCR reads an already captured isolated frame and can load OCR models.
 
-Accessibility/observe, window management, browser/CDP, shell-output `run`, clipboard
+Accessibility/observe, general window geometry, browser/CDP, shell-output `run`, clipboard
 tools, audio/video, scroll, grounding and delegate are unavailable. MCP omits
 unsupported tools and CLI rejects them explicitly, without host fallback. This
 does not remove host-mode features. Observe/action pipelines intended for host

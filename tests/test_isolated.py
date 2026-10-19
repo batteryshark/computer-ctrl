@@ -131,7 +131,7 @@ def test_stop_missing_linux_instance_blocks_later_implicit_acquisition(target):
     assert not call(engine,'_session',action='start').is_error
 
 
-@pytest.mark.parametrize('name',['observe','browser_open','windows','run','audio_capture','record_clip','delegate'])
+@pytest.mark.parametrize('name',['observe','browser_open','run','audio_capture','record_clip','delegate'])
 def test_unsupported_does_not_even_start_provider(target,name):
     engine,root=target
     result=call(engine,name)

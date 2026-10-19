@@ -1,17 +1,16 @@
-# computer-ctrl
+# computer-ctrl development
 
-Harness-agnostic computer-use toolkit (MCP + CLI + Agent Skill) for Claude Code, Codex CLI, opencode, pi and Gemini/Antigravity on Windows, macOS and Linux.
+Read [README.md](README.md), [docs/development.md](docs/development.md) and the
+relevant provider/setup guide before changing code. `contract/tools.json` defines
+tool names, argument schemas and conventions; verify implementation as well.
 
-Several harnesses hand off phases of this project. Before working:
-
-1. Read `.project/tracker.md` (current state, active phase, decisions, next action).
-2. Read the "plan" and "architecture" sections of `reports/Harness agnostic computer use toolkit.md`. Sourced detail is in `research_notes/Harness agnostic computer use toolkit/`. Where the tracker and the report disagree, the tracker wins.
-3. When you finish a work session, update `.project/tracker.md` (status, evidence, decisions, next action). Keep it compact; do not paste transcripts.
-
-Rules:
-
-- The tool contract (`contract/tools.json`, once it exists) is the source of truth, not any harness's memory.
-- Run each phase's acceptance test from at least two different harnesses.
-- Test VM: `ssh user@linux-vm` (Tailscale). It runs Debian 13 with XFCE on X11, DISPLAY=:0. It is a disposable sandbox the agent fully controls. Model inference runs elsewhere (the user's Mac or 96 GB desktop).
-- Private project: licenses (AGPL, CC BY-NC) are not blockers.
-- Never store credentials or tokens in the repo or tracker.
+- Treat desktop control, capture, process management and provider queries as live
+  effects requiring explicit target/task authorization.
+- Inspect imports and fixtures before running tests. Offline checks must deny
+  network, subprocess and native access and use private fixture roots.
+- Preserve host/isolated selection, generation checks, stale-frame refusal and
+  unsupported-operation refusal. Never fall back from an isolated target to host.
+- Keep credentials, captured content, machine configuration and session/eval
+  records out of commits. Use synthetic fixtures with reserved-domain examples.
+- Changes to native behavior need separately authorized native acceptance;
+  static checks and mocked tests don't establish native behavior.

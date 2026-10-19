@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
-# Build cctl-audio.app (ScreenCaptureKit audio capture helper) and install it to ~/Applications.
+# Build cctl-audio.app and install it only to an explicitly approved new destination.
 # The first capture asks for Screen & System Audio Recording (and Microphone, for --mic) for this app.
 set -euo pipefail
-HERE="$(cd "$(dirname "$0")" && pwd)"
+HERE="$(cd "$(dirname "$0")" && pwd -P)"
 BUILD="$HERE/build"
-APP="${CCTL_AUDIO_APP:-$HOME/Applications/cctl-audio.app}"
-mkdir -p "$BUILD"
+APP="${CCTL_AUDIO_APP:?Set an absolute new approved app destination}"
+# Validate BOTH raw paths before writes; reserve new app/build exclusively.
+# Static checks only: operator-controlled parents, no hostile ancestor races.
+python3 -I -S "$HERE/audio_destination_guard.py" "$APP" "$BUILD"
 swiftc -O -parse-as-library -o "$BUILD/cctl-audio" "$HERE/cctl-audio/main.swift" \
   -framework ScreenCaptureKit -framework AVFoundation -framework CoreMedia
-rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS"
 cp "$BUILD/cctl-audio" "$APP/Contents/MacOS/cctl-audio"
 cat > "$APP/Contents/Info.plist" <<'PLIST'
@@ -28,9 +29,9 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 </dict>
 </plist>
 PLIST
-# Sign with a real identity when there is one, so macOS keeps the privacy grants across rebuilds (an ad-hoc
-# signature changes with every build and macOS then forgets them). Override with CCTL_AUDIO_SIGN.
-SIGN="${CCTL_AUDIO_SIGN:-$(security find-identity -v -p codesigning 2>/dev/null | awk -F'"' '/Apple Development|Developer ID Application/ {print $2; exit}')}"
+# Choose an identity explicitly with CCTL_AUDIO_SIGN, otherwise sign ad-hoc.
+# An ad-hoc signature changes on rebuild and can reset macOS privacy grants.
+SIGN="${CCTL_AUDIO_SIGN:--}"
 codesign --force --sign "${SIGN:--}" --identifier dev.computer-ctrl.audio "$APP"
 echo "signed with: ${SIGN:-ad-hoc (privacy grants reset on every rebuild)}"
 echo "installed $APP"

@@ -1,53 +1,33 @@
-# Grounding sidecar: Holo on the 4090 desktop (or H's API)
+# Optional grounding endpoint (host mode only)
 
-`locate` asks a dedicated GUI-grounding model where something is. Any OpenAI-compatible vision endpoint works, as long as the model follows H Company's element-localization contract: given an image plus a target, it returns JSON `{"x", "y"}` scaled 0–1000 to the exact image sent. The `locate` tool appears only once cctl knows the endpoint.
+`locate` sends an image and target description to an OpenAI-compatible vision
+endpoint. The model must return a point as JSON `{"x": 500, "y": 250}` on a
+0–1000 scale relative to the exact submitted image. It is hidden without a
+configured endpoint and unavailable in the isolated adapter.
 
-## Option A: Holo4 on the Windows desktop (RTX 4090 24 GB, 96 GB RAM)
-
-Run llama.cpp's CUDA build natively on Windows. vLLM would need WSL2. Pick one model:
-
-- `Hcompany/Holo4-35B-A3B-GGUF` (Q4_K_M, about 21 GB): Apache-2.0, an MoE with 3B active parameters. With 24 GB of VRAM the KV cache gets tight, so move some expert layers to system RAM with `--n-cpu-moe N`. It stays fast because only 3B parameters are active.
-- `Hcompany/Holo4-27B-GGUF` (Q4, about 16–17 GB): dense, CC BY-NC; fits entirely in VRAM.
-- `Hcompany/Holo-3.1-35B-A3B-GGUF`: the previous generation, the one H's own llama.cpp example uses.
-
-```powershell
-llama-server -hf Hcompany/Holo4-35B-A3B-GGUF --host 0.0.0.0 --port 8080 --n-gpu-layers 999 --n-cpu-moe 8 `
-  --ctx-size 16384 --flash-attn 1 --cache-type-k q8_0 --cache-type-v q8_0 --image-min-tokens 1024 `
-  --alias holo4
-```
-
-Grounding requests are single-turn (one screenshot plus about 100 tokens), so 16k of context is plenty. Lower `--n-cpu-moe` until VRAM is nearly full. Put the server on your tailnet only: either bind to the Tailscale IP, or keep `0.0.0.0` and firewall port 8080 to the tailnet.
-
-## Option B: H's hosted API
-
-- Base URL `https://api.hcompany.ai/v1`.
-- `holo3-1-35b-a3b` is free at 10 requests/min.
-- `holo4-35b-a3b` costs about $0.0008 per grounding call.
-- Zero data retention is the default.
-
-You need an API key from H; cctl reads it from an environment variable.
-
-## Point cctl at it (on the controlled machine)
-
-`~/.config/cctl/config.toml`:
+Configure a dedicated private host-mode config, not a live shared default:
 
 ```toml
-grounder_url = "http://<desktop-tailnet-name>:8080/v1"   # or https://api.hcompany.ai/v1
-grounder_model = "holo4"                                 # llama.cpp alias, or "holo4-35b-a3b" on H's API
-grounder_api_key_env = ""                                # e.g. "HAI_API_KEY" for H's API
-grounder_image_max = 1280                                # long edge sent to the grounder
+profile = "personal"
+grounder_url = "http://127.0.0.1:8080/v1" # placeholder: only an approved local endpoint
+grounder_model = "operator-selected-model"
+grounder_api_key_env = "CCTL_DEMO_GROUNDER_KEY"
+grounder_image_max = 1280
 ```
 
-Restart the harness (or `pkill -f "cctl.cli serve"` for the CLI). `locate` will then show up in `cctl tools`.
+The key belongs in a deliberately allowlisted environment variable, not source.
+This example does not start or authorize any endpoint. No GPU, model, hosted API
+pricing, retention policy or weight license is verified here. Use operator-provided,
+rights-cleared resources and consult their current terms. Local binding is not
+authentication; do not expose an unauthenticated inference server publicly.
 
-## Using it
+After separately approved setup, reload only the identified owned controller;
+do not pattern-kill processes. `locate` returns coordinates, a frame and a marked
+image. Inspect the mark before any click. Default refinement makes a second
+request on a crop. Screen contents can be private and model coordinates can be
+wrong; neither the endpoint nor its response grants permission to act.
 
-- `locate --target "the Save button in the Export dialog"` returns `{x, y, frame}` and the screenshot marked at that point. Check the mark, then `click --x … --y … --frame …`.
-- `refine` (on by default) asks a second time on a crop around the first answer.
-- Speech-to-text can use the same desktop: set `stt_url` to any OpenAI-compatible `/v1/audio/transcriptions` server, such as whisper.cpp's server or faster-whisper-server on the 4090.
-
-## Where it helps (the Phase 3 eval decides whether it stays)
-
-- Hosts with weak or no vision, such as local text-only models in pi or opencode. They use `observe`/`ocr` for structure and `locate` as their eyes.
-- Dense professional UIs with tiny targets, where frontier models' own grounding drops.
-- Keeping full-resolution screenshots out of an expensive host's context: the grounder sees the pixels, and the host sees only coordinates and a marked thumbnail.
+Speech-to-text is independent: `stt_url` selects an OpenAI-compatible transcription
+endpoint, otherwise the optional `stt` extra can use local faster-whisper. Neither
+endpoint nor weights are included or launched here. Host capture requires its own
+explicit approval; isolated mode does not gain grounding/audio by setting these.

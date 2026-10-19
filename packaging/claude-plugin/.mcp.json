@@ -1,9 +1,19 @@
 {
   "mcpServers": {
     "cctl": {
-      "command": "cctl",
-      "args": ["mcp"],
-      "env": {"CCTL_HOST": "${CCTL_HOST:-}"}
+      "command": "/usr/bin/env",
+      "args": [
+        "-i",
+        "HOME=/REPLACE_WITH_PRIVATE_SHORT_ROOT/h",
+        "XDG_CONFIG_HOME=/REPLACE_WITH_PRIVATE_SHORT_ROOT/xdg",
+        "XDG_STATE_HOME=/REPLACE_WITH_PRIVATE_SHORT_ROOT/xs",
+        "XDG_CACHE_HOME=/REPLACE_WITH_PRIVATE_SHORT_ROOT/xc",
+        "TMPDIR=/REPLACE_WITH_PRIVATE_SHORT_ROOT/t",
+        "PATH=/usr/bin:/bin",
+        "CCTL_CONFIG=/REPLACE_WITH_PRIVATE_SHORT_ROOT/config.toml",
+        "/REPLACE_WITH_REVIEWED_VENV/bin/cctl",
+        "--session", "disposable-demo", "mcp"
+      ]
     }
   }
 }

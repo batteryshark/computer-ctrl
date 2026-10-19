@@ -1,24 +1,148 @@
 # computer-ctrl
 
-`cctl` is a computer-use toolkit that works with any harness. One tool contract ([`contract/tools.json`](contract/tools.json)) is served two ways: over MCP (`cctl mcp`), and as a CLI (`cctl <tool> --key value`, which prints one JSON line with images saved to disk). An Agent Skill ([`skills/computer-use`](skills/computer-use/SKILL.md)) teaches the loop. Underneath, [Cua Driver](https://github.com/trycua/cua) (pinned, unforked) provides capture, accessibility trees and element actions. cctl adds what Cua lacks:
+<p><a href="assets/workstack-mark-full.png"><img src="assets/workstack-mark.png" alt="computer-ctrl comic mascot" width="160"></a></p>
 
-- coordinate frames that survive resizing and zooming
-- a zoom that actually magnifies
-- Unicode-safe typing that verifies by reading the field back
-- detection of locked or blank displays
-- compact output from one owned tool contract
-- process listing
-- a remote mode over SSH
-- browser control by element refs (Phase 1b)
-- screen clips summarized as annotated contact sheets
-- system/mic audio capture with levels and a local Whisper transcript
-- OCR with clickable line and word boxes (Phase 2)
-- an opt-in experimental [native workflow executor](docs/executor-setup.md), with optional fast-model choices
-- optional [isolated desktops](docs/isolated-sessions.md) through the separately installed QuietWing companion
+`cctl` gives coding agents a way to work with desktop apps: read a window's
+controls, inspect a screenshot, fill a field, click a button and check the result.
+It brings those operations to MCP clients and shell-based agents through one
+[tool contract](contract/tools.json), with an included [computer-use skill](skills/computer-use/SKILL.md).
 
-Status and decisions: [`.project/tracker.md`](.project/tracker.md). Research and plan: [`reports/`](reports/). Install per harness: [`packaging/README.md`](packaging/README.md).
+The tool layer handles image resizing and zoom coordinates, Unicode typing,
+OCR, browser element references and media summaries. Your agent chooses the task
+and the next action. Host control uses [Cua Driver](https://github.com/trycua/cua);
+an optional [QuietWing](https://github.com/batteryshark/quietwing) adapter works in
+a separately provisioned isolated desktop. Implementations cover macOS, Windows
+and Linux X11, with different capabilities in host and isolated modes.
 
-```bash
-uv run --group dev pytest                       # unit tests (any OS)
-python3 acceptance/phase1.py --cmd "cctl --host user@linux-vm mcp"   # live acceptance against the VM
+## Connect your agent
+
+MCP clients launch `cctl mcp` over stdio. They receive JSON text and inline images;
+CLI callers receive JSON with saved artifact paths. The skill explains the
+observe, act and verify loop. Configure the launch command in your client's MCP
+settings, or give a shell-capable agent the CLI and skill. The repository includes
+a [Claude plugin template and setup reference](packaging/README.md); client tool
+approvals and OS permissions still apply. There is no required OpenCode service
+or model account in cctl.
+
+Choose the controlled desktop before connecting. **Without a configured session,
+cctl controls the host desktop.** `--host` selects SSH transport; it doesn't create
+isolation. The `personal` profile disables the `run` shell tool, but still allows
+powerful input, app and process operations. The default `sandbox` profile enables
+`run`. Neither profile enforces a security sandbox or per-action human approval.
+
+## Install from source
+
+Use Python 3.11 or newer:
+
+```sh
+git clone https://github.com/batteryshark/computer-ctrl.git
+cd computer-ctrl
+python3 -m venv .venv
+.venv/bin/python -m pip install .
 ```
+
+On Windows, use `.venv\Scripts\python.exe`. Core dependencies include MCP 2.x,
+Pillow, psutil, RapidOCR and ONNX Runtime. Optional extras are `.[stt]` for local
+faster-whisper transcription and `.[audio]` for Windows soundcard capture.
+Installation downloads dependencies; OCR and local speech recognition may load
+or download models on first use.
+
+Host setup needs Cua Driver 0.34.0 and an available graphical desktop. macOS uses
+CuaDriver.app with Accessibility and Screen Recording grants; Windows uses an
+interactive desktop; Linux uses X11 and xdotool. Clips and Linux audio need
+ffmpeg. Isolated mode needs a separately installed, configured QuietWing CLI.
+See [platform setup](packaging/README.md) before launching either provider.
+
+## First isolated session
+
+Provision and approve a disposable target in QuietWing first. Create a private
+config file using this template; replace every placeholder path and create
+the private environment directories before launch. Use short state/cache paths
+so the appended Unix socket name fits the OS limit.
+
+```toml
+profile = "personal"
+state_dir = "/REPLACE_WITH_PRIVATE_SHORT_ROOT/s"
+cache_dir = "/REPLACE_WITH_PRIVATE_SHORT_ROOT/c"
+
+[sessions.demo]
+command = ["/REPLACE_WITH_QUIETWING/bin/quietwing"]
+id = "disposable-demo"
+acquire = "start"
+```
+
+Linux and macOS use `start`; Windows needs `attach` to an existing authenticated
+child. The [session guide](docs/isolated-sessions.md) covers Windows configuration
+and lifecycle. On POSIX, use this explicit environment for your MCP command:
+
+```sh
+env -i HOME=/REPLACE_WITH_PRIVATE_SHORT_ROOT/h \
+  XDG_CONFIG_HOME=/REPLACE_WITH_PRIVATE_SHORT_ROOT/xdg \
+  XDG_STATE_HOME=/REPLACE_WITH_PRIVATE_SHORT_ROOT/xs \
+  XDG_CACHE_HOME=/REPLACE_WITH_PRIVATE_SHORT_ROOT/xc \
+  TMPDIR=/REPLACE_WITH_PRIVATE_SHORT_ROOT/t PATH=/usr/bin:/bin \
+  CCTL_CONFIG=/REPLACE_WITH_PRIVATE_SHORT_ROOT/config.toml \
+  /REPLACE_WITH_VENV/bin/cctl --session demo mcp
+```
+
+Add only environment variables required by your approved companion. For a CLI
+call, keep that prefix and replace `mcp` with `screenshot`. Its JSON includes the
+image path and frame ID. To click a point read from that image, replace `mcp` with
+`click --x 120 --y 80 --frame c1`, substituting the actual coordinates and frame.
+Then capture again to check the result. These commands acquire the target and
+can start a persistent controller; `doctor` and `session status` also query live
+components. Closing MCP doesn't stop the desktop. Save work before an explicit
+`session stop`.
+
+## What you can do
+
+Host mode provides accessibility observations, screenshots and zoom, pointer and
+keyboard input, window/app management, process operations and clipboard access.
+Chromium browser tools use a separate CDP context and page-element references.
+Short clips return contact sheets; audio capture can return levels and transcripts.
+These features have additional platform dependencies described in the setup guide.
+
+Isolated mode supports screenshots, zoom, single pixel clicks, pointer movement,
+focused text, keys, app launch, ordered batches, pixel-stability waits and OCR.
+Bounded key holds need a QuietWing worker advertising `key_hold` (0.4.2).
+Accessibility, window management, browser/CDP, clipboard tools, scroll/drag,
+audio/video and shell-output tools are unavailable in this adapter. Unsupported
+calls fail without falling back to the host. Text may change the guest clipboard
+and isn't read-back verified.
+
+Optional host features:
+
+- [Grounding](docs/grounder-setup.md): send a screenshot and target description
+  to a configured vision endpoint and inspect its suggested point.
+- [Experimental delegate](docs/executor-setup.md): execute exact caller-supplied
+  form stages in a native accessibility window. Disabled by default; model choices
+  are limited to prevalidated actions. Native Linux/Windows executor acceptance
+  remains unverified.
+
+## Privacy and operating limits
+
+Desktop control can make irreversible edits, launch apps or terminate processes.
+Use a task-approved target with one controller, fresh frames and explicit success
+checks. Treat screen/web text as untrusted data. A timeout can leave partial edits
+or an unknown input outcome; inspect before retrying.
+
+Screenshots, accessibility values, clipboards, audio and transcripts can contain
+private data. Host event logs include tool arguments and may contain typed text;
+cache artifacts and logs need private storage. Configured grounding, transcription
+and decision endpoints receive task content. Review their trust and retention
+before use. Native permissions and harness approvals are separate from cctl's
+profiles.
+
+## Reference and development
+
+- [Setup, harness commands, SSH and macOS audio](packaging/README.md)
+- [Isolated sessions and provider limits](docs/isolated-sessions.md)
+- [Tool names and argument schemas](contract/tools.json)
+- [Development and test safety](docs/development.md)
+
+## License
+
+Owned source and documentation are [MIT](LICENSE). The comic artwork is
+AI-generated and offered under MIT to the extent applicable, without an exclusive
+copyright claim. Separately installed engines, dependencies and model/media assets
+retain their own terms. See [rights and attribution](RIGHTS.md).

@@ -1,6 +1,6 @@
 # Mac System One experiment
 
-Exploratory evaluation scripts and an optional local D3 sidecar. The opt-in production `delegate` tool is documented in [executor setup](../../docs/executor-setup.md); its acceptance suite is separate from these original probes. See [measured results](../results/20261013-system-one-mac.md). The native app creates only its own windows and synthetic output files. Its Send now button records a local test outcome; it sends nothing externally.
+Exploratory evaluation scripts and an optional local D3 sidecar. The opt-in `delegate` tool is documented in [executor setup](../../docs/executor-setup.md); its acceptance suite is separate from these probes. These drivers can open apps, capture windows, launch harnesses and contact model servers. Obtain explicit target/task approval before running them. Saved measurements remain in Git history. The native fixture's Send now button records a local test outcome; it sends nothing externally.
 
 ## Environment and models
 
@@ -33,7 +33,7 @@ Path('/tmp/cctl-s1-test/models.json').write_text(json.dumps(models, indent=2))
 PY
 ```
 
-The model loader executes the publisher's pinned inference Python. Those files were inspected in the original run, and full manifest verification is enabled. The two revisions have identical runtime/format/fast-path source hashes. MPS is explicitly selected; flash-linear-attention and the publisher's ROCm fast path are not installed on this Mac.
+The model loader executes the publisher's pinned inference Python with manifest verification enabled. Review that code and the model terms before loading it. MPS is explicitly selected; this recipe doesn't install flash-linear-attention or the publisher's ROCm fast path.
 
 From the repository root, start each server in a separate terminal (stop with Ctrl-C):
 
@@ -87,14 +87,14 @@ Screenshot probe, using the saved own-window fixture image:
 
 ```sh
 /tmp/cctl-s1-test/venv/bin/python eval/system_one_mac/image_probe.py \
-  --image eval/results/20261013-system-one-mac-fixture.png --output /tmp/cctl-s1-test/images.json
+  --image /REPLACE_WITH_APPROVED_SYNTHETIC_FIXTURE.png --output /tmp/cctl-s1-test/images.json
 ```
 
 Interpret these as a small feasibility test: sixteen text situations, one screenshot and two variants of one form. The macro knows fixture labels. Host CLI startup is included in its timer, while decision-model loading is excluded from warm executor timings. For adoption, add held-out apps and longer workflows, lock thresholds before testing and independently verify all required state before terminal actions.
 
 ## Expanded workflow test
 
-See the [follow-up results](../results/20261013-system-one-mac-followup.md). `Challenge.swift` is a separate fixture, leaving the initial fixture unchanged. Compile and register it as a local bundle:
+`Challenge.swift` is a separate fixture, leaving the initial fixture unchanged. Compile and register it as a local bundle:
 
 ```sh
 mkdir -p '/tmp/cctl-s1-test/cctl S1 Challenge.app/Contents/MacOS'

@@ -1,294 +1,104 @@
 # Optional isolated desktops
 
-[QuietWing](https://github.com/batteryshark/quietwing) is an independent companion. It owns the OS session,
-native input/capture transport and lifecycle. Computer-ctrl selects that session
-through a versioned local CLI interface; it never falls back to the host desktop.
-With no default session configured, omitting `--session` keeps existing host
-control. A config-level `session` or `CCTL_SESSION` selects an isolated default;
-use separate configs when switching between host and isolated work.
+[QuietWing](https://github.com/batteryshark/quietwing) is a separate companion
+owning OS-session lifecycle, native input and capture. cctl uses its local CLI
+schema/protocol version 1. The source docs identify the 0.4.x interface (bounded
+Windows key holds require a worker advertising `key_hold`, introduced in 0.4.2).
 
-Install QuietWing 0.4.0 separately on the machine being controlled. Its sole command
-is `quietwing`; computer-ctrl defaults to that executable when `command` is omitted.
-There is no `deskhelper` alias. Update existing 0.2 target command arrays explicitly.
-Native state/cache paths and `DESKHELPER_*` adapter environment names retain their
-existing identities so saved guests and authenticated children remain usable.
-Python 3.11+ is required. Native prerequisites remain platform-specific:
-authenticated ParaDesk child on Windows, Xvfb/X11/PulseAudio tools on Linux, and
-an explicitly provisioned Apple Silicon macOS VM. Installing the Python wheel
-does not change host settings or provision a guest.
+**Without `--session`, host desktop control remains the default** unless config
+`session` or `CCTL_SESSION` selects an isolated target. `--host` is just SSH.
+Explicitly selecting an unknown session fails with no host fallback. Use the
+[README's private config and stripped environment](../README.md) for all calls;
+never inherit host/session/driver overrides from an ordinary user environment.
+Obtain approval for a disposable target first. Names below are synthetic and
+must not be interpreted as discovered or approved real sessions.
 
-Add a named target to a private cctl config (or a separate file selected by
-`CCTL_CONFIG`). Commands are argument arrays, never shell command strings:
+## Configuration
 
 ```toml
-[sessions.work]
-command = ["/absolute/path/to/quietwing"]
-id = "minimal"
+profile = "personal"
+state_dir = "/REPLACE_WITH_PRIVATE_SHORT_ROOT/s"
+cache_dir = "/REPLACE_WITH_PRIVATE_SHORT_ROOT/c"
+cua_bin = "/REPLACE_WITH_UNUSED_HOST_DRIVER"
+[sessions.disposable-demo]
+command = ["/REPLACE_WITH_REVIEWED_COMPANION/bin/quietwing"]
+id = "approved-disposable-demo"
 acquire = "start"
 ```
 
-Linux also uses `acquire = "start"`. To reuse an explicitly stopped Linux ID,
-set `acquire_args = ["--replace-stopped"]`; the companion archives only a fully
-cleaned prior instance. A running instance is adopted without recreation.
-Windows uses an existing authenticated child:
+The cctl session name and companion ID have distinct roles. Commands and
+`acquire_args` are literal argument arrays, not shell strings. Linux/macOS use
+`start`; Windows uses `attach` to an existing authenticated child with connected,
+unminimized viewer (it may be hidden). Windows-specific alternative table:
 
 ```toml
-[sessions.work]
-command = ["C:\\absolute\\path\\quietwing.exe"]
-id = "agent-work"
+[sessions.disposable-windows-demo]
+command = ['C:\REPLACE_WITH_REVIEWED_COMPANION\quietwing.exe']
+id = "approved-disposable-child"
 acquire = "attach"
 acquire_args = ["--hide-viewer"]
-[sessions.work.env]
-DESKHELPER_PARADESK_DATA = "C:\\private\\paradesk-data"
+[sessions.disposable-windows-demo.env]
+DESKHELPER_PARADESK_DATA = 'C:\REPLACE_WITH_PRIVATE_CHILD_DATA'
 ```
 
-The Windows viewer must stay connected and hidden. Minimize/detach is unsupported.
-The companion never prompts for login or changes RDP/credential policies.
+Adapter environment names intentionally retain `DESKHELPER_*` compatibility.
+Only allowlist variables needed for the approved companion; its subprocess
+inherits the controller environment plus the explicit session env table.
+Linux needs Xvfb/X11/PulseAudio tooling. macOS needs an explicitly provisioned
+Apple Silicon VM. No wheel install alone provides these environments, logs in,
+changes RDP/credential policy or authorizes capture.
 
-```sh
-cctl --session work session start
-cctl --session work doctor
-cctl --session work apps --action launch --name TextEdit
-cctl --session work screenshot
-cctl --session work type_text --text 'Hello — café 日本語'
-cctl --session work session status
-cctl --session work session stop
-```
+## Lifecycle and identity
 
-Use an executable appropriate to the target for `apps`: for example `mousepad`
-on Linux or `notepad.exe` on Windows. Arguments remain an array. On macOS, simple
-application names use guest `/usr/bin/open -a`; to open an existing document use
-`name=/usr/bin/open` and `args=["-a","TextEdit","/guest/path/document.txt"]`.
-First ordinary control use acquires the configured session automatically.
-Explicit stop prevents automatic reacquisition by that controller until
-`session start`. Closing a CLI/MCP connection preserves the work session.
+With the README launch prefix, replace `mcp` by `session status`, `session start`,
+`screenshot`, or `session stop`. Always retain the configured `--session` name
+(`demo` in the root README; `disposable-demo` in this guide's config).
+Doctor/status query the companion; ordinary capture/input can automatically
+acquire the configured target. Normal CLI/MCP use can start a persistent controller
+and Windows can register a one-shot Limited task; neither is an offline operation.
 
-For MCP, configure the harness command as `cctl --session work mcp`. Remote use
-is `cctl --host user@machine --session work mcp` (or a CLI tool command). The
-session name/config resolves on the remote machine. Existing SSH transport is
-reused; the companion exposes no network listener. The Windows cctl controller
-uses a private, token-authenticated loopback endpoint, matching cctl's existing
-Windows transport. A target-specific one-shot Limited scheduled task launches
-it outside the SSH job; the task has no trigger and is removed after launch.
+Every native operation carries the pinned generation; replacement, loss and stale
+frames fail closed. `session status` does not rebind. Explicit `session start`
+can rebind and invalidates old frames. Explicit stop blocks automatic reacquisition
+in that controller; repeated stop must not destroy a replacement. Closing an MCP
+connection is not stop. Mac stop saves the guest, Windows releases owned workers/
+apps but preserves the external authenticated child, Linux releases its owned
+session. Save work before cleanup. Companion platform/TTL behavior is a separate
+deployment responsibility; no unlimited lifetime or automatic rollback is promised.
 
-## Supported tools
+Keep Unix cache paths short for the appended `sessions/<hash>/cctl.sock` socket.
+Target/config identity gives separate state/cache/artifacts and browser profiles;
+XDG variables alone do not change the base cctl paths. Arbitrary apps or shell
+wrappers can still have global/single-instance behavior. This is not a general
+filesystem sandbox or protection against a malicious companion.
 
-| Tool | Isolated-session behavior |
-| --- | --- |
-| doctor | Read-only descriptor, capabilities and supported tools; does not acquire a session |
-| apps | Launch by executable/app name and argv; no list/quit/default URL handler |
-| screenshot, zoom | Whole isolated desktop or region; fresh capture and generation-bound frames |
-| click, move | Pixel coordinates; single unmodified click only |
-| type_text | Focused field, mode=auto; provider's native Unicode route; guest clipboard may change |
-| key | Focused guest window; no window targeting. Optional `hold_ms` requires a capable isolated Windows worker; see below. |
-| batch | Supported actions, ordered, with ordinary failure semantics |
-| wait_for | Pixel stability only; no element/window predicates |
-| ocr | Reads an already captured isolated image, with boxes in its frame |
+## Capability limits
 
-Accessibility/observe, window management, browser/CDP tools, shell-output `run`,
-clipboard tools, audio/video, scroll/drag, grounding and delegate are unavailable
-in this adapter. Unsupported tools are omitted from MCP and fail explicitly
-if called via CLI. This does not change their availability for host control.
+- Screenshot/zoom capture the isolated desktop or region, not host windows.
+- Click supports a single unmodified pixel click; move is pixel-based.
+- `type_text` supports focused-field `mode=auto`, no element tokens or `set_value`.
+  Text is passed literally to the provider; Unicode behavior is provider-native,
+  guest clipboard may change and the result is not read-back verified.
+- Key taps target guest focus. `hold_ms` must be integer 1–5000, `repeat=1`, with
+  `key_hold: true`. The reply must confirm duration and release. Direct host holds
+  and old workers refuse; there is no silent tap fallback. Save work and explicitly
+  reattach an upgraded worker before use. Unknown release/outcome means inspect,
+  not replay.
+- Apps supports launch by executable/app name and literal argv, not list/quit/URLs.
+  Use only an operator-approved disposable app. macOS simple names use guest
+  `/usr/bin/open -a`. Known Windows browsers receive target-private profiles;
+  profile override arguments are rejected.
+- Batch executes supported actions in order. Wait supports pixel stability only.
+  OCR reads an already captured isolated frame and can load OCR models.
 
-QuietWing 0.4.2 adds `key_hold` for Windows workers. For a bounded
-hold, call `key` with `{"keys":"Return","hold_ms":120}`, or
-`cctl --session work key --keys Return --hold-ms 120`. A positive integer duration
-is 1–5000 ms and requires `repeat=1`. The worker presses and releases the entire
-chord in the same request, retaining generation/session/audio checks; the consumer
-verifies its release receipt. Omitted/zero duration keeps taps unchanged. Direct
-host input and providers without `key_hold: true` refuse holds. Save owned apps
-and explicitly reattach an upgraded QuietWing worker before using this feature;
-updating files alone leaves an old worker running. No ParaDesk reconnect is needed.
-On `KEY_RELEASE_UNCONFIRMED` or an unknown outcome, inspect the original session
-before retrying; unsafe boundaries and forcibly killed workers can prevent release.
-See [QuietWing held keys](https://github.com/batteryshark/quietwing/blob/v0.4.2/docs/held-keys.md).
+Accessibility/observe, window management, browser/CDP, shell-output `run`, clipboard
+tools, audio/video, scroll/drag, grounding and delegate are unavailable. MCP omits
+unsupported tools and CLI rejects them explicitly, without host fallback. This
+does not remove host-mode features. Observe/action pipelines intended for host
+accessibility do not apply to this adapter.
 
-Each configured target has distinct daemon state, artifacts and browser-profile
-paths. Known Chromium/Firefox executables launched through `apps` on Windows
-receive a private target profile; overriding that profile is rejected. Linux's
-private HOME and Mac's separate guest account provide profile separation.
-Arbitrary applications and explicit shell wrappers can have their own global
-profile/single-instance behavior; they are not a filesystem security sandbox.
-
-## Identity and recovery
-
-Computer-ctrl pins the descriptor's generation. Every native operation sends
-`--expect-generation` and the companion checks it before delivery. A replaced,
-lost or stopped session cannot silently become an input target. Frames include
-controller-run identity and generation; a fresh controller cannot accidentally
-reuse an earlier `c1` frame.
-
-`session status` reports current state without changing the pinned generation.
-After a replacement, `requires_rebind` signals that `session start` is needed.
-That explicit rebind discards old frames. Inspect errors before retrying a
-timed-out mutation: completion may be unknown, and commands are never replayed
-automatically.
-
-Mac stop saves the guest and releases RAM; start restores it without login.
-Windows stop removes owned workers/apps and preserves viewer visibility, retaining the
-external authenticated child. Linux stop releases only its owned session.
-Crashes and cold boots have different recovery requirements; consult the
-companion's platform documentation rather than changing host login policies.
-
-## Daily use and viewing
-
-First ordinary control use acquires the configured target; status and doctor do
-not start it. A clean Mac save/resume needs no new login. Windows requires an
-existing signed-in, connected viewer; Linux creates or adopts its private display.
-Closing MCP alone preserves the work instance, subject to the backend lifetime.
-
-Ask the agent for a fresh screenshot, or run `cctl --session work screenshot`
-and open its returned image path.
-
-QuietWing 0.4.0 adds a read-only preview window on Mac. Using the
-same QuietWing environment configured for your isolated target, build it once
-with `quietwing build --viewer`, then run `quietwing view --id minimal` while the
-guest runs. Use the companion ID from configuration; it can differ from the
-cctl session name. The preview opens without taking keyboard focus and never
-forwards input. Close its window or use `quietwing view --id minimal --close`;
-the guest and agent keep running. Viewing never resumes a saved guest or follows
-a replacement generation. See the companion's
-[viewer guide](https://github.com/batteryshark/quietwing/blob/v0.4.2/docs/viewer.md).
-The viewer is included in the [0.4.2 release](https://github.com/batteryshark/quietwing/releases/tag/v0.4.2).
-
-QuietWing 0.4.0 can also show an isolated Linux desktop in that Mac window
-over existing SSH. Use matching QuietWing builds on both ends, then on Mac:
-
-```sh
-quietwing view --host user@linux-machine --id work \
-  --remote-command /home/user/quietwing/venv/bin/quietwing
-```
-
-Add `--remote-state-root /absolute/private/state` when the Linux agent target
-uses a custom state root. Use the same target options with `--status` or `--close`.
-The preview never starts a desktop, extends Linux TTL, forwards input or follows
-a replacement generation. A long agent action can temporarily pause capture;
-only read-only capture retries against the pinned generation. See the tested
-[Linux viewer guide](https://github.com/batteryshark/quietwing/blob/v0.4.2/docs/viewer.md)
-and [PR #2](https://github.com/batteryshark/quietwing/pull/2).
-
-QuietWing 0.4.0 adds the same Mac window for an already attached Windows
-child. Keep ParaDesk connected, hidden and unminimized, then on Mac:
-
-```sh
-quietwing view --host user@windows-machine --remote-platform windows --id work \
-  --remote-command 'C:\private\venv\Scripts\quietwing.exe' \
-  --remote-state-root 'C:\private\helper-state'
-```
-
-If the existing Windows SSH login uses a nondefault key, also pass
-`--ssh-identity /absolute/path/to/existing/key`. Use the exact same target options
-with `--status` or `--close`; those act on the Mac preview only. Viewing never
-attaches, reconnects, reveals ParaDesk or forwards input/audio. Closing leaves
-Windows work running, and frames do not reset its 30-minute worker inactivity
-timer. Stop, lock, connection loss or generation replacement clears the image;
-explicitly reopen after recovery. See the tested
-[Windows viewer guide](https://github.com/batteryshark/quietwing/blob/v0.4.2/docs/viewer.md#windows-over-ssh)
-and [PR #3](https://github.com/batteryshark/quietwing/pull/3). No computer-ctrl
-tool/configuration change is needed.
-
-QuietWing 0.4.1 fixes Windows readiness failures from ParaDesk's stale pre-login
-snapshot by verifying live provider status. Existing native, generation, desktop
-and audio guards remain. Upgrade after saving/stopping owned work and explicitly
-reattach so the worker loads the fix; keep the native child signed in. A preview
-requires a live attachment and never creates one when a worker is stopped.
-
-QuietWing 0.4.2 optionally keeps the same Mac SSH preview open across verified
-Linux/Windows agent reattachments: add `--follow` when opening it. Default previews
-remain pinned as described above. A following preview clears old pixels while
-waiting and uses only status and generation-pinned frames; it never starts or
-reattaches a desktop or changes computer-ctrl's binding. Close it with the same
-target options and `--close`. See the [follow-mode guide](https://github.com/batteryshark/quietwing/blob/v0.4.2/docs/viewer.md#leave-an-ssh-preview-open-across-agent-attachments).
-
-There is no unified takeover control. Linux has no local viewer window, and
-Windows must keep its ParaDesk viewer connected and unminimized.
-
-Linux defaults to a fixed 30-minute TTL from creation, even while active. A target
-can set `acquire_args = ["--ttl", "14400", "--replace-stopped"]` for a bounded
-four-hour desktop and safe reuse of a fully stopped ID. Windows closes owned apps
-after 30 minutes without activity other than preview frames; this worker timeout is not configurable yet.
-Mac has no automatic idle save/stop. Save documents before Windows/Linux cleanup.
-
-## Acceptance status
-
-Official 0.4.0 rollout follow-up (2026-10-15): dedicated Windows and Linux
-QuietWing environments use the checksum-verified public wheel; all 34 runtime
-resources match it. Fresh Codex and OpenCode ordinary-editor workflows passed
-through the normal persistent MCP controller on both platforms. Exact saved
-Unicode, actual tools, native editor/session identity and final captures were
-checked independently.
-
-- Windows: seven and thirteen verified calls, 594 nonactivating Mac preview
-  samples, and 1,983 hidden/unminimized ParaDesk observations. Default CLI explicit
-  rebind, windowless controller startup, stop/stale refusal and owned cleanup
-  passed with 88 additional hidden-viewer observations. The same post-reboot
-  authenticated child stayed connected; test workers/editors/controller ended.
-- Linux: six calls each, 261 nonactivating preview samples, the same persistent
-  controller, and verified private X display/PulseAudio/editor routing. Ordinary
-  CLI automatic acquisition, stop/restart, stale refusal and controller cleanup
-  passed separately. No Linux human-display capture/input or activity monitor.
-  Earlier Linux agent evidence used direct MCP; these newer runs close the
-  default-MCP gap. The earlier wording calling those runs persistent was incorrect.
-
-The Windows normal-MCP startup had exposed a cctl Python 3.13 state-directory
-ACL bug after direct logging. Logging now uses the existing private-directory
-factory, granting only the same user and SYSTEM on newly created directories;
-no existing ACL is repaired automatically. The native regression failed before
-and passed after the fix; 141 portable tests and hosted CI passed. Run that
-native regression without desktop acquisition/capture/input:
-
-```powershell
-python acceptance/windows_isolated_startup.py --root C:\private\fresh-startup-check
-```
-
-Keep Unix `cache_dir` paths short: the appended `sessions/<target-hash>/cctl.sock`
-must fit the OS socket-path limit. One extra test failed before tools with a
-112-byte socket path; shortening only its private cache path to 89 bytes passed.
-There is no automatic alternate socket directory. On Windows, externally removing
-an attachment can currently return `ADAPTER_ERROR` with a missing-binding detail;
-explicit `session start` rebinds it. An explicit cctl stop returns `session_stopped`
-on further input. These errors never select the human desktop.
-
-The 141-test regression suite includes 23 isolated-provider cases covering exact
-argv/text preservation, session
-replacement refusal, frame invalidation, target path separation and unchanged
-host-engine selection. Native Linux, Mac and Windows cctl workflows have passed
-launch/input/capture/lifecycle tests, including live installed-wheel use on all
-three platforms. Windows private-artifact ACL and
-SSH-controller-lifetime fixes have passed native verification.
-Real Codex and OpenCode ordinary-editor workflows passed on all three platforms.
-Exact saved Unicode, successful native calls, fresh captures and native
-process/session identity were verified independently. Host-observation coverage
-varies by platform and run; consult the dated companion evidence. Native suites
-separately cover stale rejection, reconnect/resume and owned cleanup. Model completion
-messages do not count as proof: saved content, actual tool calls, fresh images,
-session identity and host observations must be checked independently.
-
-The reusable `acceptance/isolated_harness.py` runner accepts a configured MCP
-command, prepared editor document, unique text marker and a fresh output directory.
-It supports Codex, OpenCode and Claude; successful acceptance here used Codex and
-OpenCode. OpenCode v1 uses `--opencode-mode pure`. The tested v2.0.23 needed
-`--opencode-owned-server` with `--opencode-mode standalone`: this starts a private
-loopback server, registers only the chosen isolated target, waits for its actual
-tool catalog, and removes its owned server afterward. This workaround changes no
-global harness configuration. Model/provider flags apply only to that run. See the
-companion's `VALIDATION.md` and platform reports for repeatable preparation and
-independent verification, including unsuccessful zero-tool attempts.
-
-Windows follow-up on 2026-10-15 used the published QuietWing 0.3 wheel: native
-lifecycle/reconnect checks and fresh actual Codex/OpenCode editor workflows passed.
-Exact saved Unicode, tools, child identity, captures and cleanup were independently
-verified; 1,849 parent samples had unchanged pointer/focus and a hidden connected
-viewer. This closes the initial Windows live-acceptance deferral. The original
-reported main-desktop obstruction remains unidentified. Version 0.3.0 restored
-viewer visibility at stop; 0.3.1 preserves current visibility so a hidden viewer
-stays hidden. That patch initially had static/simulated coverage. A later
-2026-10-15 follow-up against the unchanged official 0.3.1 wheel passed native
-input/capture/stop/crash/rollback and actual Codex/OpenCode ISE workflows, with
-independently verified Unicode, tools, images and child identity; 1,708 parent
-samples kept ParaDesk hidden/unminimized. The same signed-in child was retained.
-This closes the 0.3.1 native deferral; release tags/assets were not replaced.
-
-The Codex acceptance runner marks its isolated MCP server required and allows
-60 seconds for startup. This waits for SSH/tool discovery before the first turn;
-a successful model exit alone remains insufficient acceptance evidence.
+Timeouts may leave mutations in flight. Do not infer completion from model text,
+replay unknown input, or reuse old frames. Verify actual saved synthetic content,
+fresh images and exact session identity in a separately approved native test.
+Viewer setup and any remote preview are companion operations requiring their own
+approval. See [QuietWing's viewer guide](https://github.com/batteryshark/quietwing/blob/main/docs/viewer.md).

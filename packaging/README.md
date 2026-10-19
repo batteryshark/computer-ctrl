@@ -1,80 +1,100 @@
-# Installing cctl into harnesses
+# Setup and harness integration
 
-## On the machine being controlled
+Start with the [README](../README.md) to select a target and configure private
+state/cache and an allowlisted environment. Registering the command in a harness
+enables live tools; obtain the operator's approval before connecting.
 
-Linux X11 is supported for now. You need `cua-driver` 0.34.0 in `~/.local/bin`, plus `xdotool`, `ffmpeg` and `uv`.
+## Native dependencies
 
-```bash
-uv tool install --editable ~/computer-ctrl     # puts `cctl` in ~/.local/bin
-cctl doctor                                     # must report "status": "ok"
-```
+Host Linux uses Cua Driver 0.34.0, an unlocked X11 desktop and xdotool; ffmpeg
+supports clips and PulseAudio capture. Host macOS needs CuaDriver.app under
+`/Applications`, accessibility/screen grants and a usable display. Host Windows
+needs Cua's installed executable and an interactive session; SSH control starts
+a session-resident controller with a scheduled task. Configure explicit executable
+paths rather than assuming a globally installed editable cctl is the reviewed one.
+Do not disable locks or grant permissions automatically.
 
-The Cua daemon starts on demand inside the logged-in desktop session; SSH sessions find it automatically. Screen lockers and DPMS blanking must be off, or captures come back black and `doctor` says so.
+Optional macOS audio uses `macos/build-audio-helper.sh`. It requires Swift/Xcode
+command line tooling, Python 3.11+, ScreenCaptureKit, AVFoundation, CoreMedia and codesign.
+Before running, set `CCTL_AUDIO_APP` to an absolute, new operator-approved app
+destination and optionally `CCTL_AUDIO_SIGN` to an explicitly selected signing
+identity (default ad-hoc). Both the app destination and `macos/build` must be new;
+existing files/directories are refused, not removed. Raw empty, `.` and `..`
+components and all existing symlink ancestors (including dangling links) are
+refused before directory creation or compilation. Use direct absolute paths
+(spaces are supported), with operator-controlled parents. Fresh directories are
+reserved exclusively, but these static checks are not race-hardened against
+concurrent ancestor replacement and are not an OS sandbox. A failed build can
+leave partial new directories; review them manually, never delete existing data
+as a setup shortcut. This script writes a local build and installs/signs the
+helper; it is not an offline validation step.
 
-## Platform notes
+The host macOS runtime first checks the executable under `CCTL_AUDIO_APP`,
+defaulting to `$HOME/Applications/cctl-audio.app`, then passes that app path to
+LaunchServices. A custom build destination must also be explicitly carried as
+`CCTL_AUDIO_APP` into the reviewed controller environment; discoverability alone
+is not enough. Keep the environment stripped and allowlisted, adding only that
+approved path for separately approved host audio setup. Do not inherit
+`CCTL_HOST` or the ambient environment, and do not add host audio to the isolated
+launch example: this helper does not enable audio in unsupported isolated mode.
+Grant Screen & System Audio Recording, and Microphone
+only for approved mic capture. System audio requires macOS 14+, mic capture 15+.
+Rebuilding ad-hoc signatures may reset grants. Input names must come from the
+operator's approved target, never a guessed device. No audio binary/media ships.
 
-- **macOS**: needs Cua's `CuaDriver.app` in /Applications (run `cua-driver permissions grant` once) and, for audio, `packaging/macos/build-audio-helper.sh`. That builds `~/Applications/cctl-audio.app`, a ScreenCaptureKit capture helper; allow it once under Screen & System Audio Recording (and Microphone for `source=mic`). The build signs with your Apple Development identity if you have one, so rebuilds keep those grants (ad-hoc signing loses them). With the lid closed, the built-in mic is off, so pick another input by name, e.g. `source="Webcam"`. Use the `personal` profile on someone's own Mac.
-- **Windows**: needs Cua's `cua-driver.exe` (`~\.cua-driver\<ver>\…`) and `uv tool install --editable ".[audio,stt]"`. `cctl serve` runs in the logged-in desktop session (started on demand via a one-shot scheduled task); `cctl mcp` over SSH relays to it. Audio is WASAPI loopback/mic via `soundcard`. Screen clips use ffmpeg's `gdigrab` in that session. Its frames carry wall-clock times, so `record_clip audio=true` lines the WASAPI soundtrack up exactly. Console programs (cua-driver, ffmpeg) start without a window.
+Isolated mode instead uses a separately installed compatible QuietWing CLI with
+schema/protocol version 1. See [sessions](../docs/isolated-sessions.md). Nothing
+here provisions a VM, guest account, authenticated Windows child or Linux display.
 
-## Remote targets for the CLI and MCP
+## Harness command
 
-Describe each remote machine once in `~/.config/cctl/config.toml` on the machine you run from:
+Configure your harness to invoke the exact isolated MCP launch shape in the
+README, including `env -i`, the private config and `--session demo`.
+The tool catalog depends on the chosen provider. Shell-only callers can use the
+same prefix for CLI verbs and inspect the returned local artifact paths. Tool
+approval and native permissions remain required; never disable harness safeguards
+as a setup shortcut.
 
-```toml
-[hosts."user@windows-pc"]          # Windows (OpenSSH, PowerShell default shell)
-os = "windows"
-ssh_args = ["-i", "~/.ssh/id_ed25519", "-o", "IdentitiesOnly=yes"]
+The POSIX Claude plugin `.mcp.json` is deliberately **non-runnable until edited**:
+it uses absolute placeholder paths, a stripped environment and explicit isolated
+target. Review every replacement before loading it. Its `skills` symlink points
+to the included root skills, not an external install. Other clients can install
+the skill according to their current local documentation. No global config or
+skill destination is written here.
 
-[hosts."user@linux-vm"]            # Linux
-remote_bin = "~/.local/bin/cctl"
-```
+For other MCP clients, register the executable and argument array using the
+client's current documentation. The generic interface is stdio MCP; this
+repository doesn't supply a Pi extension or an OpenCode-specific service.
+Shell-capable clients can use CLI tools and load the skill through their own
+skill mechanism. Media support depends on the client and model; clips have contact
+sheets and audio can include transcripts for clients that need text.
 
-Then use `cctl --host user@windows-pc <tool> …` (images, clip sheets and waveforms are copied back, and `path` points at the local copy) or `cctl --host user@windows-pc mcp`. On Windows the session-resident daemon keeps state between calls, so frame ids and element tokens survive across separate commands.
+## SSH is not isolation
 
-## Pointing a harness at it
+The CLI retains `--host` and supports explicit remote executable/SSH arguments
+in a private `hosts` table. It needs reviewed cctl installations on both ends;
+the session/config resolves on the remote machine. `--host` alone can control
+that machine's real desktop. Remote artifacts are copied back with SSH/scp.
+The caller's private config/environment is not automatically applied remotely.
+Arrange a separately reviewed remote config, allowlisted environment and disposable
+target before use; no real hostname, key or remote-session example is supplied.
+Windows controller/task lifetime and inherited environment need native validation.
 
-Use `cctl mcp` when the harness runs on the same machine. From another machine, use `cctl --host USER@HOST mcp`, which needs cctl on both ends, or plain `ssh -T USER@HOST ~/.local/bin/cctl mcp`.
+## Host configuration
 
-| Harness | MCP config | Skill location |
-|---|---|---|
-| Claude Code | `claude mcp add cctl -- cctl mcp`, or load the plugin: `claude --plugin-dir packaging/claude-plugin` (set `CCTL_HOST` for a remote machine) | `~/.claude/skills/computer-use` → symlink to `skills/computer-use` |
-| Codex CLI | `~/.codex/config.toml`: `[mcp_servers.cctl]` with `command = "cctl"`, `args = ["mcp"]`, `tool_timeout_sec = 120`. `codex exec` needs MCP calls approved: per-tool `approval_mode`, or `--dangerously-bypass-approvals-and-sandbox` on a sandbox VM | `~/.agents/skills/computer-use` |
-| opencode | `opencode.json`: `"mcp": {"cctl": {"type": "local", "command": ["cctl", "mcp"], "timeout": 120000}}`. opencode locates the project (and so this file) from `$PWD`, not the process working directory. When launching it from a script, set `PWD` or `cd` first | `~/.agents/skills/computer-use` (it also reads `~/.claude/skills`) |
-| pi ≥ 1.0 | `pi mcp add cctl -- cctl mcp`, then set `"exposure": "direct"` for `cctl` in `~/.pi/agent/mcp.json`. The default "codemode" exposure hides the tools behind scripts | `~/.agents/skills/computer-use` |
-| pi < 1.0, or any shell-only harness | none: the agent runs `cctl <tool> …` and opens the image at `path` | `~/.agents/skills/computer-use` |
+Settings default to `~/.config/cctl/config.toml`; `CCTL_CONFIG` selects a dedicated
+file. Set `profile = "personal"`, private `state_dir` and `cache_dir`, and the exact
+`cua_bin` path for your approved host installation. An empty session selects host
+control. `CCTL_HOST` and `CCTL_SESSION` can override the target, so remove inherited
+values when constructing the launch environment. The supported environment
+overrides are listed in [config.py](../src/cctl/config.py).
 
-## Verified (2026-10-07, Debian 13 XFCE VM)
+`CCTL_STATE_DIR` and `CCTL_CACHE_DIR` aren't supported overrides, and XDG variables
+alone don't move cctl's default paths. Host CLI commands can start a persistent
+controller automatically. On Windows, controller startup uses a one-shot Limited
+scheduled task in the interactive session. Only an explicitly approved host
+configuration should use a launch command without `--session`.
 
-| Harness / model | Path | GUI edit-and-save task |
-|---|---|---|
-| Codex CLI 0.161 / gpt-6.1-sol (medium) | MCP | PASS: 6 calls, 0 errors, ~11k tokens |
-| opencode 1.18.35 / GLM-5.3 | MCP | PASS: 7 calls, 0 errors |
-| Claude Code (Opus 5.5) | CLI `--host`, images copied back | PASS: 7 calls, 0 errors |
-| acceptance script | MCP (local stdio, SSH stdio, `--host` passthrough) | 14/14 |
-
-| Harness / model | Browser task: fill a local form with a Unicode code word, submit, report the confirmation |
-|---|---|
-| Codex / gpt-6.1-sol (medium) | PASS: 7 calls, 0 errors |
-| opencode / GLM-5.3 | PASS: 8 calls, 0 errors |
-| `acceptance/phase1b.py` | 10/10 |
-
-| Harness / model | Media tasks (Phase 2) |
-|---|---|
-| Codex / gpt-6.1-sol | clip: read a 5-word cycle flashed on a canvas, PASS in 2 calls · audio: report a spoken secret word, PASS in 1 call |
-| opencode / GLM-5V-Turbo (clip), GLM-5.3 (audio) | clip PASS in 2 calls · audio PASS in 1 call |
-| `acceptance/phase2.py` | 12/12 |
-
-## Eval baselines (16 natural-language tasks, `eval/run.py`, 2026-10-08)
-
-| Harness / model | Score | Notes |
-|---|---|---|
-| Codex / gpt-6.1-sol (medium) | 16/16 | Median 22 s per task. Find-and-replace in Mousepad is the slowest (~37 calls); its dialog hides Replace buttons from accessibility until text is entered |
-| opencode / GLM-5.3 (text-only) | 16/16 | 15/16 first run. The clip task passed after `record_clip --ocr` gained `text_changes`, and is now 2 calls |
-
-`eval/results/*.md` has per-task seconds, calls, errors and tokens.
-
-**`locate` with Holo4-35B-A3B** (llama.cpp on the M5 Max, over the tailnet): 36/36 on labeled controls, ~1.3 s per call (2.2 s with the refine pass). On `canvas_click_shape` (unlabeled shapes on a canvas), the text-only GLM-5.3 goes from 1/3 without `locate` to 3/3 with it. Codex, which can see, needs none (3/3 in 4 calls).
-
-On the controlled machine, install with `uv tool install --editable '.[stt]'` to get local Whisper transcription (CPU, `small` by default). Without it, or with `stt_url` set, transcription goes to an OpenAI-compatible `/v1/audio/transcriptions` endpoint.
-
-Re-run with `acceptance/phase1.py | phase1b.py | phase2.py [--cmd …]` and `TASK=editor|browser|audio|clip acceptance/harness_task.sh <harness> [args]`.
+Source, native helper and third-party rights are described in
+[RIGHTS](../RIGHTS.md). Test drivers and build instructions are covered in
+[development](../docs/development.md).

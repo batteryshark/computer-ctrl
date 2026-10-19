@@ -2,6 +2,7 @@
 name = "cctl"
 version = "0.1.0"
 description = "Harness-agnostic computer-use toolkit: one tool contract served over MCP and a CLI"
+license = {file = "LICENSE"}
 requires-python = ">=3.11"
 dependencies = [
     "mcp>=2.3,<3",

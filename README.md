@@ -7,12 +7,50 @@ controls, inspect a screenshot, fill a field, click a button and check the resul
 It brings those operations to MCP clients and shell-based agents through one
 [tool contract](contract/tools.json), with an included [computer-use skill](skills/computer-use/SKILL.md).
 
-The tool layer handles image resizing and zoom coordinates, Unicode typing,
-OCR, browser element references and media summaries. Your agent chooses the task
-and the next action. Host control uses [Cua Driver](https://github.com/trycua/cua);
-an optional [QuietWing](https://github.com/batteryshark/quietwing) adapter works in
-a separately provisioned isolated desktop. Implementations cover macOS, Windows
-and Linux X11, with different capabilities in host and isolated modes.
+## When to use cctl or Cua Driver
+
+Host control uses the unforked [Cua Driver](https://github.com/trycua/cua) 0.34.0.
+Driver already provides capture, accessibility, element actions and browser tools.
+Use Driver directly when its tools and result formats fit your harness. cctl is a
+harness-facing layer over that API, combining Driver operations with image/text
+processing, platform helpers and a shared MCP/JSON CLI interface. Your agent still
+chooses the task and the next action. This comparison concerns the pinned Driver
+API; CUA's full product/toolset is outside its scope.
+
+Use cctl when you want these pieces together:
+
+- Image frames map coordinates from resized screenshots and enlarged zooms back
+  to the desktop. Small controls can be magnified and clicked without having the
+  agent calculate scale factors or crop offsets.
+- Unicode-aware host typing selects a keyboard, accessibility or paste route and
+  reports field read-back checks when available. The agent can check whether text
+  reached a readable field instead of relying only on input dispatch.
+- Blank-image checks and display diagnostics flag an unavailable desktop, so the
+  agent can stop and request a usable display instead of acting on a black image.
+- Compact, filtered observations and one tool contract give MCP and CLI agents
+  the same tool names and arguments, reducing per-harness integration work.
+- Process listing includes filters, CPU and memory use, helping diagnose an
+  unresponsive app alongside its windows.
+- SSH transport runs tools on a configured remote machine and copies returned
+  artifacts back to the caller. The agent can inspect remote results locally;
+  SSH itself doesn't isolate the controlled desktop.
+- Browser snapshots expose page-element references through Driver's CDP tools,
+  so the agent can target a named control without estimating pixel coordinates.
+- Screen clips become timestamped contact sheets with change summaries, making
+  motion inspectable without a video player. System/mic audio can return levels
+  and optional local Whisper transcripts to check sound and speech as data.
+- OCR can return line and word boxes in the image's coordinate frame, giving the
+  agent text and click targets when accessibility doesn't expose a control.
+- The opt-in experimental [executor](docs/executor-setup.md) runs exact
+  caller-supplied form stages and checks their results within one tool call,
+  reducing the outer agent's step-by-step form interaction.
+- The optional [QuietWing](https://github.com/batteryshark/quietwing) adapter uses
+  a separately provisioned isolated desktop instead of Driver. Agents keep a
+  supported subset of the same tools, with no host fallback for unsupported calls.
+
+Implementations cover macOS, Windows and Linux X11. Availability and prerequisites
+differ by platform and provider; see [capabilities and limits](#what-you-can-do)
+and [platform setup](packaging/README.md).
 
 ## Connect your agent
 

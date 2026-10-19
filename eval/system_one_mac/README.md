@@ -113,6 +113,7 @@ PY
 Run from the repository root with the d3-mini server ready, sequentially:
 
 ```sh
+mkdir -p eval/results/system-one-challenge-images
 /tmp/cctl-s1-test/venv/bin/python eval/system_one_mac/challenge.py \
   --output /tmp/cctl-s1-test/challenges.json
 /tmp/cctl-s1-test/venv/bin/python eval/system_one_mac/textedit_probe.py \

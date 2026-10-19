@@ -142,13 +142,16 @@ These features have additional platform dependencies described in the setup guid
 
 Isolated mode supports screenshots, zoom, single pixel clicks, pointer movement,
 focused text, keys, app launch, ordered batches, pixel-stability waits and OCR.
-Bounded key holds need a QuietWing worker advertising `key_hold` (0.4.2).
+Bounded key holds need a QuietWing worker advertising `key_hold` (Windows 0.4.2
+or development macOS VM owners).
 Bounded drag needs `pointer_drag` (development macOS VM owners); screenshot/zoom
 coordinates map just like click. Older workers and other platforms refuse it.
 Accessibility, window management, browser/CDP, clipboard tools, scroll,
 audio/video and shell-output tools are unavailable in this adapter. Unsupported
 calls fail without falling back to the host. Text may change the guest clipboard
-and isn't read-back verified.
+and isn't read-back verified. Development Mac owners paste ASCII and Unicode
+through the guest-only clipboard (4096 UTF16 units), avoiding unpaced key bursts;
+the response reports `mode: guest-clipboard`, not field verification.
 
 Optional host features:
 

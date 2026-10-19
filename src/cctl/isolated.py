@@ -324,10 +324,11 @@ class IsolatedEngine:
     async def tool_type_text(self, text, element=None, mode="auto", submit=False, intent=None):
         if element is not None or mode != "auto":
             raise ToolError("unsupported_capability", "Only focused-field text with mode=auto is supported.")
-        await self._input("--type", text)
+        result = await self._input("--type", text)
         if submit:
             await self._input("--key", "Return")
-        return ToolResult(data={"typed": len(text), "verified": False, "mode": "provider-native"})
+        return ToolResult(data={"typed": len(text), "verified": False,
+                                "mode": result.get("text_entry", "provider-native")})
 
     async def tool_key(self, keys, repeat=1, window=None, intent=None, hold_ms=0):
         if window is not None:

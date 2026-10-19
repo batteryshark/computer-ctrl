@@ -227,7 +227,7 @@
     },
     {
       "name": "key",
-      "description": "Press a key or key combination, e.g. \"Return\", \"Escape\", \"ctrl+s\", \"ctrl+shift+t\", \"alt+F4\". Goes to the focused window, or to `window` (recommended on someone's own machine, so keys can't land in the wrong app). Optional hold_ms holds the whole chord for 1–5000 ms and releases in the same request; currently supported by isolated Windows QuietWing workers advertising key_hold. Use repeat=1 for a hold. Zero/omitted keeps tap behavior. No persistent key-down/up state is exposed.",
+      "description": "Press a key or key combination, e.g. \"Return\", \"Escape\", \"ctrl+s\", \"ctrl+shift+t\", \"alt+F4\". Goes to the focused window, or to `window` (recommended on someone's own machine, so keys can't land in the wrong app). Optional hold_ms holds the whole chord for 1–5000 ms and releases in the same request; supported by isolated Windows and development macOS VM QuietWing owners advertising key_hold. Use repeat=1 for a hold. Zero/omitted keeps tap behavior. No persistent key-down/up state is exposed.",
       "inputSchema": {
         "type": "object",
         "properties": {

@@ -25,6 +25,13 @@ Text supports focused-field mode=auto, is not read-back verified and may change
 the guest clipboard. Use fresh generation-bound frames; stopped/replaced targets
 require explicit inspection/rebind, never host fallback. See the session guide.
 
+QuietWing owners advertising `key_hold` accept `key` with
+`{"keys":"Space","hold_ms":300}` (`repeat=1`); this is one bounded down/hold/up
+request, not persistent key-down state. Development Mac owners support arrows,
+modifier chords and standalone modifiers too. Their `type_text` pastes ASCII and
+Unicode through the guest-only clipboard and reports `mode: guest-clipboard`;
+`verified: false` still means inspect actual content, not a paste failure.
+
 The detailed tool patterns below describe **host capabilities**, not permission
 to control this host. Bare tool fragments are MCP arguments/documentation, not
 recommended shell commands without a reviewed target/environment prefix.

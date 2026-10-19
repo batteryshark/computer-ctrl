@@ -89,12 +89,19 @@ filesystem sandbox or protection against a malicious companion.
   Substitute points from the fresh image; these are syntax examples, not targets.
 - `type_text` supports focused-field `mode=auto`, no element tokens or `set_value`.
   Text is passed literally to the provider; Unicode behavior is provider-native,
-  guest clipboard may change and the result is not read-back verified.
+  guest clipboard may change and the result is not read-back verified. Development
+  Mac VM owners use one generation-bound guest-clipboard/paste transaction for
+  ASCII and Unicode, up to 4096 UTF16 units, and report `mode: guest-clipboard`.
+  This avoids the former unpaced ASCII burst; it does not assert application
+  acceptance or restore the previous guest clipboard. Verify important content.
 - Key taps target guest focus. `hold_ms` must be integer 1–5000, `repeat=1`, with
   `key_hold: true`. The reply must confirm duration and release. Direct host holds
   and old workers refuse; there is no silent tap fallback. Save work and explicitly
   reattach an upgraded worker before use. Unknown release/outcome means inspect,
-  not replay.
+  not replay. Development Mac VM owners support Space, `Left/Right/Up/Down`,
+  `cmd/shift/option/control` chords and standalone modifiers; e.g.
+  `key --keys Space --hold-ms 300 --then screenshot`. The whole down/hold/up
+  sequence is one bounded owner request, not separate persistent key edges.
 - Apps supports launch by executable/app name and literal argv, not list/quit/URLs.
   Use only an operator-approved disposable app. macOS simple names use guest
   `/usr/bin/open -a`. Known Windows browsers receive target-private profiles;

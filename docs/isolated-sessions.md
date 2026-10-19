@@ -76,6 +76,17 @@ filesystem sandbox or protection against a malicious companion.
 
 - Screenshot/zoom capture the isolated desktop or region, not host windows.
 - Click supports a single unmodified pixel click; move is pixel-based.
+- Drag supports `from`, `to`, `frame` and left/middle/right `button` only when
+  the worker advertises `pointer_drag` (development macOS VM owners). Both points
+  map through the same screenshot/zoom frame as click. One bounded native request
+  presses, interpolates and releases; the response must confirm release. There is
+  no persistent button-down state. Save/stop the guest, install/build updated
+  QuietWing, resume and explicitly rebind to replace an older owner. Restart an
+  existing cctl controller/MCP process to load adapter changes. No host fallback
+  or replay on an unknown outcome. Scroll is still unavailable.
+  CLI example with your approved target/environment prefix:
+  `drag --from '[120,80]' --to '[240,160]' --frame FRAME --then screenshot`.
+  Substitute points from the fresh image; these are syntax examples, not targets.
 - `type_text` supports focused-field `mode=auto`, no element tokens or `set_value`.
   Text is passed literally to the provider; Unicode behavior is provider-native,
   guest clipboard may change and the result is not read-back verified.
@@ -92,7 +103,7 @@ filesystem sandbox or protection against a malicious companion.
   OCR reads an already captured isolated frame and can load OCR models.
 
 Accessibility/observe, window management, browser/CDP, shell-output `run`, clipboard
-tools, audio/video, scroll/drag, grounding and delegate are unavailable. MCP omits
+tools, audio/video, scroll, grounding and delegate are unavailable. MCP omits
 unsupported tools and CLI rejects them explicitly, without host fallback. This
 does not remove host-mode features. Observe/action pipelines intended for host
 accessibility do not apply to this adapter.

@@ -349,7 +349,7 @@
     },
     {
       "name": "drag",
-      "description": "Press at `from`, move to `to`, release. Points are read off `frame`.",
+      "description": "Press at `from`, move to `to`, release. Points are read off `frame`. Isolated sessions require a QuietWing worker advertising pointer_drag (currently macOS VM); the bounded request releases before returning, with no persistent button-down state. Older workers refuse without host fallback.",
       "inputSchema": {
         "type": "object",
         "properties": {

@@ -17,7 +17,10 @@ credentials. Never enable a harness by bypassing its approvals.
 For isolated sessions use `--session disposable-demo` after explicit operator
 configuration and approval; the name is synthetic. Start with a screenshot,
 not observe. No accessibility, window targeting, CDP/browser tools, audio/video,
-scroll/drag, shell output, grounding or delegate are available in that adapter.
+scroll, shell output, grounding or delegate are available in that adapter.
+Drag requires a QuietWing worker advertising `pointer_drag` (development macOS
+VM owners); it maps both points through the image frame and releases within one
+bounded request. Old workers refuse, without persistent button state or fallback.
 Text supports focused-field mode=auto, is not read-back verified and may change
 the guest clipboard. Use fresh generation-bound frames; stopped/replaced targets
 require explicit inspection/rebind, never host fallback. See the session guide.

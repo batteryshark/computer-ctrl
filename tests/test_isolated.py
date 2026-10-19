@@ -28,6 +28,7 @@ if op=='start' and not generation:
  generation='gen-one';state.write_text(generation)
 caps={k:bool(generation) for k in ['capture','input','keyboard','pointer','exec']}
 caps['key_hold']=bool(generation) and (root/'supports-hold').exists()
+caps['pointer_drag']=bool(generation) and (root/'supports-drag').exists()
 d=dict(schemaVersion=1,id=a[a.index('--id')+1],platform='linux',generation=generation,
  state='running' if generation else 'stopped',capabilities=caps,
  connection=dict(kind='local-cli',protocolVersion=1),lifecycle=dict(acquire='start',release='stop-owned'))
@@ -37,6 +38,7 @@ if op=='capture':
  path=a[a.index('--output')+1];Image.new('RGB',(800,600),'white').save(path)
 if op=='stop':state.unlink()
 result=dict(operation=op)
+if '--drag' in a:result['released']=True
 if '--hold-ms' in a:
  ms=int(a[a.index('--hold-ms')+1]);result.update(heldMs=ms,elapsedMs=ms,released=not (root/'bad-release').exists())
 reply(descriptor=d,result=result)
@@ -312,3 +314,19 @@ def test_direct_host_hold_refuses_before_focus_or_input():
     with pytest.raises(ToolError) as error:
         asyncio.run(engine.tool_key('A',hold_ms=100))
     assert error.value.code=='unsupported_capability'
+
+
+def test_drag_crosses_public_cli_once_with_pinned_generation(target):
+    engine, root=target
+    (root/'supports-drag').touch()
+    shot=call(engine,'screenshot',max_dim=400)
+    result=call(engine,'drag',**{'from':[10,20],'to':[100,150],'frame':shot.data['frame'],'button':'right'})
+    assert not result.is_error, result.data
+    records=[json.loads(line) for line in (root/'calls').read_text().splitlines()]
+    assert len(records)==2
+    assert records[-1]==['input','--id','owned','--expect-generation','gen-one',
+                         '--drag','20','40','200','300','--button','3']
+    (root/'generation').write_text('replacement')
+    result=call(engine,'drag',**{'from':[1,2],'to':[3,4],'frame':shot.data['frame']})
+    assert result.is_error and result.data['error']=='generation_changed'
+    assert len((root/'calls').read_text().splitlines())==2

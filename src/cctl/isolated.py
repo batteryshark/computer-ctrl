@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import math
 import os
 import subprocess
 import time
@@ -23,7 +24,7 @@ from .private_paths import create_private_directory
 
 
 class IsolatedEngine:
-    supported_tools = {"doctor", "screenshot", "zoom", "click", "type_text", "key", "move",
+    supported_tools = {"doctor", "screenshot", "zoom", "click", "type_text", "key", "move", "drag",
                        "apps", "batch", "wait_for", "ocr"}
 
     def __init__(self, cfg: Config):
@@ -224,7 +225,8 @@ class IsolatedEngine:
         value = await self._call("describe")
         return ToolResult(data={"session": value.get("descriptor"), "provider": "quietwing",
                                 "supported_tools": sorted(self.supported_tools), "host_fallback": False,
-                                "limitations": ["No accessibility/window targeting, browser/CDP, audio/video, drag/scroll or shell output.",
+                                "limitations": ["No accessibility/window targeting, browser/CDP, audio/video, scroll or shell output.",
+                                                "Drag requires a worker advertising pointer_drag (macOS VM); no persistent button state.",
                                                 "Native text entry mode is auto; guest clipboard may be changed."]})
 
     async def _native(self):
@@ -298,6 +300,26 @@ class IsolatedEngine:
     async def tool_move(self, x, y, frame=None):
         sx, sy = self._resolve_frame(frame).to_screen(x, y)
         return ToolResult(data=await self._input("--move", sx, sy))
+
+    async def tool_drag(self, to, frame=None, button="left", intent=None, **kwargs):
+        start = kwargs.pop("from", None)
+        if kwargs or button not in ("left", "middle", "right"):
+            raise ToolError("bad_arguments", "Drag requires a valid button and from/to points.")
+        for point in (start, to):
+            if (not isinstance(point, (list, tuple)) or len(point) != 2
+                    or any(type(v) not in (int, float) or not math.isfinite(v) for v in point)):
+                raise ToolError("bad_arguments", "Drag requires two finite from/to points.")
+        if self.binding["capabilities"].get("pointer_drag") is not True:
+            raise ToolError("unsupported_capability", "This isolated worker does not advertise pointer_drag; save work, update QuietWing and explicitly resume/rebind.")
+        f = self._resolve_frame(frame)
+        x0, y0 = f.to_screen(*start)
+        x1, y1 = f.to_screen(*to)
+        result = await self._input("--drag", x0, y0, x1, y1,
+                                   "--button", {"left": 1, "middle": 2, "right": 3}[button])
+        if result.get("released") is not True:
+            raise ToolError("provider_protocol", "Drag release was not confirmed; inspect the session before retrying.")
+        return ToolResult(data={"dragged": [[x0, y0], [x1, y1]], "frame": f.id,
+                                "button": button, "released": True})
 
     async def tool_type_text(self, text, element=None, mode="auto", submit=False, intent=None):
         if element is not None or mode != "auto":

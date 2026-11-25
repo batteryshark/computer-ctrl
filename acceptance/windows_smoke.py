@@ -11,7 +11,7 @@ import re
 import sys
 import time
 
-from phase1 import Mcp, check, results
+from linux_smoke import Mcp, check, results
 
 
 def main():

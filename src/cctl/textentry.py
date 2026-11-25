@@ -1,7 +1,7 @@
 """Choosing how to enter text.
 
-Phase 0 showed synthetic key events cannot be trusted with non-ASCII text on
-X11: Cua's AT-SPI route drops it and its key route types the wrong
+The Cua smoke probe (probes/cua-smoke) showed synthetic key events cannot be
+trusted with non-ASCII text on X11: Cua's AT-SPI route drops it and its key route types the wrong
 characters, both while reporting success. There, plain ASCII goes as key
 events and anything else is pasted. On macOS, Cua's AX insertion into an
 element is exact for any text, so that route is used throughout.

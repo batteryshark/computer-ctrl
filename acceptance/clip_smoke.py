@@ -15,7 +15,7 @@ import time
 import uuid
 from pathlib import Path
 
-from phase1 import Mcp, check, results
+from linux_smoke import Mcp, check, results
 
 
 def new_window(m, before, match):

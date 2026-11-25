@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Phase 1 acceptance: drive `cctl mcp` over MCP stdio and edit+save a file in Mousepad, verified in code.
+"""Linux acceptance: drive `cctl mcp` over MCP stdio and edit+save a file in Mousepad, verified in code.
 
-    python3 acceptance/phase1.py                                    # on the target machine
-    python3 acceptance/phase1.py --cmd "ssh -T user@linux-vm ~/.local/bin/cctl mcp"   # from anywhere
+    python3 acceptance/linux_smoke.py                                    # on the target machine
+    python3 acceptance/linux_smoke.py --cmd "ssh -T user@linux-vm ~/.local/bin/cctl mcp"   # from anywhere
 
 Exits non-zero on any failure. Only touches windows and files it creates.
 """
@@ -15,7 +15,7 @@ import sys
 import time
 import uuid
 
-TEXT_ASCII = "Phase 1 acceptance: plain ASCII. "
+TEXT_ASCII = "Linux acceptance: plain ASCII. "
 TEXT_UNICODE = "Unicode: café — 日本語 ✓ 🙂"
 
 
@@ -25,7 +25,7 @@ class Mcp:
                                   bufsize=1)
         self.n = 0
         init = self.req("initialize", {"protocolVersion": "2025-06-18", "capabilities": {},
-                                       "clientInfo": {"name": "phase1-acceptance", "version": "1"}})
+                                       "clientInfo": {"name": "linux-smoke", "version": "1"}})
         self.instructions = init.get("instructions", "")
         self.p.stdin.write(json.dumps({"jsonrpc": "2.0", "method": "notifications/initialized"}) + "\n")
 

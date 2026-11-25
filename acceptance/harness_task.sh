@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Phase 1 exit check from a real harness: the model edits and saves a file through the GUI
+# Linux acceptance check from a real harness: the model edits and saves a file through the GUI
 # using cctl's MCP tools; the result is verified in code, and the event log must show the
 # GUI path was used (not a shell shortcut).
 # Usage (on the target machine): [TASK=editor|browser|audio|clip] acceptance/harness_task.sh codex|claude|opencode [args...]

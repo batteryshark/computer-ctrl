@@ -2,9 +2,9 @@
 
 Cua supplies capture, accessibility trees, element actions, window and app
 management, and the clipboard. On X11, pixel input goes through xdotool (real
-pointer and keyboard events). This module owns everything Phase 0 found
-missing in Cua: coordinate frames across resizes, magnifying zoom,
-Unicode-safe typing, display-health checks, process listing, compact output.
+pointer and keyboard events). This module owns everything the probes in
+probes/ found missing in Cua: coordinate frames across resizes, magnifying
+zoom, Unicode-safe typing, display-health checks, process listing, compact output.
 """
 
 from __future__ import annotations
@@ -495,7 +495,7 @@ class Engine:
 
     def _need_x11(self, what: str) -> X11 | CuaInput:
         if not self.input:
-            raise ToolError("unsupported", f"{what} by pixel needs the X11 input backend on this platform (Phase 1)")
+            raise ToolError("unsupported", f"{what} by pixel needs a pixel input backend, which this platform does not have")
         return self.input
 
     async def tool_click(self, element: str | None = None, x: float | None = None, y: float | None = None,

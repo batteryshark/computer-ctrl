@@ -5,6 +5,18 @@ The Python package is in `src/cctl/`; public schemas are in `contract/tools.json
 and `providers.py` selects host or isolated execution before desktop discovery.
 `packaging/` contains harness templates and the optional macOS audio-helper build.
 
+## Rules for changes
+
+- `contract/tools.json` defines tool names, argument schemas and conventions.
+  Read the implementation too; the contract alone does not show behavior.
+- Desktop control, capture, process management and provider queries are live
+  effects. Run them only against a target and task you were given.
+- Keep host/isolated selection, generation checks, stale-frame refusal and
+  unsupported-operation refusal intact. Never fall back from an isolated target
+  to the host.
+- Keep credentials, captured content, machine configuration and session or eval
+  records out of commits. Use synthetic fixtures with reserved-domain examples.
+
 ## Tests
 
 `tests/` contains unit and mocked provider/executor coverage. The pytest `e2e`
@@ -22,9 +34,10 @@ network and process access for offline work. A full suite may need an explicitly
 approved environment for its loopback/process fixtures. Never weaken an effect
 guard to turn a blocked fixture into a pass.
 
-`acceptance/`, `eval/` and `phase0/` retain synthetic desktop fixtures and live
-test drivers. These can control desktops, start models/services, write files or
-manage processes. Read the selected driver and obtain target-specific approval
+`acceptance/`, `eval/` and `probes/` retain synthetic desktop fixtures and live
+test drivers; `scripts/winps.py` runs PowerShell on a Windows test host over
+SSH. These can control desktops, start models/services, write files or manage
+processes. Read the selected driver and obtain target-specific approval
 before use. Saved run results and transcripts aren't shipped in the working tree;
 historical records remain in Git history. Native behavior needs independent
 checks of actual files, frames, target identity and cleanup, beyond agent claims.

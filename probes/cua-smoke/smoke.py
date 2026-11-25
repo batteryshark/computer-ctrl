@@ -2,15 +2,15 @@
 # requires-python = ">=3.11"
 # dependencies = ["pillow>=10"]
 # ///
-"""Phase 0 acceptance smoke for Cua Driver on the Linux VM, over MCP via SSH.
+"""Acceptance smoke for Cua Driver on the Linux VM, over MCP via SSH.
 
 Runs in one MCP connection (session-scoped ids live only that long) against the
 daemon socket, using only windows and browsers it launches itself.
 
-    uv run --script phase0/cua-smoke/smoke.py            # CUA_HOST=user@linux-vm by default
+    uv run --script probes/cua-smoke/smoke.py            # CUA_HOST=user@linux-vm by default
 
 Each check prints PASS / FAIL / KNOWN (a known upstream defect we work around in
-the wrapper). A JSON log goes to phase0/cua-smoke/results/<timestamp>.json.
+the wrapper). A JSON log goes to probes/cua-smoke/results/<timestamp>.json.
 """
 
 import base64

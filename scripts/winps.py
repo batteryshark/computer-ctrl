@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Run a PowerShell script on a Windows host over SSH without quoting pain.
 
-    python3 phase4/winps.py 'Get-Process | Select -First 3'      # script as an argument
-    python3 phase4/winps.py - < script.ps1                       # or from stdin
+    python3 scripts/winps.py 'Get-Process | Select -First 3'      # script as an argument
+    python3 scripts/winps.py - < script.ps1                       # or from stdin
 
 Env: WIN_HOST (default user@windows-pc), WIN_KEY (default ~/.ssh/id_ed25519).
 The script is sent as -EncodedCommand (UTF-16LE base64); PowerShell's CLIXML progress noise is stripped.

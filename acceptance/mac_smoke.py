@@ -13,7 +13,7 @@ import time
 import uuid
 from pathlib import Path
 
-from phase1 import Mcp, check, results
+from linux_smoke import Mcp, check, results
 
 ASCII = "Mac smoke: plain ASCII. "
 UNI = "Unicode: café — 日本語 ✓"

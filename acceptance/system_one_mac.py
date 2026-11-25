@@ -29,7 +29,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from phase1 import Mcp
+from linux_smoke import Mcp
 
 ROOT = Path(__file__).resolve().parents[1]
 

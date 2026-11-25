@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Phase 2 acceptance: screen clips, audio capture/transcription and OCR over MCP, verified in code.
+"""Media acceptance: screen clips, audio capture/transcription and OCR over MCP, verified in code.
 
-    python3 acceptance/phase2.py [--cmd "cctl --host user@linux-vm mcp"] [--virtual-mic]
+    python3 acceptance/media_smoke.py [--cmd "cctl --host user@linux-vm mcp"] [--virtual-mic]
 
 Audio is produced on the target with espeak-ng + paplay, so the system-audio path is exercised end to end.
 --virtual-mic (sandbox only) adds a temporary PulseAudio "microphone": a null sink whose monitor is remapped into
@@ -17,7 +17,7 @@ import sys
 import time
 import uuid
 
-from phase1 import Mcp, check, results
+from linux_smoke import Mcp, check, results
 
 WORD = "pineapple"
 MIC_WORD = "lighthouse"

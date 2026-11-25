@@ -12,7 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "acceptance"))
-from phase1 import Mcp
+from linux_smoke import Mcp
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--harness", choices=["codex", "claude"], required=True)

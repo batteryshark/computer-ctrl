@@ -26,7 +26,7 @@ import time
 import wave
 from pathlib import Path
 
-from phase1 import check, results
+from linux_smoke import check, results
 
 HERE = Path(__file__).resolve().parent
 CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"

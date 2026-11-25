@@ -17,7 +17,7 @@ import uuid
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "acceptance"))
-from phase1 import Mcp  # noqa: E402
+from linux_smoke import Mcp  # noqa: E402
 
 ROLES = {"push button", "button", "menu", "menu item", "check box", "radio button", "page tab", "toggle button",
          "combo box", "link"}

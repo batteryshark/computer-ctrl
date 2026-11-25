@@ -2,7 +2,8 @@
 annotated contact sheet, system/mic audio summarized as levels (plus an optional transcript), and OCR.
 
 Raw MP4/WAV files are always saved, and their paths returned, for harnesses and models that can
-use them. Capture goes through ffmpeg (x11grab + PulseAudio on Linux; other platforms in Phase 4).
+use them. Capture goes through ffmpeg (x11grab + PulseAudio on Linux, gdigrab on Windows) or Cua's recorder on macOS
+and Wayland; audio uses WASAPI on Windows and cctl-audio.app on macOS.
 """
 
 from __future__ import annotations

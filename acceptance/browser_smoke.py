@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Phase 1b acceptance: browser tools over MCP against a local test page, verified in code.
+"""Browser acceptance: browser tools over MCP against a local test page, verified in code.
 
-    python3 acceptance/phase1b.py                       # on the target machine
-    python3 acceptance/phase1b.py --cmd "cctl --host user@linux-vm mcp"
+    python3 acceptance/browser_smoke.py                       # on the target machine
+    python3 acceptance/browser_smoke.py --cmd "cctl --host user@linux-vm mcp"
 
 The page (acceptance/web/form.html) is served by `python3 -m http.server` started through the run tool.
 """
@@ -12,7 +12,7 @@ import json
 import sys
 import time
 
-from phase1 import Mcp, check, results
+from linux_smoke import Mcp, check, results
 
 PORT = 8765
 
